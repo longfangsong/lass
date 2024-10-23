@@ -8,6 +8,8 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
 import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 export const GET = auth(async (request: NextRequest) => {
   const req = request as NextRequest & { auth: Session };
   if (!req.auth.user?.email) {
@@ -37,7 +39,7 @@ export const POST = auth(async (request: NextRequest) => {
   }
   const db = getRequestContext().env.DB;
   const payload = await request.json<{ word_id: string }>();
-  const existing = getReviewProgressByWord(
+  const existing = await getReviewProgressByWord(
     db,
     req.auth.user.email,
     payload.word_id,

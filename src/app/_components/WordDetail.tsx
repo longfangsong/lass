@@ -5,16 +5,29 @@ import { HR, Modal } from "flowbite-react";
 import { PlayButton } from "./PlayButton";
 import React from "react";
 
-export function WordDetail({ word, buttons }: { word: Word | null, buttons?: Array<React.ReactNode> }) {
+export function WordDetail({
+  word,
+  buttons,
+  className,
+}: {
+  word: Word | null;
+  buttons?: Array<React.ReactNode>;
+  className?: string;
+}) {
   return (
     <>
-      <div className="space-y-3 text-gray-500 dark:text-white">
+      <div className={"space-y-3 text-gray-500 dark:text-white " + className}>
         <div className="flex flex-row justify-between items-center">
           <p>[{word?.phonetic}]</p>
           <div className="w-fit flex flex-row gap-1 pr-2">
             {word ? <PlayButton voice={word} /> : <></>}
-            {buttons ? buttons.map((component, index) => (
-              <React.Fragment key={index}>{component}</React.Fragment>)) : <></>}
+            {buttons ? (
+              buttons.map((component, index) => (
+                <React.Fragment key={index}>{component}</React.Fragment>
+              ))
+            ) : (
+              <></>
+            )}
           </div>
         </div>
         <p>{word?.part_of_speech}</p>
@@ -69,35 +82,37 @@ export function WordDetail({ word, buttons }: { word: Word | null, buttons?: Arr
 
 function substantiveTable(word: Word) {
   return (
-    <table className="py-1 px-2 border border-sky-500">
-      <thead>
-        <tr>
-          <th />
-          <th className="py-1 px-2 border border-sky-500">Obestämd</th>
-          <th className="py-1 px-2 border border-sky-500">Bestämd</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td className="py-1 px-2 border border-sky-500">Singular</td>
-          <td className="py-1 px-2 border border-sky-500">
-            {word?.indexes.find((it) => it.form === "obest.f.sing.")?.spell}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {word?.indexes.find((it) => it.form === "best.f.sing.")?.spell}
-          </td>
-        </tr>
-        <tr>
-          <td className="py-1 px-2 border border-sky-500">Plural</td>
-          <td className="py-1 px-2 border border-sky-500">
-            {word?.indexes.find((it) => it.form === "obest.f.pl.")?.spell}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {word?.indexes.find((it) => it.form === "best.f.pl.")?.spell}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div className="max-w-full overflow-scroll">
+      <table className="py-1 px-2 border border-sky-500">
+        <thead>
+          <tr>
+            <th />
+            <th className="py-1 px-2 border border-sky-500">Obestämd</th>
+            <th className="py-1 px-2 border border-sky-500">Bestämd</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="py-1 px-2 border border-sky-500">Singular</td>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "obest.f.sing.")?.spell}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "best.f.sing.")?.spell}
+            </td>
+          </tr>
+          <tr>
+            <td className="py-1 px-2 border border-sky-500">Plural</td>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "obest.f.pl.")?.spell}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "best.f.pl.")?.spell}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -109,94 +124,100 @@ function verbTable(word: Word) {
   const perf_part = word?.indexes.find((it) => it.form === "perf.part.")?.spell;
   const presens = word?.indexes.find((it) => it.form === "presens")?.spell;
   return (
-    <table className="py-1 px-2 border border-sky-500">
-      <thead>
-        <tr>
-          <th className="py-1 px-2 border border-sky-500">Imperativ</th>
-          <th className="py-1 px-2 border border-sky-500">Infinitiv</th>
-          <th className="py-1 px-2 border border-sky-500">Supinum</th>
-          <th className="py-1 px-2 border border-sky-500">Imperfekt</th>
-          <th className="py-1 px-2 border border-sky-500">Perfekt particip</th>
-          <th className="py-1 px-2 border border-sky-500">Presens</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td className="py-1 px-2 border border-sky-500">
-            {imperativ ? (
-              <>
-                <span className="text-xs">att </span>
-                {imperativ}!
-              </>
-            ) : (
-              <></>
-            )}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {infinitiv ? (
-              <>
-                <span className="text-xs">att </span>
-                {infinitiv}
-              </>
-            ) : (
-              <></>
-            )}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {supinum ? (
-              <>
-                <span className="text-xs">har </span>
-                {supinum}
-              </>
-            ) : (
-              <></>
-            )}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {imperfekt ? imperfekt : ""}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {perf_part ? (
-              <>
-                <span className="text-xs">är </span>
-                {perf_part}
-              </>
-            ) : (
-              <></>
-            )}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {presens ? presens : ""}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div className="max-w-full overflow-scroll">
+      <table className="py-1 px-2 border border-sky-500 max-w-72 overflow-scroll">
+        <thead>
+          <tr>
+            <th className="py-1 px-2 border border-sky-500">Imperativ</th>
+            <th className="py-1 px-2 border border-sky-500">Infinitiv</th>
+            <th className="py-1 px-2 border border-sky-500">Supinum</th>
+            <th className="py-1 px-2 border border-sky-500">Imperfekt</th>
+            <th className="py-1 px-2 border border-sky-500">
+              Perfekt particip
+            </th>
+            <th className="py-1 px-2 border border-sky-500">Presens</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="py-1 px-2 border border-sky-500">
+              {imperativ ? (
+                <>
+                  <span className="text-xs">att </span>
+                  {imperativ}!
+                </>
+              ) : (
+                <></>
+              )}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {infinitiv ? (
+                <>
+                  <span className="text-xs">att </span>
+                  {infinitiv}
+                </>
+              ) : (
+                <></>
+              )}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {supinum ? (
+                <>
+                  <span className="text-xs">har </span>
+                  {supinum}
+                </>
+              ) : (
+                <></>
+              )}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {imperfekt ? imperfekt : ""}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {perf_part ? (
+                <>
+                  <span className="text-xs">är </span>
+                  {perf_part}
+                </>
+              ) : (
+                <></>
+              )}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {presens ? presens : ""}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 function adjectivePronTable(word: Word) {
   return (
-    <table className="py-1 px-2 border border-sky-500">
-      <thead>
-        <tr>
-          <th className="py-1 px-2 border border-sky-500">n-form</th>
-          <th className="py-1 px-2 border border-sky-500">t-form</th>
-          <th className="py-1 px-2 border border-sky-500">a-form</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td className="py-1 px-2 border border-sky-500">
-            {word?.indexes.find((it) => it.form === "nform")?.spell}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {word?.indexes.find((it) => it.form === "tform")?.spell}
-          </td>
-          <td className="py-1 px-2 border border-sky-500">
-            {word?.indexes.find((it) => it.form === "aform")?.spell}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div className="max-w-full overflow-scroll">
+      <table className="py-1 px-2 border border-sky-500 max-w-72 overflow-scroll">
+        <thead>
+          <tr>
+            <th className="py-1 px-2 border border-sky-500">n-form</th>
+            <th className="py-1 px-2 border border-sky-500">t-form</th>
+            <th className="py-1 px-2 border border-sky-500">a-form</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "nform")?.spell}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "tform")?.spell}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "aform")?.spell}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 }

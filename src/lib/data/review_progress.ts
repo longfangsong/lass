@@ -162,3 +162,18 @@ export async function getReviewProgressByWord(
     .bind(userEmail, wordId)
     .first<ReviewProgress>();
 }
+
+export async function getReviewProgressesOfUserCount(
+  db: D1Database,
+  userEmail: string,
+): Promise<number> {
+  const result = await db
+    .prepare(
+      `SELECT COUNT(*) as count
+    FROM ReviewProgress
+    WHERE ReviewProgress.user_email = ?1;`,
+    )
+    .bind(userEmail)
+    .first<{ count: number }>();
+  return result?.count || 0;
+}

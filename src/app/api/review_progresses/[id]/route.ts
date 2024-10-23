@@ -5,6 +5,8 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
 import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 export const PATCH = auth((async (
   request: NextRequest,
   { params: { id } }: { params: { id: string } },

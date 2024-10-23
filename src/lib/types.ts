@@ -59,17 +59,16 @@ export interface Word extends DBTypes.Word {
 }
 
 export interface ReviewProgress extends DBTypes.ReviewProgress {
-  next_reviewable_time: number | null;
+  next_reviewable_time: number | "now" | null;
 }
 
 export interface ReviewProgressAtSnapshot extends ReviewProgress {
-  snapshot_next_reviewable: number | null;
-  snapshot_next_reviewable_time: number;
+  snapshot_next_reviewable_time: number | "now" | null;
 }
 
 export interface ReviewProgressPatchPayload {
   query_count?: number;
   review_count?: number;
-  last_last_review_time?: number;
+  last_last_review_time?: number | null;
   last_review_time?: number;
 }

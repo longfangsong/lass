@@ -4,6 +4,7 @@ import {
   createReviewProgess,
   getReviewProgressesOfUser,
   updateReviewProgress,
+  getReviewProgressesOfUserCount,
 } from "./review_progress";
 
 const wordIds = [
@@ -38,6 +39,7 @@ describe("Test dealing with ReviewProgress", () => {
       last_last_review_time: result.last_review_time!,
       last_review_time: reviewTime,
     });
+    expect(await getReviewProgressesOfUserCount(env.DB, "a@b.com")).toBe(1);
     const secondSearchOnSamesnapshot = await getReviewProgressesOfUser(
       env.DB,
       "a@b.com",
