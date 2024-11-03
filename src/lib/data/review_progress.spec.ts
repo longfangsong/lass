@@ -8,8 +8,8 @@ import {
 } from "./review_progress";
 
 const wordIds = [
-  "2b1e1adc-2b9a-4c64-b7ba-a57510805eee",
-  "f3b7ebad-4e6a-41dd-b947-c6e413ff33fb",
+  "ee749aa9-d22d-477c-ad33-348c194643b0",
+  "a2ee64b9-74b1-4f14-90f1-d1484b78ad45",
 ];
 describe("Test dealing with ReviewProgress", () => {
   test("should be able to deal with a single review progess", async () => {
@@ -107,6 +107,24 @@ describe("Test dealing with ReviewProgress", () => {
     expect(searchResult[1].word_id).toBe(wordIds[1]);
     // but affects a new snapshot
     snapshotTime = new Date(2000, 1, 1, 0, 0, 50).getTime();
+    searchResult = await getReviewProgressesOfUser(
+      env.DB,
+      "a@b.com",
+      snapshotTime,
+      0,
+      10,
+    );
+    expect(searchResult.length).toBe(2);
+    expect(searchResult[0].word_id).toBe(wordIds[1]);
+    expect(searchResult[1].word_id).toBe(wordIds[0]);
+    // finished review should be putted at the end
+    reviewTime = new Date(2000, 1, 1, 0, 0, 60).getTime();
+    await updateReviewProgress(env.DB, searchResult[1].id, {
+      review_count: 6,
+      last_last_review_time: searchResult[1].last_review_time!,
+      last_review_time: reviewTime,
+    });
+    snapshotTime = new Date(2000, 1, 1, 0, 0, 70).getTime();
     searchResult = await getReviewProgressesOfUser(
       env.DB,
       "a@b.com",

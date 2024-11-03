@@ -50,7 +50,7 @@ export default async function WordTable({
           <TableHeadCell>Meaning</TableHeadCell>
           <TableHeadCell className="w-0">Play</TableHeadCell>
           <TableHeadCell className="w-0">Review</TableHeadCell>
-          <TableHeadCell className="w-0">Delete</TableHeadCell>
+          <TableHeadCell className="w-0">Done</TableHeadCell>
         </TableHead>
         <TableBody>
           {dataInTable.map(({ reviewProgress, word }) => (

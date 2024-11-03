@@ -31,7 +31,7 @@ function generateSQL(payload: ReviewProgressPatchPayload): string {
     "last_last_review_time",
     "last_review_time",
   ].forEach((field) => {
-    if (payload[field as keyof ReviewProgressPatchPayload]) {
+    if (payload[field as keyof ReviewProgressPatchPayload] !== undefined) {
       result += ` ${field}=?${current_index},\n`;
       current_index++;
     }
@@ -120,7 +120,7 @@ export async function getReviewProgressesOfUser(
       ) as next_reviewable_time
     FROM ReviewProgress
     WHERE ReviewProgress.user_email = ?1
-    ORDER BY snapshot_next_reviewable_time ASC, snapshot_review_count DESC
+    ORDER BY snapshot_next_reviewable_time ASC NULLS LAST, snapshot_review_count DESC
     LIMIT ?4 OFFSET ?3;`,
     )
     .bind(userEmail, snapshotTime, offset, limit)

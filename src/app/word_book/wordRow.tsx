@@ -8,7 +8,8 @@ import { Lexeme, ReviewProgressAtSnapshot, Word } from "@/lib/types";
 import { useEffect, useState } from "react";
 import BlurElement from "./blurElement";
 import { ReviewButton } from "./reviewButton";
-import { DeleteButton } from "./deleteButton";
+import { DoneButton } from "./doneButton";
+import { ResetButton } from "./resetButton";
 
 function lexemePriority(lexeme: Lexeme) {
   return lexeme.source === "lexin-swe" ? 0 : 1;
@@ -70,8 +71,7 @@ export function WordRow({
     "bg-green-400",
     "bg-green-500",
   ];
-  const handleReview = () => {
-    const newReviewCount = currentReviewProgress.review_count + 1;
+  const handleReview = (newReviewCount: number) => {
     const newCurrentReviewTime = new Date().getTime();
 
     let daysToAdd: number | null = null;
@@ -91,6 +91,14 @@ export function WordRow({
     });
     setNextReviewableTime(newNextReviewTime);
     setNow(new Date());
+  };
+
+  const handleDone = () => {
+    setCurrentReviewProgress({
+      ...currentReviewProgress,
+      review_count: 6,
+    });
+    setNextReviewableTime(null);
   };
 
   return (
@@ -142,10 +150,20 @@ export function WordRow({
         <PlayButton voice={word} />
       </TableCell>
       <TableCell>
-        <ReviewButton review={currentReviewProgress} onClick={handleReview} />
+        <ReviewButton
+          review={currentReviewProgress}
+          onClick={() => handleReview(currentReviewProgress.review_count + 1)}
+        />
       </TableCell>
       <TableCell>
-        <DeleteButton review={currentReviewProgress} />
+        {currentReviewProgress.review_count < 6 ? (
+          <DoneButton review={currentReviewProgress} onClick={handleDone} />
+        ) : (
+          <ResetButton
+            review={currentReviewProgress}
+            onClick={() => handleReview(1)}
+          />
+        )}
       </TableCell>
     </TableRow>
   );
