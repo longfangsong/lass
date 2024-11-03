@@ -1,30 +1,38 @@
 import { auth } from "@/lib/auth";
 import { getReviewProgressesOfUserCount } from "@/lib/data/review_progress";
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { Pagination } from "flowbite-react";
 import { redirect } from "next/navigation";
 import { WordBookPagination } from "./pagination";
+import WordTable from "./table";
+import { getDB } from "@/lib/db";
 
 export const runtime = "edge";
+
 export default async function WordBook({
   searchParams,
 }: {
-  searchParams?: { page?: number; fromPage?: string; snapshot?: string };
+  searchParams?: { page?: number; fromPage?: string; snapshot?: number };
 }) {
-  const db = getRequestContext().env.DB;
   const session = await auth();
   if (!session?.user?.email) {
     redirect("/api/auth/signin");
   }
+  const [release, db] = await getDB();
   const reviewProgressCount = await getReviewProgressesOfUserCount(
     db,
     session.user.email,
   );
+  release();
   return (
-    <WordBookPagination
-      reviewProgressCount={reviewProgressCount}
-      pageSize={10}
-      snapshotTime={0}
-    />
+    <div>
+      <WordTable
+        page={searchParams?.page || 1}
+        snapshot={searchParams?.snapshot || new Date().getTime()}
+      />
+      <WordBookPagination
+        reviewProgressCount={reviewProgressCount}
+        snapshotTime={searchParams?.snapshot || new Date().getTime()}
+      />
+    </div>
   );
 }

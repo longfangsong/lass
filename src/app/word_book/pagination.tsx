@@ -1,16 +1,15 @@
 "use client";
 
+import { PAGE_SIZE } from "@/lib/data/review_progress";
 import { Pagination } from "flowbite-react";
 import { useSearchParams } from "next/navigation";
 
 export function WordBookPagination({
   reviewProgressCount,
-  pageSize,
   snapshotTime,
 }: {
   snapshotTime: number;
   reviewProgressCount: number;
-  pageSize: number;
 }) {
   const searchParams = useSearchParams();
   const curretPageStr = searchParams.get("page");
@@ -18,15 +17,12 @@ export function WordBookPagination({
   return (
     <Pagination
       currentPage={currentPage}
-      totalPages={Math.floor(reviewProgressCount / pageSize)}
+      totalPages={Math.ceil(reviewProgressCount / PAGE_SIZE)}
       onPageChange={(page) => {
         const params = new URLSearchParams(searchParams);
         params.set("page", page.toString());
         params.set("fromPage", currentPage.toString());
-        params.set(
-          "snapshot",
-          (snapshotTime || new Date().getTime()).toString(),
-        );
+        params.set("snapshot", snapshotTime.toString());
         window.location.href = `?${params.toString()}`;
       }}
     />

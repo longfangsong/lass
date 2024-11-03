@@ -4,10 +4,9 @@ import { SaveToWordBookButton } from "@/app/_components/SaveToWordBook";
 import { WordDetail } from "@/app/_components/WordDetail";
 import { fetchWithSemaphore } from "@/lib/fetch";
 import { Word } from "@/lib/types";
-import { Button, HR, Spinner } from "flowbite-react";
+import { HR, Spinner } from "flowbite-react";
 import React from "react";
 import { useEffect, useState } from "react";
-import { RiStickyNoteAddLine } from "react-icons/ri";
 
 export function PopoverContent({ spell }: { spell: string }) {
   const [words, setWords] = useState<Array<Word> | null>(null);
@@ -37,7 +36,9 @@ export function PopoverContent({ spell }: { spell: string }) {
               <WordDetail
                 className="max-w-96 overflow-scroll"
                 word={word}
-                buttons={[<SaveToWordBookButton word_id={word.id} />]}
+                buttons={[
+                  <SaveToWordBookButton word_id={word.id} className="ml-3" />,
+                ]}
               />
             </div>
             {index < words.length - 1 ? <HR className="m-0 border" /> : <></>}

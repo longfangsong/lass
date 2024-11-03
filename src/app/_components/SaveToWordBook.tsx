@@ -6,11 +6,17 @@ import { Button } from "flowbite-react";
 import { useState } from "react";
 import { RiStickyNoteAddLine } from "react-icons/ri";
 
-export function SaveToWordBookButton({ word_id }: { word_id: string }) {
+export function SaveToWordBookButton({
+  word_id,
+  className,
+}: {
+  className?: string;
+  word_id: string;
+}) {
   const [clicked, setClicked] = useState(false);
   return (
     <Button
-      className="ml-3 p-0"
+      className={"p-0 " + className ? className : ""}
       onClick={() => {
         (async () => {
           await createOrUpdateWordReview(word_id);

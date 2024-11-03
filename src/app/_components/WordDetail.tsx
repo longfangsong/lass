@@ -1,9 +1,13 @@
 "use client";
 
-import { Word } from "@/lib/types";
-import { HR, Modal } from "flowbite-react";
+import { Lexeme, Word } from "@/lib/types";
+import { HR } from "flowbite-react";
 import { PlayButton } from "./PlayButton";
 import React from "react";
+
+function lexemePriority(lexeme: Lexeme) {
+  return lexeme.source === "folkets-lexikon" ? 0 : 1;
+}
 
 export function WordDetail({
   word,
@@ -19,8 +23,8 @@ export function WordDetail({
       <div className={"space-y-3 text-gray-500 dark:text-white " + className}>
         <div className="flex flex-row justify-between items-center">
           <p>[{word?.phonetic}]</p>
-          <div className="w-fit flex flex-row gap-1 pr-2">
-            {word ? <PlayButton voice={word} /> : <></>}
+          <div className="w-fit flex flex-row gap-1 p-1 pr-2">
+            {word ? <PlayButton voice={word} className="ml-3" /> : <></>}
             {buttons ? (
               buttons.map((component, index) => (
                 <React.Fragment key={index}>{component}</React.Fragment>
@@ -41,7 +45,7 @@ export function WordDetail({
               </p>
             ) : (
               <p>
-                '{word.lemma}' är ett <b className="text-green-500">en</b>-ord
+                "{word.lemma}" är ett <b className="text-green-500">en</b>-ord
               </p>
             )}
             {substantiveTable(word)}
@@ -58,24 +62,26 @@ export function WordDetail({
         )}
       </div>
       <HR className="my-3 border" />
-      {word?.lexemes.map((lexeme, index) => (
-        <React.Fragment key={lexeme.id}>
-          <p className="text-gray-500 dark:text-white">{lexeme.definition}</p>
-          <div className="grid grid-cols-2">
-            <span className="text-sm text-green-500">
-              {lexeme.example ? lexeme.example : ""}
-            </span>
-            <span className="text-sm text-blue-500">
-              {lexeme.example_meaning ? lexeme.example_meaning : ""}
-            </span>
-          </div>
-          {index !== word?.lexemes.length - 1 ? (
-            <HR className="m-1 border-t" />
-          ) : (
-            <></>
-          )}
-        </React.Fragment>
-      ))}
+      {word?.lexemes
+        .toSorted((a, b) => lexemePriority(a) - lexemePriority(b))
+        .map((lexeme, index) => (
+          <React.Fragment key={lexeme.id}>
+            <p className="text-gray-500 dark:text-white">{lexeme.definition}</p>
+            <div className="grid grid-cols-2">
+              <span className="text-sm text-green-500">
+                {lexeme.example ? lexeme.example : ""}
+              </span>
+              <span className="text-sm text-blue-500">
+                {lexeme.example_meaning ? lexeme.example_meaning : ""}
+              </span>
+            </div>
+            {index !== word?.lexemes.length - 1 ? (
+              <HR className="m-1 border-t" />
+            ) : (
+              <></>
+            )}
+          </React.Fragment>
+        ))}
     </>
   );
 }
@@ -141,14 +147,7 @@ function verbTable(word: Word) {
         <tbody>
           <tr>
             <td className="py-1 px-2 border border-sky-500">
-              {imperativ ? (
-                <>
-                  <span className="text-xs">att </span>
-                  {imperativ}!
-                </>
-              ) : (
-                <></>
-              )}
+              {imperativ ? <>{imperativ}!</> : <></>}
             </td>
             <td className="py-1 px-2 border border-sky-500">
               {infinitiv ? (

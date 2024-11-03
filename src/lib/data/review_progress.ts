@@ -5,6 +5,8 @@ import {
   ReviewProgressPatchPayload,
 } from "../types";
 
+export const PAGE_SIZE = 20;
+
 export async function createReviewProgess(
   db: D1Database,
   user_email: string,
@@ -18,10 +20,6 @@ export async function createReviewProgess(
     .bind(id, user_email, word_id, new Date().getTime())
     .run();
   return id;
-}
-
-export async function deleteReviewProgress(db: D1Database, id: string) {
-  await db.prepare(`DELETE FROM ReviewProgress WHERE id=?1;`).bind(id).run();
 }
 
 function generateSQL(payload: ReviewProgressPatchPayload): string {
@@ -90,7 +88,7 @@ export async function getReviewProgressesOfUser(
         ELSE review_count
       END as snapshot_review_count,
       CASE WHEN ?2 < last_review_time
-        THEN (last_last_review_time + 3600000 * CASE review_count - 1
+        THEN (last_last_review_time + 24 * 60 * 60 * 1000 * CASE review_count - 1
             WHEN 0 THEN 0
             WHEN 1 THEN 1
             WHEN 2 THEN 3
@@ -99,7 +97,7 @@ export async function getReviewProgressesOfUser(
             WHEN 5 THEN 30
             ELSE NULL
         END)
-        ELSE (SELECT last_review_time+3600000 * CASE review_count
+        ELSE (SELECT last_review_time + 24 * 60 * 60 * 1000 * CASE review_count
             WHEN 0 THEN 0
             WHEN 1 THEN 1
             WHEN 2 THEN 3
@@ -110,7 +108,7 @@ export async function getReviewProgressesOfUser(
           END)
       END as snapshot_next_reviewable_time,
       (
-        SELECT last_review_time+3600000 * CASE review_count
+        SELECT last_review_time+ 24 * 60 * 60 * 1000 * CASE review_count
             WHEN 0 THEN 0
             WHEN 1 THEN 1
             WHEN 2 THEN 3
@@ -146,7 +144,7 @@ export async function getReviewProgressByWord(
       last_last_review_time,
       last_review_time,
       (
-        SELECT last_review_time+3600000 * CASE review_count
+        SELECT last_review_time + 24 * 60 * 60 * 1000 * CASE review_count
             WHEN 0 THEN 0
             WHEN 1 THEN 1
             WHEN 2 THEN 3
@@ -176,4 +174,12 @@ export async function getReviewProgressesOfUserCount(
     .bind(userEmail)
     .first<{ count: number }>();
   return result?.count || 0;
+}
+
+export async function deleteReviewProgress(db: D1Database, id: string) {
+  const { success } = await db
+    .prepare("DELETE FROM ReviewProgress WHERE id = ?")
+    .bind(id)
+    .run();
+  return success;
 }

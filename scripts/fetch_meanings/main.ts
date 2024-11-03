@@ -104,8 +104,14 @@ function extractLemmaInfo(
         definition:
           $(lexemeElement).children("Definition").text() ||
           $(lexemeElement).children("Comment[Type='Def']").text() ||
-          $(lexemeElement).children("Gramcom").text(),
-        example: $(lexemeElement).find("Example").text() || null,
+          $(lexemeElement).children("Gramcom").text() ||
+          $(lexemeElement).children("Comment").text() ||
+          ($(lexemeElement).find("Idiom").length > 0
+            ? `idiom: ${$(lexemeElement).find("Idiom").text()}` +
+              " | meaning: " +
+              $(lexemeElement).find("Idiom > Definition").text()
+            : ""),
+        example: $(lexemeElement).find("Example").first().text() || null,
         example_meaning: null,
         source: "lexin-swe",
       });

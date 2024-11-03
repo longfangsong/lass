@@ -47,6 +47,8 @@ export namespace DBTypes {
   }
 }
 
+export type Lexeme = DBTypes.Lexeme;
+
 export interface WordSearchResult {
   id: string;
   lemma: string;
@@ -59,11 +61,11 @@ export interface Word extends DBTypes.Word {
 }
 
 export interface ReviewProgress extends DBTypes.ReviewProgress {
-  next_reviewable_time: number | "now" | null;
+  next_reviewable_time: number | null;
 }
 
 export interface ReviewProgressAtSnapshot extends ReviewProgress {
-  snapshot_next_reviewable_time: number | "now" | null;
+  snapshot_next_reviewable_time: number | null;
 }
 
 export interface ReviewProgressPatchPayload {

@@ -14,6 +14,8 @@ import {
 import React, { useState } from "react";
 import { fetchWithSemaphore } from "@/lib/fetch";
 import { WordDetail } from "../_components/WordDetail";
+import { SaveToWordBookButton } from "../_components/SaveToWordBook";
+import { useSession } from "next-auth/react";
 
 export function WordDetailModal({
   word,
@@ -22,11 +24,19 @@ export function WordDetailModal({
   word: Word | null;
   onClose?: () => void;
 }) {
+  const { status } = useSession();
   return (
     <Modal show={word !== null} onClose={onClose}>
       <ModalHeader>{word?.lemma}</ModalHeader>
       <ModalBody className="p-4">
-        <WordDetail word={word} />
+        <WordDetail
+          word={word}
+          buttons={
+            status === "authenticated" && word
+              ? [<SaveToWordBookButton word_id={word.id} className="ml-3" />]
+              : []
+          }
+        />
       </ModalBody>
     </Modal>
   );

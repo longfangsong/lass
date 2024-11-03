@@ -13,6 +13,7 @@ import {
 import { auth } from "@/lib/auth";
 import { SignOutButton } from "./_components/SignOutButton";
 import SignInButton from "./_components/SignInButton";
+import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin", "latin-ext"] });
 
@@ -57,6 +58,13 @@ async function NavBar() {
         <NavbarLink href={process.env.CF_PAGES_URL + "/words"}>
           Words
         </NavbarLink>
+        {session?.user ? (
+          <NavbarLink href={process.env.CF_PAGES_URL + "/word_book"}>
+            Word Book
+          </NavbarLink>
+        ) : (
+          <></>
+        )}
       </NavbarCollapse>
     </Navbar>
   );
@@ -74,9 +82,11 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <NavBar />
-        <main className="p-2 sm:p-4 text-gray-900 dark:text-white">
-          {children}
-        </main>
+        <SessionProvider>
+          <main className="p-2 sm:p-4 text-gray-900 dark:text-white">
+            {children}
+          </main>
+        </SessionProvider>
       </body>
     </html>
   );

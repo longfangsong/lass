@@ -4,6 +4,7 @@ import {
   getReviewProgressByWord,
   getReviewProgressesOfUser,
 } from "@/lib/data/review_progress";
+import { getDB } from "@/lib/db";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,13 +16,13 @@ export const GET = auth(async (request: NextRequest) => {
   if (!req.auth.user?.email) {
     return new NextResponse(null, { status: 401 });
   }
-  const db = getRequestContext().env.DB;
   const snapshotTimeString = request.nextUrl.searchParams.get("snapshot_time");
   const snapshotTime = snapshotTimeString
     ? parseInt(snapshotTimeString)
     : new Date().getTime();
   const offset = parseInt(request.nextUrl.searchParams.get("offset") || "0");
   let limit = parseInt(request.nextUrl.searchParams.get("limit") || "10");
+  const [release, db] = await getDB();
   const reviewProgesses = await getReviewProgressesOfUser(
     db,
     req.auth.user.email,
@@ -29,6 +30,7 @@ export const GET = auth(async (request: NextRequest) => {
     offset,
     limit,
   );
+  release();
   return NextResponse.json(reviewProgesses);
 });
 
