@@ -15,16 +15,18 @@ export function WordBookPagination({
   const curretPageStr = searchParams.get("page");
   const currentPage = curretPageStr ? parseInt(curretPageStr) : 1;
   return (
-    <Pagination
-      currentPage={currentPage}
-      totalPages={Math.ceil(reviewProgressCount / PAGE_SIZE)}
-      onPageChange={(page) => {
-        const params = new URLSearchParams(searchParams);
-        params.set("page", page.toString());
-        params.set("fromPage", currentPage.toString());
-        params.set("snapshot", snapshotTime.toString());
-        window.location.href = `?${params.toString()}`;
-      }}
-    />
+    <div className="flex justify-center">
+      <Pagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(reviewProgressCount / PAGE_SIZE)}
+        onPageChange={(page) => {
+          const params = new URLSearchParams(searchParams);
+          params.set("page", page.toString());
+          params.set("fromPage", currentPage.toString());
+          params.set("snapshot", snapshotTime.toString());
+          window.location.href = `?${params.toString()}`;
+        }}
+      />
+    </div>
   );
 }

@@ -34,7 +34,6 @@ test("can query words", async ({ page }) => {
   const sittElement = firstSentence.locator("a").nth(10);
   expect(sittElement).toHaveText("sitt");
   await sittElement.click();
-  await page.waitForTimeout(1000);
   const dialog = page.locator('[role="dialog"]');
   await expect(dialog).toBeVisible();
   const firstLemma = dialog.locator("h2").first();

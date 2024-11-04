@@ -32,18 +32,20 @@ export function WordRow({
 }) {
   const [currentReviewProgress, setCurrentReviewProgress] =
     useState(reviewProgress);
-  const [nextReviewableTime, setNextReviewableTime] = useState<number | null>(
-    reviewProgress.next_reviewable_time,
-  );
   const [now, setNow] = useState(new Date());
+  const [isClient, setIsClient] = useState(false);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
     const updateInterval = () => {
-      if (nextReviewableTime === null) return;
+      if (currentReviewProgress.next_reviewable_time === null) return;
 
-      const timeUntilNextReview = nextReviewableTime - now.getTime();
+      const timeUntilNextReview =
+        currentReviewProgress.next_reviewable_time - now.getTime();
 
       if (timeUntilNextReview < 60 * 1000) {
         // Less than 1 minute, update every second
@@ -62,7 +64,7 @@ export function WordRow({
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [nextReviewableTime, now]);
+  }, [currentReviewProgress, now]);
   const reviewCountColor = [
     "bg-red-500",
     "bg-red-400",
@@ -72,7 +74,7 @@ export function WordRow({
     "bg-green-500",
   ];
   const handleReview = (newReviewCount: number) => {
-    const newCurrentReviewTime = new Date().getTime();
+    const newCurrentReviewTime = now.getTime();
 
     let daysToAdd: number | null = null;
     if (newReviewCount in REVIEW_DAYS_MAP) {
@@ -87,9 +89,11 @@ export function WordRow({
 
     setCurrentReviewProgress({
       ...currentReviewProgress,
+      last_last_review_time: currentReviewProgress.last_review_time,
+      last_review_time: now.getTime(),
+      next_reviewable_time: newNextReviewTime,
       review_count: newReviewCount,
     });
-    setNextReviewableTime(newNextReviewTime);
     setNow(new Date());
   };
 
@@ -97,19 +101,22 @@ export function WordRow({
     setCurrentReviewProgress({
       ...currentReviewProgress,
       review_count: 6,
+      next_reviewable_time: null,
     });
-    setNextReviewableTime(null);
   };
 
   return (
     <TableRow key={reviewProgress.id}>
       <TableCell>{word.lemma}</TableCell>
       <TableCell>
-        {nextReviewableTime === null
+        {currentReviewProgress.next_reviewable_time === null
           ? "Done!"
-          : nextReviewableTime < new Date().getTime()
+          : isClient &&
+              currentReviewProgress.next_reviewable_time < new Date().getTime()
             ? "Nu"
-            : `I ${formatDistance(nextReviewableTime!, new Date(), { locale: sv })}`}
+            : isClient
+              ? `I ${formatDistance(currentReviewProgress.next_reviewable_time!, new Date(), { locale: sv })}`
+              : ""}
       </TableCell>
       <TableCell>
         <div className="flex flex-col-reverse items-center">
@@ -153,6 +160,7 @@ export function WordRow({
         <ReviewButton
           review={currentReviewProgress}
           onClick={() => handleReview(currentReviewProgress.review_count + 1)}
+          now={now}
         />
       </TableCell>
       <TableCell>

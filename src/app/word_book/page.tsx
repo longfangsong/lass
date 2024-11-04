@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth";
 import { getReviewProgressesOfUserCount } from "@/lib/data/review_progress";
-import { getRequestContext } from "@cloudflare/next-on-pages";
 import { redirect } from "next/navigation";
 import { WordBookPagination } from "./pagination";
 import WordTable from "./table";

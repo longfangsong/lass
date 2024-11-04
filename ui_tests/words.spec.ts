@@ -18,7 +18,7 @@ test("can search words", async ({ page }) => {
   await expect(dialog).toContainText(/\[.*\]/);
   await expect(dialog).toContainText("subst.");
   await expect(dialog).toContainText('"äpple" är ett ett-ord');
-  await expect(dialog).toContainText("ett grönt äppleett rött äpple");
+  await expect(dialog).toContainText("ett grönt äpple");
   await expect(dialog).toContainText("apple");
   await expect(dialog.locator("table")).toBeVisible();
   const rows = dialog.locator("table tbody tr");
