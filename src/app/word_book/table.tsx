@@ -42,7 +42,7 @@ export default async function WordTable({
   );
   return (
     <div className="max-w-full overflow-scroll">
-      <Table striped className="overflow-x-scroll">
+      <Table striped className="overflow-scroll">
         <TableHead>
           <TableHeadCell className="w-0">Word</TableHeadCell>
           <TableHeadCell className="w-0">Next</TableHeadCell>

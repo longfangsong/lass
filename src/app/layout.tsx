@@ -83,7 +83,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <NavBar />
         <SessionProvider>
-          <main className="p-2 sm:p-4 text-gray-900 dark:text-white">
+          <main className="p-2 sm:p-4 text-gray-900 dark:text-white h-[calc(100vh-63px)] overflow-y-scroll">
             {children}
           </main>
         </SessionProvider>

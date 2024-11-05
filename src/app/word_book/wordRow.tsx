@@ -153,17 +153,17 @@ export function WordRow({
             );
           })}
       </TableCell>
-      <TableCell>
+      <TableCell className="px-0">
         <PlayButton voice={word} />
       </TableCell>
-      <TableCell>
+      <TableCell className="px-0">
         <ReviewButton
           review={currentReviewProgress}
           onClick={() => handleReview(currentReviewProgress.review_count + 1)}
           now={now}
         />
       </TableCell>
-      <TableCell>
+      <TableCell className="px-0">
         {currentReviewProgress.review_count < 6 ? (
           <DoneButton review={currentReviewProgress} onClick={handleDone} />
         ) : (

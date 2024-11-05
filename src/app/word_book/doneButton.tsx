@@ -31,7 +31,7 @@ export function DoneButton({
   return (
     <Button
       color="success"
-      className="ml-3 p-0"
+      className="p-0"
       onClick={async () => {
         await patch(review.id, donePayload());
         onClick && onClick();

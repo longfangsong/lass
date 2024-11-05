@@ -50,7 +50,7 @@ export function ReviewButton({
 
   return (
     <Button
-      className="ml-3 p-0"
+      className="p-0"
       onClick={async () => {
         await updateWordReview(review);
         onClick && onClick();
