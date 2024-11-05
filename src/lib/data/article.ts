@@ -33,6 +33,16 @@ export async function getArticle(
     .first<DBTypes.Article>();
 }
 
+export async function getArticleCount(db: D1Database): Promise<number> {
+  const result = await db
+    .prepare(
+      `SELECT COUNT(*) as count
+      FROM Article;`,
+    )
+    .first<{ count: number }>();
+  return result?.count || 0;
+}
+
 export function toWordsAndPunctuations(article: string): Array<Array<string>> {
   const wordsAndPunctuations = article
     .split(/(\s+)|(\.\.\.)|(\.)/)
