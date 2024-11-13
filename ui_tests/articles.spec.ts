@@ -2,9 +2,9 @@ import { test, expect } from "@playwright/test";
 
 test("can see articles", async ({ page }) => {
   await page.goto("/articles");
-  await page.waitForSelector("main ul > li");
-  expect(page.locator("main ul > li")).toHaveCount(10);
-  const firstArticle = page.locator("main ul > li").first();
+  await page.waitForSelector("main > div > ul > li");
+  expect(page.locator("main > div > ul > li")).toHaveCount(10);
+  const firstArticle = page.locator("main > div > ul > li").first();
   expect(firstArticle).toContainText(
     "Landshövdingen i Stockholm har fått sparken av regeringen",
   );

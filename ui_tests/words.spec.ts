@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("can search words", async ({ page }) => {
-  await page.goto("/words");
+  await page.goto("/dictionary");
   await page.fill("main input", "äppl");
   await page.waitForTimeout(1000);
   await page.press("input", "Enter");

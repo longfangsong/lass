@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("has title", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page).toHaveTitle("Lära sig svenska");
+  await expect(page).toHaveTitle("Läss");
 });
 
 test("Articles link directs to /articles", async ({ page }) => {
@@ -13,9 +13,9 @@ test("Articles link directs to /articles", async ({ page }) => {
   await expect(page).toHaveURL("/articles");
 });
 
-test("Words link directs to /words", async ({ page }) => {
+test("Dictionary link directs to /dictionary", async ({ page }) => {
   await page.goto("/");
-  await page.click("text=Words");
+  await page.click("text=Dictionary");
 
-  await expect(page).toHaveURL("/words");
+  await expect(page).toHaveURL("/dictionary");
 });

@@ -18,7 +18,7 @@ import { SessionProvider } from "next-auth/react";
 const inter = Inter({ subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
-  title: "Lära sig svenska",
+  title: "Läss",
   description: "An app for learning Swedish",
 };
 
@@ -30,8 +30,8 @@ async function NavBar() {
       className="items-center justify-between border-b border-gray-200 bg-white text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
     >
       <NavbarBrand href={process.env.CF_PAGES_URL}>
-        <span className="self-center whitespace-nowrap text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-          Lära Svenska
+        <span className="norse-bold self-center whitespace-nowrap text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+          Läss
         </span>
       </NavbarBrand>
       <div className="flex flex-row justify-between items-center gap-2 md:order-2">
@@ -55,8 +55,8 @@ async function NavBar() {
         <NavbarLink href={process.env.CF_PAGES_URL + "/articles"}>
           Articles
         </NavbarLink>
-        <NavbarLink href={process.env.CF_PAGES_URL + "/words"}>
-          Words
+        <NavbarLink href={process.env.CF_PAGES_URL + "/dictionary"}>
+          Dictionary
         </NavbarLink>
         {session?.user ? (
           <NavbarLink href={process.env.CF_PAGES_URL + "/word_book"}>
