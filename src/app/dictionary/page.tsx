@@ -17,7 +17,9 @@ import { WordDetail } from "../_components/WordDetail";
 import { SaveToWordBookButton } from "../_components/SaveToWordBook";
 import { useSession } from "next-auth/react";
 
-export function WordDetailModal({
+export const runtime = "edge";
+
+function WordDetailModal({
   word,
   onClose,
 }: {

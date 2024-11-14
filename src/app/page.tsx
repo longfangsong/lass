@@ -3,6 +3,9 @@ import "./norse-bold.css";
 import { Button } from "flowbite-react";
 import { FaGithub } from "react-icons/fa";
 import { HiOutlineArrowDown } from "react-icons/hi";
+
+export const runtime = "edge";
+
 export default function Home() {
   return (
     <>

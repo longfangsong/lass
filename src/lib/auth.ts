@@ -1,5 +1,5 @@
-import NextAuth, { Profile, User } from "next-auth";
-import { OAuthConfig, Provider } from "next-auth/providers";
+import NextAuth, { User } from "next-auth";
+import { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
