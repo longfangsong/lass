@@ -1,5 +1,5 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "lass"
+name = "lassvenska"
 compatibility_date = "2024-09-25"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
@@ -17,7 +17,7 @@ pages_build_output_dir = ".vercel/output/static"
 # Note: Use secrets to store sensitive data.
 # - https://developers.cloudflare.com/pages/functions/bindings/#secrets
 [vars]
-CF_PAGES_URL = "https://lara-sig-svenska.pages.dev"
+CF_PAGES_URL = "https://lassvenska.pages.dev"
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/pages/functions/bindings/#workers-ai
@@ -84,5 +84,5 @@ preview_database_id = "DB"
 # binding = "MY_KV_NAMESPACE"
 # id = "<PRODUCTION_NAMESPACE_ID>"
 binding = "DB"
-database_name = "lara-sig-svenska"
-database_id = "7fd21fa5-fb30-43aa-ab55-210fd5229b91"
+database_name = "lass"
+database_id = "5539ba3d-983e-456f-8814-cd3f2442bf1d"

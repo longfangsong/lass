@@ -305,13 +305,9 @@ async function main() {
   const polyfill = loadPolyfill(polyfillJsonPath);
 
   const inflectionMap = buildInflectionMap($en);
-  let initSqlFileId = 2;
-  let initSqlFile = fs.createWriteStream(
-    `000${initSqlFileId}_import_data.sql`,
-    {
-      flags: "w",
-    },
-  );
+  let initSqlFile = fs.createWriteStream(`import_data.sql`, {
+    flags: "w",
+  });
   $swe("Lemma").each((index, element) => {
     if ($swe(element).find("Reference[Type='see']").length > 0) {
       return;
@@ -371,16 +367,6 @@ async function main() {
     lexemeBuffer = "";
     if (index % 500 === 499) {
       console.log(lemmaInfo.lemma);
-    }
-    if (index % 5000 === 4999) {
-      initSqlFileId += 1;
-      initSqlFile.end();
-      initSqlFile = fs.createWriteStream(
-        `${initSqlFileId.toString().padStart(4, "0")}_import_data.sql`,
-        {
-          flags: "w",
-        },
-      );
     }
   });
   writeBatch(initSqlFile, wordBuffer, wordIndexBuffer, lexemeBuffer);
