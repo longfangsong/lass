@@ -305,7 +305,7 @@ async function main() {
   const polyfill = loadPolyfill(polyfillJsonPath);
 
   const inflectionMap = buildInflectionMap($en);
-  let initSqlFile = fs.createWriteStream(`import_data.sql`, {
+  let initSqlFile = fs.createWriteStream(`dictionary.sql`, {
     flags: "w",
   });
   $swe("Lemma").each((index, element) => {

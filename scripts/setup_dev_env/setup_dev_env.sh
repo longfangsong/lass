@@ -21,4 +21,5 @@ echo "AUTH_GOOGLE_SECRET=\"$google_secret\"" >> .dev.vars
 ln -s .dev.vars .env.local
 npx wrangler d1 migrations apply DB
 npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/articles.sql
+npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/import_data.sql
 pnpm exec playwright install

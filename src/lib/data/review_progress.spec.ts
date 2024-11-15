@@ -8,8 +8,8 @@ import {
 } from "./review_progress";
 
 const wordIds = [
-  "ee749aa9-d22d-477c-ad33-348c194643b0",
-  "a2ee64b9-74b1-4f14-90f1-d1484b78ad45",
+  "c50b3c3f-039f-4eab-ae0d-822e8b9729ea",
+  "8fe8315a-d718-4af7-bb17-2c0df9c44386",
 ];
 describe("Test dealing with ReviewProgress", () => {
   test("should be able to deal with a single review progess", async () => {

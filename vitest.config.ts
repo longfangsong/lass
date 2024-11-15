@@ -7,14 +7,8 @@ import {
 export default defineWorkersProject(async () => {
   const migrationsPath = path.join(__dirname, "migrations");
   const migrations = await readD1Migrations(migrationsPath);
-  const filteredMigrations = migrations.filter((migration) => {
-    const migrationNumber = migration.name.split("_")[0];
-    return (
-      migrationNumber == "0005" ||
-      migrationNumber < "0003" ||
-      migrationNumber > "0006"
-    );
-  });
+  const dataPath = path.join(__dirname, "data");
+  migrations.push(...(await readD1Migrations(dataPath)));
   return {
     test: {
       exclude: [
@@ -30,7 +24,7 @@ export default defineWorkersProject(async () => {
         workers: {
           wrangler: { configPath: "./wrangler.test.toml" },
           miniflare: {
-            bindings: { TEST_MIGRATIONS: filteredMigrations },
+            bindings: { TEST_MIGRATIONS: migrations },
             d1Databases: {
               DB: "7fd21fa5-fb30-43aa-ab55-210fd5229b91",
             },
