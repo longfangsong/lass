@@ -14,7 +14,7 @@ type AppRouteHandlerFnContext = {
 
 export const runtime = "edge";
 
-export const GET = auth(
+export const PATCH = auth(
   async (request: NextRequest, ctx: AppRouteHandlerFnContext) => {
     const id = ctx.params?.id as string;
     const req = request as NextRequest & { auth: Session };
@@ -37,7 +37,6 @@ export const DELETE = auth(
     }
     const db = getRequestContext().env.DB;
 
-    // Delete the review progress
     const success = await deleteReviewProgress(db, id);
 
     if (!success) {
