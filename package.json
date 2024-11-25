@@ -16,6 +16,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "date-fns": "^4.1.0",
     "debounce": "^2.2.0",
     "flowbite-react": "^0.10.2",

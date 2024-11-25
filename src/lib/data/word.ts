@@ -1,3 +1,4 @@
+import { dictionaryModel } from "../ai";
 import { DBTypes, Word, WordSearchResult } from "../types";
 
 function unescapeString(str: string): string {
@@ -174,6 +175,134 @@ async function getDBLexemesByWordId(
   return unescapeObject(result.results);
 }
 
+interface AIResponse {
+  spell: string;
+  pronunciation: string;
+  part_of_speech: string;
+  meaning: string;
+  example_sentence: string;
+  example_sentence_meaning: string;
+}
+
+async function saveAIResponseIntoDB(db_client: D1Database, word: Word) {
+  await saveDBWord(db_client, word);
+  const lexeme = word.lexemes[0];
+  const wordIndex = word.indexes[0];
+  await Promise.all([
+    saveWordIndex(db_client, wordIndex),
+    saveLexeme(db_client, lexeme),
+  ]);
+}
+
+async function saveLexeme(db_client: D1Database, lexeme: DBTypes.Lexeme) {
+  await db_client
+    .prepare(
+      `INSERT INTO Lexeme (id, word_id, definition, example, example_meaning, source) VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+    )
+    .bind(
+      lexeme.id,
+      lexeme.word_id,
+      lexeme.definition,
+      lexeme.example,
+      lexeme.example_meaning,
+      lexeme.source,
+    )
+    .run();
+}
+
+async function saveWordIndex(
+  db_client: D1Database,
+  wordIndex: DBTypes.WordIndex,
+) {
+  await db_client
+    .prepare(
+      `INSERT INTO WordIndex (id, word_id, spell, form) VALUES (?1, ?2, ?3, ?4)`,
+    )
+    .bind(wordIndex.id, wordIndex.word_id, wordIndex.spell, wordIndex.form)
+    .run();
+}
+
+async function saveDBWord(db_client: D1Database, word: DBTypes.Word) {
+  await db_client
+    .prepare(
+      `INSERT INTO Word (id, lemma, part_of_speech, phonetic, phonetic_voice, phonetic_url) VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+    )
+    .bind(
+      word.id,
+      word.lemma,
+      word.part_of_speech,
+      word.phonetic,
+      word.phonetic_voice,
+      word.phonetic_url,
+    )
+    .run();
+}
+
+async function fetchPhonetic(spell: string): Promise<ArrayBuffer> {
+  const url = `https://ttsmp3.com/makemp3_new.php`;
+  const headers = new Headers();
+  headers.append("Content-Type", "application/x-www-form-urlencoded");
+  const urlencoded = new URLSearchParams();
+  urlencoded.append("msg", spell);
+  urlencoded.append("lang", "Astrid");
+  urlencoded.append("source", "ttsmp3");
+  const requestOptions = {
+    method: "POST",
+    headers: headers,
+    body: urlencoded,
+    signal: AbortSignal.timeout(5000),
+  };
+  let response = await fetch(url, requestOptions);
+  let response_json: any = await response.json();
+  let pronunciation_url = response_json["URL"];
+  let pronunciation_response = await fetch(pronunciation_url!!);
+  return await pronunciation_response.arrayBuffer();
+}
+
+export async function getWordByAI(spell: string): Promise<Word> {
+  const model = dictionaryModel();
+  const result = await model.generateContent(
+    `Check the Swedish word "${spell}" in dictionary.
+    - If it is a noun please check its indefinite single form.
+    - If it is a verb please check its imperative form.
+    - If it is a adjective please check its n-form.
+    - Else just check its origin form.`,
+  );
+
+  const responseJson: AIResponse = JSON.parse(result.response.text());
+  const wordId = crypto.randomUUID();
+  let dbWord: Word = {
+    id: wordId,
+    lemma: responseJson.spell,
+    part_of_speech: responseJson.part_of_speech,
+    phonetic: responseJson.pronunciation,
+    phonetic_voice: null,
+    phonetic_url: null,
+    indexes: [
+      {
+        id: crypto.randomUUID(),
+        word_id: wordId,
+        spell: responseJson.pronunciation,
+        form: null,
+      },
+    ],
+    lexemes: [
+      {
+        id: crypto.randomUUID(),
+        word_id: wordId,
+        definition: responseJson.meaning,
+        example: responseJson.example_sentence,
+        example_meaning: responseJson.example_sentence_meaning,
+        source: "gemini",
+      },
+    ],
+  };
+  dbWord.phonetic_voice = Array.from(
+    new Uint8Array(await fetchPhonetic(dbWord.lemma)),
+  );
+  return dbWord;
+}
+
 export async function getWord(
   db: D1Database,
   id: string,
@@ -193,8 +322,12 @@ export async function getWordsByIndex(
   db: D1Database,
   index_spell: string,
 ): Promise<Array<Word> | null> {
-  const words = await getDBWordsByIndex(db, index_spell);
-  if (!words) return null;
+  let words = await getDBWordsByIndex(db, index_spell);
+  if (!words || words.length === 0) {
+    const aiResponse = await getWordByAI(index_spell);
+    await saveAIResponseIntoDB(db, aiResponse);
+    words = [aiResponse];
+  }
   return await Promise.all(
     words.map(async (word) => {
       const [indexes, lexemes] = await Promise.all([

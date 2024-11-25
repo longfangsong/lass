@@ -16,7 +16,7 @@ export namespace DBTypes {
     lemma: string;
     part_of_speech: string;
     phonetic: string;
-    phonetic_voice: string | null;
+    phonetic_voice: Array<number> | null;
     phonetic_url: string | null;
   }
 

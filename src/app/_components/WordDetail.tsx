@@ -9,6 +9,25 @@ function lexemePriority(lexeme: Lexeme) {
   return lexeme.source === "folkets-lexikon" ? 0 : 1;
 }
 
+function SourceLabel({ source }: { source: string }) {
+  const sourceColor = {
+    "folkets-lexikon": "bg-green-500",
+    "lexin-swe": "bg-blue-500",
+  };
+  const sourceClassName =
+    sourceColor[source as keyof typeof sourceColor] || "bg-violet-500";
+  return (
+    <span
+      className={
+        "whitespace-nowrap mr-4 w-fit text-xs p-0.5 rounded-md shadow-lg " +
+        sourceClassName
+      }
+    >
+      {!(source in sourceColor) ? "AI" : source}
+    </span>
+  );
+}
+
 export function WordDetail({
   word,
   buttons,
@@ -66,8 +85,13 @@ export function WordDetail({
         .toSorted((a, b) => lexemePriority(a) - lexemePriority(b))
         .map((lexeme, index) => (
           <React.Fragment key={lexeme.id}>
-            <p className="text-gray-500 dark:text-white">{lexeme.definition}</p>
-            <div className="grid grid-cols-2">
+            <div className="flex flex-row justify-between items-start">
+              <span className="text-gray-500 dark:text-white mr-4">
+                {lexeme.definition}
+              </span>
+              <SourceLabel source={lexeme.source} />
+            </div>
+            <div className="grid grid-cols-2 gap-1">
               <span className="text-sm text-green-500">
                 {lexeme.example ? lexeme.example : ""}
               </span>

@@ -14,7 +14,7 @@ export const runtime = "edge";
 export const GET = auth(async (request: NextRequest) => {
   const req = request as NextRequest & { auth: Session };
   if (!req.auth.user?.email) {
-    return new NextResponse(null, { status: 401 });
+    return new NextResponse("Unauthorized", { status: 401 });
   }
   const snapshotTimeString = request.nextUrl.searchParams.get("snapshot_time");
   const snapshotTime = snapshotTimeString
@@ -37,7 +37,7 @@ export const GET = auth(async (request: NextRequest) => {
 export const POST = auth(async (request: NextRequest) => {
   const req = request as NextRequest & { auth: Session };
   if (!req.auth.user?.email) {
-    return new NextResponse(null, { status: 401 });
+    return new NextResponse("Unauthorized", { status: 401 });
   }
   const db = getRequestContext().env.DB;
   const payload = await request.json<{ word_id: string }>();

@@ -33,14 +33,14 @@ export const DELETE = auth(
     const id = ctx.params?.id as string;
     const req = request as NextRequest & { auth: Session };
     if (!req.auth.user?.email) {
-      return new NextResponse(null, { status: 401 });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
     const db = getRequestContext().env.DB;
 
     const success = await deleteReviewProgress(db, id);
 
     if (!success) {
-      return new NextResponse(null, { status: 404 });
+      return new NextResponse("Not found", { status: 404 });
     }
 
     return NextResponse.json(null);
