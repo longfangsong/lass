@@ -26,7 +26,7 @@ function unescapeObject(obj: any): any {
 
 export async function searchWord(
   db: D1Database,
-  spell: string,
+  spell: string
 ): Promise<Array<WordSearchResult>> {
   const result = await db
     .prepare(
@@ -44,7 +44,7 @@ export async function searchWord(
       ) AS FoundWords, Lexeme
       WHERE FoundWords.id=Lexeme.word_id
       GROUP BY FoundWords.lemma, Lexeme.definition
-      ORDER BY FoundWords.source_id ASC;`,
+      ORDER BY FoundWords.source_id ASC;`
     )
     .bind(spell, `${spell}%`)
     .all<{ id: string; lemma: string; definition: string }>();
@@ -65,23 +65,23 @@ export async function searchWord(
 
 async function getDBWord(
   db: D1Database,
-  id: string,
+  id: string
 ): Promise<DBTypes.Word | null> {
   return unescapeObject(
     await db
       .prepare(
         `SELECT Word.id, Word.lemma, Word.part_of_speech, Word.phonetic, Word.phonetic_voice, Word.phonetic_url
       FROM Word
-      WHERE Word.id=?1`,
+      WHERE Word.id=?1`
       )
       .bind(id)
-      .first<DBTypes.Word>(),
+      .first<DBTypes.Word>()
   );
 }
 
 export async function getDBWordsByIndex(
   db: D1Database,
-  index_spell: string,
+  index_spell: string
 ): Promise<Array<DBTypes.Word> | null> {
   const queryResult = await db
     .prepare(
@@ -114,7 +114,7 @@ export async function getDBWordsByIndex(
         WHERE Word.id=WordIndex.word_id
           AND WordIndex.spell=?1
           AND WordIndex.form is NOT NULL
-      ) as FoundWord ORDER BY source_id, length(FoundWord.lemma);`,
+      ) as FoundWord ORDER BY source_id, length(FoundWord.lemma);`
     )
     .bind(index_spell)
     .all<DBTypes.Word>();
@@ -134,7 +134,7 @@ export async function getDBWordsByIndex(
       WHERE Word.id=WordIndex.word_id
           AND WordIndex.spell=?1
           AND WordIndex.form is NULL
-          ORDER BY length_diff ASC;`,
+          ORDER BY length_diff ASC;`
     )
     .bind(index_spell)
     .all<DBTypes.Word>();
@@ -145,13 +145,13 @@ export async function getDBWordsByIndex(
 
 async function getDBWordIndexesByWordId(
   db: D1Database,
-  wordId: string,
+  wordId: string
 ): Promise<Array<DBTypes.WordIndex>> {
   const result = await db
     .prepare(
       `SELECT WordIndex.id, WordIndex.word_id, WordIndex.spell, WordIndex.form
       FROM WordIndex
-      WHERE WordIndex.word_id=?1`,
+      WHERE WordIndex.word_id=?1`
     )
     .bind(wordId)
     .all<DBTypes.WordIndex>();
@@ -161,13 +161,13 @@ async function getDBWordIndexesByWordId(
 
 async function getDBLexemesByWordId(
   db: D1Database,
-  wordId: string,
+  wordId: string
 ): Promise<Array<DBTypes.Lexeme>> {
   const result = await db
     .prepare(
       `SELECT Lexeme.id, Lexeme.word_id, Lexeme.definition, Lexeme.example, Lexeme.example_meaning, Lexeme.source
       FROM Lexeme
-      WHERE Lexeme.word_id=?1`,
+      WHERE Lexeme.word_id=?1`
     )
     .bind(wordId)
     .all<DBTypes.Lexeme>();
@@ -197,7 +197,7 @@ async function saveAIResponseIntoDB(db_client: D1Database, word: Word) {
 async function saveLexeme(db_client: D1Database, lexeme: DBTypes.Lexeme) {
   await db_client
     .prepare(
-      `INSERT INTO Lexeme (id, word_id, definition, example, example_meaning, source) VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+      `INSERT INTO Lexeme (id, word_id, definition, example, example_meaning, source) VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
     )
     .bind(
       lexeme.id,
@@ -205,18 +205,18 @@ async function saveLexeme(db_client: D1Database, lexeme: DBTypes.Lexeme) {
       lexeme.definition,
       lexeme.example,
       lexeme.example_meaning,
-      lexeme.source,
+      lexeme.source
     )
     .run();
 }
 
 async function saveWordIndex(
   db_client: D1Database,
-  wordIndex: DBTypes.WordIndex,
+  wordIndex: DBTypes.WordIndex
 ) {
   await db_client
     .prepare(
-      `INSERT INTO WordIndex (id, word_id, spell, form) VALUES (?1, ?2, ?3, ?4)`,
+      `INSERT INTO WordIndex (id, word_id, spell, form) VALUES (?1, ?2, ?3, ?4)`
     )
     .bind(wordIndex.id, wordIndex.word_id, wordIndex.spell, wordIndex.form)
     .run();
@@ -225,7 +225,7 @@ async function saveWordIndex(
 async function saveDBWord(db_client: D1Database, word: DBTypes.Word) {
   await db_client
     .prepare(
-      `INSERT INTO Word (id, lemma, part_of_speech, phonetic, phonetic_voice, phonetic_url) VALUES (?1, ?2, ?3, ?4, ?5, ?6)`,
+      `INSERT INTO Word (id, lemma, part_of_speech, phonetic, phonetic_voice, phonetic_url) VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
     )
     .bind(
       word.id,
@@ -233,7 +233,7 @@ async function saveDBWord(db_client: D1Database, word: DBTypes.Word) {
       word.part_of_speech,
       word.phonetic,
       word.phonetic_voice,
-      word.phonetic_url,
+      word.phonetic_url
     )
     .run();
 }
@@ -266,7 +266,7 @@ export async function getWordByAI(spell: string): Promise<Word> {
     - If it is a noun please check its indefinite single form.
     - If it is a verb please check its imperative form.
     - If it is a adjective please check its n-form.
-    - Else just check its origin form.`,
+    - Else just check its origin form.`
   );
 
   const responseJson: AIResponse = JSON.parse(result.response.text());
@@ -298,19 +298,21 @@ export async function getWordByAI(spell: string): Promise<Word> {
     ],
   };
   dbWord.phonetic_voice = Array.from(
-    new Uint8Array(await fetchPhonetic(dbWord.lemma)),
+    new Uint8Array(await fetchPhonetic(dbWord.lemma))
   );
   return dbWord;
 }
 
 export async function getWord(
   db: D1Database,
-  id: string,
+  id: string
 ): Promise<Word | null> {
   const word = await getDBWord(db, id);
   if (!word) return null;
-  const indexes = await getDBWordIndexesByWordId(db, id);
-  const lexemes = await getDBLexemesByWordId(db, id);
+  const [indexes, lexemes] = await Promise.all([
+    getDBWordIndexesByWordId(db, id),
+    getDBLexemesByWordId(db, id),
+  ]);
   return {
     ...word,
     indexes,
@@ -318,9 +320,84 @@ export async function getWord(
   };
 }
 
+export async function getWords(db: D1Database, ids: string[]): Promise<Word[]> {
+  const words = await db
+    .prepare(
+      `SELECT Word.id, Word.lemma, Word.part_of_speech, Word.phonetic, Word.phonetic_voice, Word.phonetic_url,
+        WordIndex.id as index_id, WordIndex.spell as index_spell, WordIndex.form as index_form,
+        Lexeme.id as lexeme_id, Lexeme.definition, Lexeme.example, Lexeme.example_meaning, Lexeme.source
+      FROM Word, WordIndex, Lexeme
+      WHERE Word.id = WordIndex.word_id AND
+        Word.id = Lexeme.word_id AND
+        Word.id IN (${ids.map(() => "?").join(",")})`
+    )
+    .bind(...ids)
+    .all<
+      DBTypes.Word & {
+        index_id: string;
+        index_spell: string;
+        index_form: string;
+        lexeme_id: string;
+        definition: string;
+        example: string;
+        example_meaning: string;
+        source: string;
+      }
+    >();
+
+  if (!words.success) throw new Error(words.error);
+
+  const wordMap = new Map<string, Word>();
+
+  for (const row of words.results) {
+    if (!wordMap.has(row.id)) {
+      wordMap.set(row.id, {
+        id: row.id,
+        lemma: row.lemma,
+        part_of_speech: row.part_of_speech,
+        phonetic: row.phonetic,
+        phonetic_voice: row.phonetic_voice,
+        phonetic_url: row.phonetic_url,
+        indexes: [],
+        lexemes: [],
+      });
+    }
+
+    const word = wordMap.get(row.id)!;
+
+    if (
+      row.index_id &&
+      !word.indexes.find((wordIndex) => wordIndex.id === row.index_id)
+    ) {
+      word.indexes.push({
+        id: row.index_id,
+        word_id: row.id,
+        spell: row.index_spell,
+        form: row.index_form,
+      });
+    }
+
+    if (
+      row.lexeme_id &&
+      !word.lexemes.find((lexeme) => lexeme.id === row.lexeme_id)
+    ) {
+      word.lexemes.push({
+        id: row.lexeme_id,
+        word_id: row.id,
+        definition: row.definition,
+        example: row.example,
+        example_meaning: row.example_meaning,
+        source: row.source,
+      });
+    }
+  }
+
+  return unescapeObject(Array.from(wordMap.values()));
+}
+
 export async function getWordsByIndex(
   db: D1Database,
-  index_spell: string,
+  index_spell: string
 ): Promise<Array<Word> | null> {
   let words = await getDBWordsByIndex(db, index_spell);
   if (!words || words.length === 0) {
@@ -339,6 +416,6 @@ export async function getWordsByIndex(
         indexes,
         lexemes,
       };
-    }),
+    })
   );
 }

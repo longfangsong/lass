@@ -3,7 +3,7 @@ import {
   getReviewProgressesOfUser,
   PAGE_SIZE,
 } from "@/lib/data/review_progress";
-import { getWord } from "@/lib/data/word";
+import { getWords } from "@/lib/data/word";
 import { getDB } from "@/lib/db";
 import { Table, TableBody, TableHead, TableHeadCell } from "flowbite-react";
 import { redirect } from "next/navigation";
@@ -26,20 +26,17 @@ export default async function WordTable({
     session.user.email,
     snapshot,
     (page - 1) * PAGE_SIZE,
-    PAGE_SIZE,
+    PAGE_SIZE
+  );
+  const wordsInTable = await getWords(
+    db,
+    reviewProgresses.map(it => it.word_id)
   );
   release();
-  const dataInTable = await Promise.all(
-    reviewProgresses.map(async (reviewProgress) => {
-      const [release, db] = await getDB();
-      const word = await getWord(db, reviewProgress.word_id);
-      release();
-      return {
-        reviewProgress,
-        word: word!,
-      };
-    }),
-  );
+  const dataInTable = reviewProgresses.map((reviewProgress) => ({
+    reviewProgress,
+    word: wordsInTable.find(it => it.id === reviewProgress.word_id)!,
+  }));
   return (
     <div className="max-w-full overflow-scroll">
       <Table striped className="overflow-scroll">
