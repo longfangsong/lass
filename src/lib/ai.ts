@@ -9,11 +9,10 @@ let cachedModel: GenerativeModel | undefined;
 
 export function dictionaryModel(): GenerativeModel {
   if (cachedModel) return cachedModel;
-  const api_token = process.env.GOOGLE_AI_STUDIO_TOKEN!;
-  const account_id = "ba6c3ee6481f83e9ced0460cb55a4ade";
-  const gateway_name = "swedish-teacher";
-
-  const genAI = new GoogleGenerativeAI(api_token);
+  const apiToken = process.env.GOOGLE_AI_STUDIO_TOKEN!;
+  const accountId = "ba6c3ee6481f83e9ced0460cb55a4ade";
+  const gatewayName = "swedish-teacher";
+  const genAI = new GoogleGenerativeAI(apiToken);
 
   const wordSchema: ResponseSchema = {
     type: SchemaType.OBJECT,
@@ -48,7 +47,7 @@ export function dictionaryModel(): GenerativeModel {
       },
     },
     {
-      baseUrl: `https://gateway.ai.cloudflare.com/v1/${account_id}/${gateway_name}/google-ai-studio`,
+      baseUrl: `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayName}/google-ai-studio`,
     },
   );
   return cachedModel;

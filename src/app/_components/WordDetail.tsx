@@ -19,7 +19,7 @@ function SourceLabel({ source }: { source: string }) {
   return (
     <span
       className={
-        "whitespace-nowrap mr-4 w-fit text-xs p-0.5 rounded-md shadow-lg " +
+        "whitespace-nowrap text-white mr-4 w-fit text-xs p-0.5 rounded-md shadow-lg " +
         sourceClassName
       }
     >

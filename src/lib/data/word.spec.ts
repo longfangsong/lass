@@ -1,6 +1,6 @@
 import { expect, test, describe } from "vitest";
 import { env } from "cloudflare:test";
-import { getWord, getWordByAI, getWordsByIndex, searchWord } from "./word";
+import { getWord, getWordsByIndex, searchWord } from "./word";
 import { Word } from "../types";
 
 describe("Test word fetching", () => {

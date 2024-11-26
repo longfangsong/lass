@@ -255,7 +255,7 @@ async function fetchPhonetic(spell: string): Promise<ArrayBuffer> {
   let response = await fetch(url, requestOptions);
   let response_json: any = await response.json();
   let pronunciation_url = response_json["URL"];
-  let pronunciation_response = await fetch(pronunciation_url!!);
+  let pronunciation_response = await fetch(pronunciation_url!);
   return await pronunciation_response.arrayBuffer();
 }
 
