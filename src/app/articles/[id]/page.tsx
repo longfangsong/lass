@@ -4,6 +4,7 @@ import { Button } from "flowbite-react";
 import Link from "next/link";
 import React from "react";
 import { Word } from "./word";
+import { Player } from "./Player";
 
 export const runtime = "edge";
 
@@ -62,6 +63,7 @@ export default async function Article({
       >
         On origin site
       </Button>
+      <Player url={article.voice_url} />
       {sentences.map((sentence, i) => (
         <Sentence key={i} content={sentence} />
       ))}
