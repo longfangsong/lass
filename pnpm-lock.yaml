@@ -41,6 +41,12 @@ importers:
       set-large-timeout:
         specifier: ^1.0.1
         version: 1.0.1
+      wavesurfer-react:
+        specifier: ^3.0.4
+        version: 3.0.4(react@18.3.1)(wavesurfer.js@7.8.9)
+      wavesurfer.js:
+        specifier: ^7.8.9
+        version: 7.8.9
     devDependencies:
       '@cloudflare/next-on-pages':
         specifier: ^1.13.5
@@ -3392,6 +3398,15 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  wavesurfer-react@3.0.4:
+    resolution: {integrity: sha512-Eq+9ihd28UhX23ZVRrg9llpfo4ejUbYZ8oMEx+XwoymHiwLw44GwYVAo+iUPl9W8aVxuoncBKjbslukvqv0kFw==}
+    peerDependencies:
+      react: ^16 || ^17 || ^18 || ^19
+      wavesurfer.js: ^7
+
+  wavesurfer.js@7.8.9:
+    resolution: {integrity: sha512-d7jDSrzNp3UErXWEKFlIYRdvzaMlxCoM6Or4qR8uURFp9smcxLXS81uatcs6aPX1OSJgEyyBuffMR5Io3Ft2FQ==}
 
   web-vitals@0.2.4:
     resolution: {integrity: sha512-6BjspCO9VriYy12z356nL6JBS0GYeEcA457YyRzD+dD6XYCQ75NKhcOHUMHentOE7OcVCIXXDvOm0jKFfQG2Gg==}
@@ -6877,6 +6892,13 @@ snapshots:
       - sugarss
       - supports-color
       - terser
+
+  wavesurfer-react@3.0.4(react@18.3.1)(wavesurfer.js@7.8.9):
+    dependencies:
+      react: 18.3.1
+      wavesurfer.js: 7.8.9
+
+  wavesurfer.js@7.8.9: {}
 
   web-vitals@0.2.4: {}
 

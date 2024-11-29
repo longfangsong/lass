@@ -62,10 +62,14 @@ export function WordDetail({
               <p>
                 "{word.lemma}" är ett <b className="text-red-500">ett</b>-ord
               </p>
-            ) : (
+            ) : word?.indexes
+                .find((it) => it.form === "best.f.sing.")
+                ?.spell.endsWith("n") ? (
               <p>
                 "{word.lemma}" är ett <b className="text-green-500">en</b>-ord
               </p>
+            ) : (
+              <></>
             )}
             {substantiveTable(word)}
           </>
@@ -111,6 +115,13 @@ export function WordDetail({
 }
 
 function substantiveTable(word: Word) {
+  const relevantForms = ["best.f.sing.", "obest.f.sing."];
+  const anyRelevantForms = relevantForms.some((form) =>
+    word?.indexes.find((it) => it.form === form),
+  );
+  if (!anyRelevantForms) {
+    return <></>;
+  }
   return (
     <div className="max-w-full overflow-scroll">
       <table className="py-1 px-2 border border-sky-500">
@@ -153,6 +164,17 @@ function verbTable(word: Word) {
   const imperfekt = word?.indexes.find((it) => it.form === "imperfekt")?.spell;
   const perf_part = word?.indexes.find((it) => it.form === "perf.part.")?.spell;
   const presens = word?.indexes.find((it) => it.form === "presens")?.spell;
+  const anyRelevantForms = [
+    imperativ,
+    infinitiv,
+    supinum,
+    imperfekt,
+    perf_part,
+    presens,
+  ].some((it) => it);
+  if (!anyRelevantForms) {
+    return <></>;
+  }
   return (
     <div className="max-w-full overflow-scroll">
       <table className="py-1 px-2 border border-sky-500 max-w-72 overflow-scroll">
@@ -217,6 +239,13 @@ function verbTable(word: Word) {
 }
 
 function adjectivePronTable(word: Word) {
+  const relevantForms = ["nform", "tform", "aform"];
+  const anyRelevantForms = relevantForms.some((form) =>
+    word?.indexes.find((it) => it.form === form),
+  );
+  if (!anyRelevantForms) {
+    return <></>;
+  }
   return (
     <div className="max-w-full overflow-scroll">
       <table className="py-1 px-2 border border-sky-500 max-w-72 overflow-scroll">
