@@ -19,7 +19,10 @@ export default async function Articles({
     <div className="flex flex-col justify-center">
       <ListGroup className="w-full">
         {articles.map((article) => (
-          <ListGroupItem href={`/articles/${article.id}`} key={article.id}>
+          <ListGroupItem
+            href={process.env.CF_PAGES_URL + `/articles/${article.id}`}
+            key={article.id}
+          >
             {article.title}
           </ListGroupItem>
         ))}

@@ -17,22 +17,13 @@ export default function Home() {
             A platform for learning Svenska
           </h2>
           <div className="mt-16 columns-1 md:columns-3">
-            <Button
-              href={process.env.CF_PAGES_URL + "/articles"}
-              className="mx-auto my-4 md:my-0 w-fit"
-            >
+            <Button href="/articles" className="mx-auto my-4 md:my-0 w-fit">
               Read Articles
             </Button>
-            <Button
-              href={process.env.CF_PAGES_URL + "/words"}
-              className="mx-auto my-4 md:my-0 w-fit"
-            >
+            <Button href="/words" className="mx-auto my-4 md:my-0 w-fit">
               Dictionary
             </Button>
-            <Button
-              href={process.env.CF_PAGES_URL + "/word_book"}
-              className="mx-auto my-4 md:my-0 w-fit"
-            >
+            <Button href="/word_book" className="mx-auto my-4 md:my-0 w-fit">
               Review Words
             </Button>
           </div>
