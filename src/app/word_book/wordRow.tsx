@@ -161,7 +161,7 @@ export function WordRow({
             return (
               <div key={lexeme.id}>
                 <BlurElement>{lexeme.definition}</BlurElement>
-                <div className="grid grid-cols-2">
+                <div className="grid grid-cols-1 md:grid-cols-2">
                   <span className="text-sm text-green-500">
                     {lexeme.example ? lexeme.example : ""}
                   </span>
