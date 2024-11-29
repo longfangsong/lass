@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
+    "@uidotdev/usehooks": "^2.4.1",
     "date-fns": "^4.1.0",
     "debounce": "^2.2.0",
     "flowbite-react": "^0.10.2",

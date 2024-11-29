@@ -23,7 +23,7 @@ export function ResetButton({
   return (
     <Button
       color="warning"
-      className="ml-3 p-0"
+      className="p-0 mx-auto"
       onClick={async () => {
         await patch(review.id, resetPayload());
         onClick && onClick();

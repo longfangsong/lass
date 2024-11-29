@@ -10,6 +10,7 @@ import BlurElement from "./blurElement";
 import { ReviewButton } from "./reviewButton";
 import { DoneButton } from "./doneButton";
 import { ResetButton } from "./resetButton";
+import { useWindowSize } from "@uidotdev/usehooks";
 
 function lexemePriority(lexeme: Lexeme) {
   return lexeme.source === "lexin-swe" ? 0 : 1;
@@ -22,6 +23,25 @@ export const REVIEW_DAYS_MAP: { [key: number]: number } = {
   4: 15,
   5: 30,
 };
+
+export function Controls({ buttons }: { buttons: Array<React.ReactNode> }) {
+  const { width } = useWindowSize();
+  if (!width || width < 640) {
+    return (
+      <TableCell>
+        <div className="flex flex-col gap-2 my-auto">{buttons}</div>
+      </TableCell>
+    );
+  } else {
+    return (
+      <>
+        {buttons.map((it: React.ReactNode) => (
+          <TableCell className="px-0">{it}</TableCell>
+        ))}
+      </>
+    );
+  }
+}
 
 export function WordRow({
   reviewProgress,
@@ -107,8 +127,8 @@ export function WordRow({
 
   return (
     <TableRow key={reviewProgress.id}>
-      <TableCell>{word.lemma}</TableCell>
-      <TableCell>
+      <TableCell className="px-3">{word.lemma}</TableCell>
+      <TableCell className="px-3">
         {currentReviewProgress.next_reviewable_time === null
           ? "Done!"
           : isClient &&
@@ -118,7 +138,7 @@ export function WordRow({
               ? `I ${formatDistance(currentReviewProgress.next_reviewable_time!, new Date(), { locale: sv })}`
               : ""}
       </TableCell>
-      <TableCell>
+      <TableCell className="px-3">
         <div className="flex flex-col-reverse items-center">
           {[...Array(6)].map((_, index) => (
             <div
@@ -134,7 +154,7 @@ export function WordRow({
           <span>{currentReviewProgress.review_count}</span>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="px-3">
         {word.lexemes
           .toSorted((a, b) => lexemePriority(a) - lexemePriority(b))
           .map((lexeme) => {
@@ -153,26 +173,24 @@ export function WordRow({
             );
           })}
       </TableCell>
-      <TableCell className="px-0">
-        <PlayButton voice={word} />
-      </TableCell>
-      <TableCell className="px-0">
-        <ReviewButton
-          review={currentReviewProgress}
-          onClick={() => handleReview(currentReviewProgress.review_count + 1)}
-          now={now}
-        />
-      </TableCell>
-      <TableCell className="px-0">
-        {currentReviewProgress.review_count < 6 ? (
-          <DoneButton review={currentReviewProgress} onClick={handleDone} />
-        ) : (
-          <ResetButton
+      <Controls
+        buttons={[
+          <PlayButton className="mx-auto" voice={word} />,
+          <ReviewButton
             review={currentReviewProgress}
-            onClick={() => handleReview(1)}
-          />
-        )}
-      </TableCell>
+            onClick={() => handleReview(currentReviewProgress.review_count + 1)}
+            now={now}
+          />,
+          currentReviewProgress.review_count < 6 ? (
+            <DoneButton review={currentReviewProgress} onClick={handleDone} />
+          ) : (
+            <ResetButton
+              review={currentReviewProgress}
+              onClick={() => handleReview(1)}
+            />
+          ),
+        ]}
+      />
     </TableRow>
   );
 }
