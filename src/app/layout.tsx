@@ -15,12 +15,18 @@ import { auth } from "@/lib/auth";
 import { SignOutButton } from "./_components/SignOutButton";
 import SignInButton from "./_components/SignInButton";
 import { SessionProvider } from "next-auth/react";
+import ThemeToggleWatcher from "./_components/ThemeToggleWatcher";
 
 const inter = Inter({ subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
   title: "Läss",
   description: "An app for learning Swedish",
+  viewport: {
+    width: "device-width",
+    initialScale: 1.0,
+    userScalable: false,
+  },
 };
 
 async function NavBar() {
@@ -83,6 +89,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <NavBar />
+        <ThemeToggleWatcher />
         <SessionProvider>
           <main className="p-2 sm:p-4 text-gray-900 dark:text-white h-[calc(100vh-63px)] overflow-y-scroll">
             {children}
