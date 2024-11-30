@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "./norse-bold.css";
@@ -22,11 +22,13 @@ const inter = Inter({ subsets: ["latin", "latin-ext"] });
 export const metadata: Metadata = {
   title: "Läss",
   description: "An app for learning Swedish",
-  viewport: {
-    width: "device-width",
-    initialScale: 1.0,
-    userScalable: false,
-  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1.0,
+  userScalable: false,
 };
 
 async function NavBar() {

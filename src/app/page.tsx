@@ -1,4 +1,5 @@
 "use client";
+import { useWindowSize } from "@uidotdev/usehooks";
 import { Button } from "flowbite-react";
 import { FaGithub } from "react-icons/fa";
 import { HiOutlineArrowDown } from "react-icons/hi";
@@ -6,17 +7,27 @@ import { HiOutlineArrowDown } from "react-icons/hi";
 export const runtime = "edge";
 
 export default function Home() {
+  const { height } = useWindowSize();
   return (
     <>
       <div className="h-full flex flex-col place-content-between items-center">
         <div>
-          <h1 className="text-8xl font-bold norse-bold text-center mt-16">
+          <h1
+            className={
+              "text-8xl font-bold norse-bold text-center " +
+              (height! > 720 ? "mt-16" : "mt-4")
+            }
+          >
             Läss
           </h1>
           <h2 className="text-4xl font-bold text-center mt-4">
             A platform for learning Svenska
           </h2>
-          <div className="mt-16 columns-1 md:columns-3">
+          <div
+            className={
+              "columns-1 md:columns-3 " + (height! > 720 ? "mt-16" : "mt-4")
+            }
+          >
             <Button href="/articles" className="mx-auto my-4 md:my-0 w-fit">
               Read Articles
             </Button>
@@ -29,7 +40,7 @@ export default function Home() {
           </div>
         </div>
         <Button
-          className="mb-8"
+          className="mb-20"
           outline
           pill
           onClick={() => {

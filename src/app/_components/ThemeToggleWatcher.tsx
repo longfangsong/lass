@@ -10,7 +10,7 @@ export default function ThemeToggleWatcher() {
     if (mode === "dark") {
       themeElement?.setAttribute("content", "#212836");
     } else {
-      themeElement?.setAttribute("content", "#e5e7eb");
+      themeElement?.setAttribute("content", "#ffffff");
     }
   }, [mode]);
 
