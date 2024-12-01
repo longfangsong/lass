@@ -2,14 +2,17 @@ import { expect, test, describe, beforeEach, vi, afterEach } from "vitest";
 import { env } from "cloudflare:test";
 import {
   createReviewProgess,
-  getReviewProgressesOfUser,
+  getReviewProgressesAtSnapshot,
   updateReviewProgress,
   getReviewProgressesOfUserCount,
+  getReviewProgressesUpdatedAfter,
 } from "./review_progress";
 
 const wordIds = [
   "c50b3c3f-039f-4eab-ae0d-822e8b9729ea",
   "8fe8315a-d718-4af7-bb17-2c0df9c44386",
+  "0630931c-9b51-4ef6-b477-ad4ffb590016",
+  "8802ad51-b2e6-47f7-8aaf-11cface826ea"
 ];
 describe("Test dealing with ReviewProgress", () => {
   test("should be able to deal with a single review progess", async () => {
@@ -20,7 +23,7 @@ describe("Test dealing with ReviewProgress", () => {
     // start a snapshot at 20
     const snapshotTime = new Date(2000, 1, 1, 0, 0, 20).getTime();
     vi.setSystemTime(snapshotTime);
-    const firstSearch = await getReviewProgressesOfUser(
+    const firstSearch = await getReviewProgressesAtSnapshot(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -40,7 +43,7 @@ describe("Test dealing with ReviewProgress", () => {
       last_review_time: reviewTime,
     });
     expect(await getReviewProgressesOfUserCount(env.DB, "a@b.com")).toBe(1);
-    const secondSearchOnSamesnapshot = await getReviewProgressesOfUser(
+    const secondSearchOnSamesnapshot = await getReviewProgressesAtSnapshot(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -55,7 +58,7 @@ describe("Test dealing with ReviewProgress", () => {
     // 1 day passed after the review
     const secondReviewTime = new Date(2000, 1, 2, 0, 0, 40).getTime();
     vi.setSystemTime(reviewTime);
-    const thirdSearch = await getReviewProgressesOfUser(
+    const thirdSearch = await getReviewProgressesAtSnapshot(
       env.DB,
       "a@b.com",
       secondReviewTime,
@@ -77,7 +80,7 @@ describe("Test dealing with ReviewProgress", () => {
     // create a snapshot at t=20
     let snapshotTime = new Date(2000, 1, 1, 0, 0, 30).getTime();
     vi.setSystemTime(snapshotTime);
-    let searchResult = await getReviewProgressesOfUser(
+    let searchResult = await getReviewProgressesAtSnapshot(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -95,7 +98,7 @@ describe("Test dealing with ReviewProgress", () => {
       last_review_time: reviewTime,
     });
     vi.setSystemTime(reviewTime);
-    searchResult = await getReviewProgressesOfUser(
+    searchResult = await getReviewProgressesAtSnapshot(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -107,7 +110,7 @@ describe("Test dealing with ReviewProgress", () => {
     expect(searchResult[1].word_id).toBe(wordIds[1]);
     // but affects a new snapshot
     snapshotTime = new Date(2000, 1, 1, 0, 0, 50).getTime();
-    searchResult = await getReviewProgressesOfUser(
+    searchResult = await getReviewProgressesAtSnapshot(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -125,7 +128,7 @@ describe("Test dealing with ReviewProgress", () => {
       last_review_time: reviewTime,
     });
     snapshotTime = new Date(2000, 1, 1, 0, 0, 70).getTime();
-    searchResult = await getReviewProgressesOfUser(
+    searchResult = await getReviewProgressesAtSnapshot(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -135,5 +138,35 @@ describe("Test dealing with ReviewProgress", () => {
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[1]);
     expect(searchResult[1].word_id).toBe(wordIds[0]);
+  });
+
+  test("should be able to get review progresses updated after a certain time", async () => {
+    vi.useRealTimers();
+    await createReviewProgess(env.DB, "a@b.com", wordIds[2]);
+    await createReviewProgess(env.DB, "a@b.com", wordIds[3]);
+    const searchResult = await getReviewProgressesAtSnapshot(
+      env.DB,
+      "a@b.com",
+      new Date().getTime(),
+      0,
+      10,
+    );
+    expect(searchResult.length).toBe(2);
+    const beforeUpdate = new Date().getTime();
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await updateReviewProgress(env.DB, searchResult[0].id, {
+      review_count: 1,
+      last_last_review_time: searchResult[0].last_review_time!,
+      last_review_time: beforeUpdate,
+    });
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const data = await getReviewProgressesUpdatedAfter(
+      env.DB,
+      "a@b.com",
+      beforeUpdate,
+      0,
+      10,
+    );
+    expect(data.length).toBe(1);
   });
 });

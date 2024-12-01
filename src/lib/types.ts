@@ -18,6 +18,7 @@ export namespace DBTypes {
     phonetic: string;
     phonetic_voice: Array<number> | null;
     phonetic_url: string | null;
+    update_time: number;
   }
 
   export interface WordIndex {
@@ -25,6 +26,7 @@ export namespace DBTypes {
     word_id: string;
     spell: string;
     form: string | null;
+    update_time: number;
   }
 
   export interface Lexeme {
@@ -34,6 +36,7 @@ export namespace DBTypes {
     example: string | null;
     example_meaning: string | null;
     source: string;
+    update_time: number;
   }
 
   export interface ReviewProgress {
@@ -44,6 +47,7 @@ export namespace DBTypes {
     review_count: number;
     last_last_review_time: number | null;
     last_review_time: number | null;
+    update_time: number;
   }
 }
 

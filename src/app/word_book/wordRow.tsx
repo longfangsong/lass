@@ -11,6 +11,7 @@ import { ReviewButton } from "./reviewButton";
 import { DoneButton } from "./doneButton";
 import { ResetButton } from "./resetButton";
 import { useWindowSize } from "@uidotdev/usehooks";
+import { randomInt } from "crypto";
 
 function lexemePriority(lexeme: Lexeme) {
   return lexeme.source === "lexin-swe" ? 0 : 1;
@@ -24,7 +25,7 @@ export const REVIEW_DAYS_MAP: { [key: number]: number } = {
   5: 30,
 };
 
-export function Controls({ buttons }: { buttons: Array<React.ReactNode> }) {
+export function Controls({ buttons }: { buttons: Array<React.ReactElement> }) {
   const { width } = useWindowSize();
   if (!width || width < 640) {
     return (
@@ -35,8 +36,10 @@ export function Controls({ buttons }: { buttons: Array<React.ReactNode> }) {
   } else {
     return (
       <>
-        {buttons.map((it: React.ReactNode) => (
-          <TableCell className="px-0">{it}</TableCell>
+        {buttons.map((it: React.ReactElement, index) => (
+          <TableCell className="px-0" key={index}>
+            {it}
+          </TableCell>
         ))}
       </>
     );
@@ -175,16 +178,26 @@ export function WordRow({
       </TableCell>
       <Controls
         buttons={[
-          <PlayButton className="mx-auto" voice={word} />,
+          <PlayButton
+            key={`${reviewProgress}-play`}
+            className="mx-auto"
+            voice={word}
+          />,
           <ReviewButton
+            key={`${reviewProgress}-review`}
             review={currentReviewProgress}
             onClick={() => handleReview(currentReviewProgress.review_count + 1)}
             now={now}
           />,
           currentReviewProgress.review_count < 6 ? (
-            <DoneButton review={currentReviewProgress} onClick={handleDone} />
+            <DoneButton
+              key={`${reviewProgress.id}-done`}
+              review={currentReviewProgress}
+              onClick={handleDone}
+            />
           ) : (
             <ResetButton
+              key={`${reviewProgress.id}-reset`}
               review={currentReviewProgress}
               onClick={() => handleReview(1)}
             />

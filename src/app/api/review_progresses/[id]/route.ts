@@ -1,8 +1,5 @@
 import { auth } from "@/lib/auth";
-import {
-  deleteReviewProgress,
-  updateReviewProgress,
-} from "@/lib/data/review_progress";
+import { updateReviewProgress } from "@/lib/data/review_progress";
 import { ReviewProgressPatchPayload } from "@/lib/types";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { Session } from "next-auth";
@@ -24,25 +21,6 @@ export const PATCH = auth(
     const db = getRequestContext().env.DB;
     const payload = await request.json<ReviewProgressPatchPayload>();
     await updateReviewProgress(db, id, payload);
-    return NextResponse.json(null);
-  },
-);
-
-export const DELETE = auth(
-  async (request: NextRequest, ctx: AppRouteHandlerFnContext) => {
-    const id = ctx.params?.id as string;
-    const req = request as NextRequest & { auth: Session };
-    if (!req.auth.user?.email) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-    const db = getRequestContext().env.DB;
-
-    const success = await deleteReviewProgress(db, id);
-
-    if (!success) {
-      return new NextResponse("Not found", { status: 404 });
-    }
-
     return NextResponse.json(null);
   },
 );

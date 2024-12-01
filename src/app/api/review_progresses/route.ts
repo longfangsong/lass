@@ -2,7 +2,8 @@ import { auth } from "@/lib/auth";
 import {
   createReviewProgess,
   getReviewProgressByWord,
-  getReviewProgressesOfUser,
+  getReviewProgressesAtSnapshot,
+  getReviewProgressesUpdatedAfter,
 } from "@/lib/data/review_progress";
 import { getDB } from "@/lib/db";
 import { getRequestContext } from "@cloudflare/next-on-pages";
@@ -16,22 +17,21 @@ export const GET = auth(async (request: NextRequest) => {
   if (!req.auth.user?.email) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
-  const snapshotTimeString = request.nextUrl.searchParams.get("snapshot_time");
-  const snapshotTime = snapshotTimeString
-    ? parseInt(snapshotTimeString)
-    : new Date().getTime();
-  const offset = parseInt(request.nextUrl.searchParams.get("offset") || "0");
-  let limit = parseInt(request.nextUrl.searchParams.get("limit") || "10");
-  const [release, db] = await getDB();
-  const reviewProgesses = await getReviewProgressesOfUser(
-    db,
-    req.auth.user.email,
-    snapshotTime,
-    offset,
-    limit,
-  );
-  release();
-  return NextResponse.json(reviewProgesses);
+  const updatedAfter = req.nextUrl.searchParams.get("updated_after");
+  if (updatedAfter) {
+    const db = getRequestContext().env.DB;
+    const offset = parseInt(req.nextUrl.searchParams.get("offset") || "0");
+    let limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
+    const data = await getReviewProgressesUpdatedAfter(
+      db,
+      req.auth.user.email,
+      parseInt(updatedAfter),
+      offset,
+      limit,
+    );
+    return NextResponse.json(data);
+  }
+  return await getBySnapshot(req);
 });
 
 export const POST = auth(async (request: NextRequest) => {
@@ -58,3 +58,22 @@ export const POST = auth(async (request: NextRequest) => {
   );
   return NextResponse.json(id);
 });
+
+async function getBySnapshot(req: NextRequest & { auth: Session }) {
+  const snapshotTimeString = req.nextUrl.searchParams.get("snapshot_time");
+  const snapshotTime = snapshotTimeString
+    ? parseInt(snapshotTimeString)
+    : new Date().getTime();
+  const offset = parseInt(req.nextUrl.searchParams.get("offset") || "0");
+  let limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
+  const [release, db] = await getDB();
+  const reviewProgesses = await getReviewProgressesAtSnapshot(
+    db,
+    req.auth.user?.email!,
+    snapshotTime,
+    offset,
+    limit,
+  );
+  release();
+  return NextResponse.json(reviewProgesses);
+}

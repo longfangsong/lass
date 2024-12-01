@@ -15,7 +15,7 @@ export async function createReviewProgess(
   const id = crypto.randomUUID();
   await db
     .prepare(
-      `INSERT INTO ReviewProgress(id, user_email, word_id, last_review_time) VALUES (?1, ?2, ?3, ?4);`,
+      `INSERT INTO ReviewProgress(id, user_email, word_id, last_review_time, update_time) VALUES (?1, ?2, ?3, ?4, 1000 * strftime ('%s', 'now'));`,
     )
     .bind(id, user_email, word_id, new Date().getTime())
     .run();
@@ -37,10 +37,7 @@ function generateSQL(payload: ReviewProgressPatchPayload): string {
     }
   });
   result = result.trim();
-  if (result.endsWith(",")) {
-    result = result.slice(0, -1);
-  }
-  result += "WHERE id=?1;";
+  result += "update_time=(1000 * strftime ('%s', 'now')) WHERE id=?1;";
   return result;
 }
 
@@ -63,7 +60,7 @@ export async function updateReviewProgress(
     .run();
 }
 
-export async function getReviewProgressesOfUser(
+export async function getReviewProgressesAtSnapshot(
   db: D1Database,
   userEmail: string,
   snapshotTime: number,
@@ -176,10 +173,62 @@ export async function getReviewProgressesOfUserCount(
   return result?.count || 0;
 }
 
-export async function deleteReviewProgress(db: D1Database, id: string) {
-  const { success } = await db
-    .prepare("DELETE FROM ReviewProgress WHERE id = ?")
-    .bind(id)
-    .run();
-  return success;
+export async function getReviewProgressesUpdatedAfterCount(
+  db: D1Database,
+  userEmail: string,
+  timestamp: number,
+): Promise<number> {
+  return (
+    (await db
+      .prepare(
+        `SELECT COUNT(*) as count
+    FROM ReviewProgress
+    WHERE ReviewProgress.user_email = ?1
+    AND ReviewProgress.update_time > ?2
+    ORDER BY id ASC
+    LIMIT ?3 OFFSET ?4;`,
+      )
+      .bind(userEmail, timestamp)
+      .first<number>()) || 0
+  );
+}
+
+export async function getReviewProgressesUpdatedAfter(
+  db: D1Database,
+  userEmail: string,
+  timestamp: number,
+  offset: number,
+  limit: number,
+): Promise<Array<ReviewProgress>> {
+  const result = await db
+    .prepare(
+      `SELECT
+      id,
+      user_email,
+      word_id,
+      query_count,
+      review_count,
+      last_last_review_time,
+      last_review_time,
+      update_time,
+      (
+        SELECT last_review_time + 24 * 60 * 60 * 1000 * CASE review_count
+            WHEN 0 THEN 0
+            WHEN 1 THEN 1
+            WHEN 2 THEN 3
+            WHEN 3 THEN 7
+            WHEN 4 THEN 15
+            WHEN 5 THEN 30
+            ELSE NULL
+          END
+      ) as next_reviewable_time
+    FROM ReviewProgress
+    WHERE ReviewProgress.user_email = ?1
+    AND ReviewProgress.update_time > ?2
+    ORDER BY id ASC
+    LIMIT ?3 OFFSET ?4;`,
+    )
+    .bind(userEmail, timestamp, limit, offset)
+    .all<ReviewProgress>();
+  return result.results;
 }

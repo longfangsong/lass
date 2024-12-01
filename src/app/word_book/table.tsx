@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import {
-  getReviewProgressesOfUser,
+  getReviewProgressesAtSnapshot,
   PAGE_SIZE,
 } from "@/lib/data/review_progress";
 import { getWords } from "@/lib/data/word";
@@ -22,7 +22,7 @@ export default async function WordTable({
     redirect("/api/auth/signin");
   }
   const [release, db] = await getDB();
-  const reviewProgresses = await getReviewProgressesOfUser(
+  const reviewProgresses = await getReviewProgressesAtSnapshot(
     db,
     session.user.email,
     snapshot,
