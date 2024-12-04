@@ -47,3 +47,5 @@ certificates
 playwright/.auth
 
 playwright/.auth
+public/sw*
+public/swe-worker*
