@@ -43,6 +43,25 @@ export async function getArticleCount(db: D1Database): Promise<number> {
   return result?.count || 0;
 }
 
+export async function getArticleMetasUpdatedAfter(
+  db: D1Database,
+  timestamp: number,
+  limit: number,
+): Promise<Array<DBTypes.ArticleMeta>> {
+  const result = await db
+    .prepare(
+      `SELECT Article.id, Article.title
+      FROM Article
+      WHERE Article.update_time > ?1
+      ORDER BY Article.create_time DESC
+      LIMIT ?2;`,
+    )
+    .bind(timestamp, limit)
+    .all<DBTypes.ArticleMeta>();
+  if (!result.success) throw new Error(result.error);
+  return result.results;
+}
+
 export function toWordsAndPunctuations(article: string): Array<Array<string>> {
   const wordsAndPunctuations = article
     .split(/(\s+)|(\.\.\.)|(\.)/)

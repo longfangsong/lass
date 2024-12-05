@@ -44,6 +44,7 @@ const serwist = new Serwist({
 });
 serwist.addToPrecacheList([
   { url: "/", revision: null },
+  { url: "/articles", revision: null },
 ]);
 
 serwist.addEventListeners();

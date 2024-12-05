@@ -1,7 +1,9 @@
-import { getArticleCount, getArticleMetas } from "@/lib/data/article";
-import { getDB } from "@/lib/db";
+"use client";
+
 import { ListGroup, ListGroupItem } from "flowbite-react";
 import { ArticlesPagination } from "./pagination";
+import { fetchWithSemaphore } from "@/lib/fetch";
+import { DBTypes } from "@/lib/types";
 
 export const runtime = "edge";
 
@@ -10,11 +12,11 @@ export default async function Articles({
 }: {
   searchParams?: { page?: number };
 }) {
-  const [release, db] = await getDB();
-  const articlesCount = await getArticleCount(db);
   const offset = ((searchParams?.page || 1) - 1) * 10;
-  const articles = await getArticleMetas(db, 10, offset);
-  release();
+  const articlesResponse = await fetchWithSemaphore(
+    `${process.env.CF_PAGES_URL || ""}/api/articles?limit=10&offset=${offset}`,);
+  const articles: Array<DBTypes.ArticleMeta> = await articlesResponse.json();
+  const articlesCount = parseInt(articlesResponse.headers.get('X-Total-Count') || "0");
   return (
     <div className="flex flex-col justify-center">
       <ListGroup className="w-full">

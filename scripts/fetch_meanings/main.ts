@@ -52,7 +52,7 @@ function extractLemmaInfo(
     part_of_speech: $(element).attr("Type")!,
     phonetic: phonetic.children().remove().end().text().trim(),
     phoneticUrl: phonetic.attr("File")
-      ? `http://lexin.nada.kth.se/sound/${phoneticFile}`
+      ? `https://lexin.nada.kth.se/sound/${phoneticFile}`
       : null,
     indexes: [] as Array<string>,
     inflections: [] as Array<{ form: string; value: string }>,
