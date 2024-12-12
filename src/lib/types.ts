@@ -72,6 +72,11 @@ export interface ReviewProgressAtSnapshot extends ReviewProgress {
   snapshot_next_reviewable_time: number | null;
 }
 
+export type ReviewProgressAtSnapshotWithWord = ReviewProgressAtSnapshot &
+  DBTypes.Word & {
+    lexemes: Array<DBTypes.Lexeme>;
+  };
+
 export interface ReviewProgressPatchPayload {
   query_count?: number;
   review_count?: number;

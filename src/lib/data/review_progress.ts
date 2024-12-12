@@ -2,6 +2,7 @@ import {
   DBTypes,
   ReviewProgress,
   ReviewProgressAtSnapshot,
+  ReviewProgressAtSnapshotWithWord,
   ReviewProgressPatchPayload,
 } from "../types";
 
@@ -10,12 +11,12 @@ export const PAGE_SIZE = 20;
 export async function createReviewProgess(
   db: D1Database,
   user_email: string,
-  word_id: string,
+  word_id: string
 ): Promise<string> {
   const id = crypto.randomUUID();
   await db
     .prepare(
-      `INSERT INTO ReviewProgress(id, user_email, word_id, last_review_time, update_time) VALUES (?1, ?2, ?3, ?4, 1000 * strftime ('%s', 'now'));`,
+      `INSERT INTO ReviewProgress(id, user_email, word_id, last_review_time, update_time) VALUES (?1, ?2, ?3, ?4, 1000 * strftime ('%s', 'now'));`
     )
     .bind(id, user_email, word_id, new Date().getTime())
     .run();
@@ -44,7 +45,7 @@ function generateSQL(payload: ReviewProgressPatchPayload): string {
 export async function updateReviewProgress(
   db: D1Database,
   id: string,
-  payload: ReviewProgressPatchPayload,
+  payload: ReviewProgressPatchPayload
 ) {
   const update_sql = generateSQL(payload);
   const params = [
@@ -65,7 +66,7 @@ export async function getReviewProgressesAtSnapshot(
   userEmail: string,
   snapshotTime: number,
   offset: number,
-  limit: number,
+  limit: number
 ): Promise<Array<ReviewProgressAtSnapshot>> {
   // ---last_last_review_time---(last_review_enable_time)---last_review_time---(next_review_time)
   //                                                      ^ snapshot ==> reviewed after snapshot
@@ -118,17 +119,128 @@ export async function getReviewProgressesAtSnapshot(
     FROM ReviewProgress
     WHERE ReviewProgress.user_email = ?1
     ORDER BY snapshot_next_reviewable_time ASC NULLS LAST, snapshot_review_count DESC
-    LIMIT ?4 OFFSET ?3;`,
+    LIMIT ?4 OFFSET ?3;`
     )
     .bind(userEmail, snapshotTime, offset, limit)
     .all<ReviewProgressAtSnapshot>();
   return result.results;
 }
 
+export async function getReviewProgressAtSnapshotWithWord(
+  db: D1Database,
+  userEmail: string,
+  snapshotTime: number,
+  offset: number,
+  limit: number
+): Promise<Array<ReviewProgressAtSnapshotWithWord>> {
+  const result = await db
+    .prepare(
+      `SELECT
+      ReviewProgress.id as id,
+      user_email,
+      ReviewProgress.word_id as word_id,
+      query_count,
+      review_count,
+      last_last_review_time,
+      last_review_time,
+
+      lemma,
+      part_of_speech,
+      phonetic,
+      phonetic_voice,
+      phonetic_url,
+
+      Lexeme.id as lexeme_id,
+      definition,
+      example,
+      example_meaning,
+      source,
+      Lexeme.update_time as update_time,
+
+      CASE WHEN ?2 < last_review_time
+        THEN review_count - 1
+        ELSE review_count
+      END as snapshot_review_count,
+      CASE WHEN ?2 < last_review_time
+        THEN (last_last_review_time + 24 * 60 * 60 * 1000 * CASE review_count - 1
+            WHEN 0 THEN 0
+            WHEN 1 THEN 1
+            WHEN 2 THEN 3
+            WHEN 3 THEN 7
+            WHEN 4 THEN 15
+            WHEN 5 THEN 30
+            ELSE NULL
+        END)
+        ELSE (SELECT last_review_time + 24 * 60 * 60 * 1000 * CASE review_count
+            WHEN 0 THEN 0
+            WHEN 1 THEN 1
+            WHEN 2 THEN 3
+            WHEN 3 THEN 7
+            WHEN 4 THEN 15
+            WHEN 5 THEN 30
+            ELSE NULL
+          END)
+      END as snapshot_next_reviewable_time,
+      (
+        SELECT last_review_time+ 24 * 60 * 60 * 1000 * CASE review_count
+            WHEN 0 THEN 0
+            WHEN 1 THEN 1
+            WHEN 2 THEN 3
+            WHEN 3 THEN 7
+            WHEN 4 THEN 15
+            WHEN 5 THEN 30
+            ELSE NULL
+          END
+      ) as next_reviewable_time
+    FROM ReviewProgress, Word, Lexeme
+    WHERE ReviewProgress.user_email = ?1
+      AND ReviewProgress.word_id = Word.id
+      AND ReviewProgress.word_id = Lexeme.word_id
+    ORDER BY snapshot_next_reviewable_time ASC NULLS LAST, snapshot_review_count DESC
+    LIMIT ?4 OFFSET ?3;`
+    )
+    .bind(userEmail, snapshotTime, offset, limit)
+    .all<
+      ReviewProgressAtSnapshot &
+        Omit<DBTypes.Word, "id"> & {
+          lexeme_id: string;
+          definition: string;
+          example: string;
+          example_meaning: string;
+          source: string;
+          update_time: number;
+        }
+    >();
+  const resultMap = new Map<string, ReviewProgressAtSnapshotWithWord>();
+
+  for (const row of result.results) {
+    if (!resultMap.has(row.id)) {
+      resultMap.set(row.id, {
+        ...row,
+        lexemes: [],
+      });
+    }
+
+    const resultItem = resultMap.get(row.id)!;
+
+    resultItem.lexemes.push({
+      id: row.lexeme_id,
+      word_id: row.word_id,
+      definition: row.definition,
+      example: row.example,
+      example_meaning: row.example_meaning,
+      source: row.source,
+      update_time: row.update_time,
+    });
+  }
+
+  return Array.from(resultMap.values());
+}
+
 export async function getReviewProgressByWord(
   db: D1Database,
   userEmail: string,
-  wordId: string,
+  wordId: string
 ): Promise<ReviewProgress | null> {
   return await db
     .prepare(
@@ -152,7 +264,7 @@ export async function getReviewProgressByWord(
           END
       ) as next_reviewable_time
     FROM ReviewProgress
-    WHERE ReviewProgress.user_email = ?1 AND ReviewProgress.word_id = ?2;`,
+    WHERE ReviewProgress.user_email = ?1 AND ReviewProgress.word_id = ?2;`
     )
     .bind(userEmail, wordId)
     .first<ReviewProgress>();
@@ -160,13 +272,13 @@ export async function getReviewProgressByWord(
 
 export async function getReviewProgressesOfUserCount(
   db: D1Database,
-  userEmail: string,
+  userEmail: string
 ): Promise<number> {
   const result = await db
     .prepare(
       `SELECT COUNT(*) as count
     FROM ReviewProgress
-    WHERE ReviewProgress.user_email = ?1;`,
+    WHERE ReviewProgress.user_email = ?1;`
     )
     .bind(userEmail)
     .first<{ count: number }>();
@@ -176,7 +288,7 @@ export async function getReviewProgressesOfUserCount(
 export async function getReviewProgressesUpdatedAfterCount(
   db: D1Database,
   userEmail: string,
-  timestamp: number,
+  timestamp: number
 ): Promise<number> {
   return (
     (await db
@@ -186,7 +298,7 @@ export async function getReviewProgressesUpdatedAfterCount(
     WHERE ReviewProgress.user_email = ?1
     AND ReviewProgress.update_time > ?2
     ORDER BY id ASC
-    LIMIT ?3 OFFSET ?4;`,
+    LIMIT ?3 OFFSET ?4;`
       )
       .bind(userEmail, timestamp)
       .first<number>()) || 0
@@ -198,7 +310,7 @@ export async function getReviewProgressesUpdatedAfter(
   userEmail: string,
   timestamp: number,
   offset: number,
-  limit: number,
+  limit: number
 ): Promise<Array<ReviewProgress>> {
   const result = await db
     .prepare(
@@ -226,7 +338,7 @@ export async function getReviewProgressesUpdatedAfter(
     WHERE ReviewProgress.user_email = ?1
     AND ReviewProgress.update_time > ?2
     ORDER BY id ASC
-    LIMIT ?3 OFFSET ?4;`,
+    LIMIT ?3 OFFSET ?4;`
     )
     .bind(userEmail, timestamp, limit, offset)
     .all<ReviewProgress>();

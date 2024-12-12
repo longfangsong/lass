@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import {
+  getReviewProgressAtSnapshotWithWord,
   getReviewProgressesAtSnapshot,
   PAGE_SIZE,
 } from "@/lib/data/review_progress";
@@ -22,22 +23,14 @@ export default async function WordTable({
     redirect("/api/auth/signin");
   }
   const [release, db] = await getDB();
-  const reviewProgresses = await getReviewProgressesAtSnapshot(
+  const dataInTable = await getReviewProgressAtSnapshotWithWord(
     db,
     session.user.email,
     snapshot,
     (page - 1) * PAGE_SIZE,
     PAGE_SIZE,
   );
-  const wordsInTable = await getWords(
-    db,
-    reviewProgresses.map((it) => it.word_id),
-  );
   release();
-  const dataInTable = reviewProgresses.map((reviewProgress) => ({
-    reviewProgress,
-    word: wordsInTable.find((it) => it.id === reviewProgress.word_id)!,
-  }));
   return (
     <div className="max-w-full overflow-scroll">
       <Table striped className="overflow-scroll">
@@ -49,11 +42,10 @@ export default async function WordTable({
           <WordTableButtonsHeader />
         </TableHead>
         <TableBody>
-          {dataInTable.map(({ reviewProgress, word }) => (
+          {dataInTable.map((reviewProgressWithWord) => (
             <WordRow
-              key={reviewProgress.id}
-              reviewProgress={reviewProgress}
-              word={word}
+              key={reviewProgressWithWord.id}
+              reviewProgressWithWord={reviewProgressWithWord}
             />
           ))}
         </TableBody>

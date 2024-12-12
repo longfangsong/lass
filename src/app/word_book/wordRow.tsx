@@ -4,7 +4,7 @@ import { formatDistance } from "date-fns";
 import { sv } from "date-fns/locale/sv";
 import { TableCell, TableRow } from "flowbite-react";
 import { PlayButton } from "../_components/PlayButton";
-import { Lexeme, ReviewProgressAtSnapshot, Word } from "@/lib/types";
+import { Lexeme, ReviewProgressAtSnapshot, ReviewProgressAtSnapshotWithWord, Word } from "@/lib/types";
 import { useEffect, useState } from "react";
 import BlurElement from "./blurElement";
 import { ReviewButton } from "./reviewButton";
@@ -46,15 +46,12 @@ export function Controls({ buttons }: { buttons: Array<React.ReactElement> }) {
   }
 }
 
-export function WordRow({
-  reviewProgress,
-  word,
+export function WordRow({reviewProgressWithWord
 }: {
-  reviewProgress: ReviewProgressAtSnapshot;
-  word: Word;
+  reviewProgressWithWord: ReviewProgressAtSnapshotWithWord;
 }) {
   const [currentReviewProgress, setCurrentReviewProgress] =
-    useState(reviewProgress);
+    useState(reviewProgressWithWord);
   const [now, setNow] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
 
@@ -129,8 +126,8 @@ export function WordRow({
   };
 
   return (
-    <TableRow key={reviewProgress.id}>
-      <TableCell className="px-3">{word.lemma}</TableCell>
+    <TableRow key={reviewProgressWithWord.id}>
+      <TableCell className="px-3">{reviewProgressWithWord.lemma}</TableCell>
       <TableCell className="px-3">
         {currentReviewProgress.next_reviewable_time === null
           ? "Done!"
@@ -158,7 +155,7 @@ export function WordRow({
         </div>
       </TableCell>
       <TableCell className="px-3">
-        {word.lexemes
+        {reviewProgressWithWord.lexemes
           .toSorted((a, b) => lexemePriority(a) - lexemePriority(b))
           .map((lexeme) => {
             return (
@@ -179,25 +176,25 @@ export function WordRow({
       <Controls
         buttons={[
           <PlayButton
-            key={`${reviewProgress}-play`}
+            key={`${reviewProgressWithWord.id}-play`}
             className="mx-auto"
-            voice={word}
+            voice={reviewProgressWithWord}
           />,
           <ReviewButton
-            key={`${reviewProgress}-review`}
+            key={`${reviewProgressWithWord.id}-review`}
             review={currentReviewProgress}
             onClick={() => handleReview(currentReviewProgress.review_count + 1)}
             now={now}
           />,
           currentReviewProgress.review_count < 6 ? (
             <DoneButton
-              key={`${reviewProgress.id}-done`}
+              key={`${reviewProgressWithWord.id}-done`}
               review={currentReviewProgress}
               onClick={handleDone}
             />
           ) : (
             <ResetButton
-              key={`${reviewProgress.id}-reset`}
+              key={`${reviewProgressWithWord.id}-reset`}
               review={currentReviewProgress}
               onClick={() => handleReview(1)}
             />
