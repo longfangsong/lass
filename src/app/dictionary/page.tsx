@@ -16,12 +16,9 @@ import { fetchWithSemaphore } from "@/lib/fetch";
 import { WordDetail } from "../_components/WordDetail";
 import { SaveToWordBookButton } from "../_components/SaveToWordBook";
 import { useSession } from "next-auth/react";
-import { useNetworkState } from "@uidotdev/usehooks";
 import { syncLexeme, syncWord, syncWordIndex } from "@/lib/frontend/data/sync";
 import { localIsNewEnough } from "@/lib/frontend/data/word";
 import { searchWord } from "@/lib/frontend/data/word";
-
-export const runtime = "edge";
 
 function WordDetailModal({
   word,
@@ -49,7 +46,7 @@ function WordDetailModal({
 }
 
 export default function Words() {
-  const network = useNetworkState();
+  const [isOnline, setIsOnline] = useState(true);
   const [words, setWords] = useState<Array<WordSearchResult>>([]);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const search = debounce((e) => {
@@ -58,7 +55,7 @@ export default function Words() {
         setWords([]);
         return;
       }
-      if (!network.online || (await localIsNewEnough())) {
+      if (!isOnline || (await localIsNewEnough())) {
         const result = await searchWord(e.target.value);
         setWords(result);
       } else {
@@ -71,13 +68,26 @@ export default function Words() {
     })();
   }, 500);
   useEffect(() => {
-    if (network.online) {
+    setInterval(async () => {
+      if (!isOnline) {
+        const response = await fetch("/api/ping");
+        const isOnline = response.ok;
+        console.log("ping", isOnline);
+        setIsOnline(isOnline);
+      }
+    }, 60000);
+    window.addEventListener("online", async () => {
+      const response = await fetch("/api/ping");
+      const isOnline = response.ok;
+      setIsOnline(isOnline);
+    });
+    window.addEventListener("offline", () => setIsOnline(false));
+    if (isOnline) {
       syncWord();
       syncWordIndex();
       syncLexeme();
     }
-  }, [network.online]);
-
+  }, [isOnline]);
   return (
     <div>
       <FloatingLabel
@@ -106,7 +116,7 @@ export default function Words() {
               <TableCell className="py-1">{word.lemma}</TableCell>
               <TableCell className="py-1">
                 {word.definitions.map((definition, index) => (
-                  <React.Fragment key={definition}>
+                  <React.Fragment key={`${word.id}-${definition}-${index}`}>
                     <p>{definition}</p>
                     {index !== word.definitions.length - 1 ? (
                       <HR className="m-1" />
