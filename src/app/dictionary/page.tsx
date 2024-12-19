@@ -20,6 +20,8 @@ import { syncLexeme, syncWord, syncWordIndex } from "@/lib/frontend/data/sync";
 import { localIsNewEnough } from "@/lib/frontend/data/word";
 import { searchWord } from "@/lib/frontend/data/word";
 
+export const runtime = 'edge';
+
 function WordDetailModal({
   word,
   onClose,

@@ -17,6 +17,9 @@ export async function getWord(id: string): Promise<Word | null> {
 
 export async function localIsNewEnough(): Promise<boolean> {
   const meta = await db.meta.toArray();
+  if (meta.length === 0) {
+    return false;
+  }
   const minVersion = meta.reduce((min, it) => Math.min(min, it.version || 0), Number.MAX_VALUE);
   const now = new Date();
   return now.getTime() - minVersion < 1000 * 60 * 60 * 24;
