@@ -1,4 +1,4 @@
-import { getWord } from "@/lib/data/word";
+import { getWord } from "@/lib/backend/data/word";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { NextRequest, NextResponse } from "next/server";
 

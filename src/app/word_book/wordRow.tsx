@@ -4,14 +4,13 @@ import { formatDistance } from "date-fns";
 import { sv } from "date-fns/locale/sv";
 import { TableCell, TableRow } from "flowbite-react";
 import { PlayButton } from "../_components/PlayButton";
-import { Lexeme, ReviewProgressAtSnapshot, ReviewProgressAtSnapshotWithWord, Word } from "@/lib/types";
+import { Lexeme, ReviewProgressAtSnapshotWithWord, Word } from "@/lib/types";
 import { useEffect, useState } from "react";
 import BlurElement from "./blurElement";
 import { ReviewButton } from "./reviewButton";
 import { DoneButton } from "./doneButton";
 import { ResetButton } from "./resetButton";
 import { useWindowSize } from "@uidotdev/usehooks";
-import { randomInt } from "crypto";
 
 function lexemePriority(lexeme: Lexeme) {
   return lexeme.source === "lexin-swe" ? 0 : 1;

@@ -1,9 +1,9 @@
 import { auth } from "@/lib/auth";
-import { getReviewProgressesOfUserCount } from "@/lib/data/review_progress";
+import { getReviewProgressesOfUserCount } from "@/lib/backend/data/review_progress";
 import { redirect } from "next/navigation";
 import { WordBookPagination } from "./pagination";
 import WordTable from "./table";
-import { getDB } from "@/lib/db";
+import { getDB } from "@/lib/backend/db";
 
 export const runtime = "edge";
 

@@ -4,7 +4,7 @@ import {
   ReviewProgressAtSnapshot,
   ReviewProgressAtSnapshotWithWord,
   ReviewProgressPatchPayload,
-} from "../types";
+} from "@/lib/types";
 
 export const PAGE_SIZE = 20;
 

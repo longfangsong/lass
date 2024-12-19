@@ -1,6 +1,5 @@
-import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { CacheFirst, NetworkOnly, Serwist, StaleWhileRevalidate } from "serwist";
+import { CacheFirst, Serwist, StaleWhileRevalidate } from "serwist";
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -37,14 +36,19 @@ const serwist = new Serwist({
       handler: new StaleWhileRevalidate(),
     },
     {
+      matcher: /\.(?:js)$/i,
+      handler: new StaleWhileRevalidate(),
+    },
+    {
       matcher: /.*/i,
-      handler: new NetworkOnly(),
-    }
+      handler: new StaleWhileRevalidate(),
+    },
   ],
 });
 serwist.addToPrecacheList([
   { url: "/", revision: null },
   { url: "/articles", revision: null },
+  { url: "/dictionary", revision: null },
 ]);
 
 serwist.addEventListeners();

@@ -31,7 +31,7 @@ export default function Home() {
             <Button href="/articles" className="mx-auto my-4 md:my-0 w-fit">
               Read Articles
             </Button>
-            <Button href="/words" className="mx-auto my-4 md:my-0 w-fit">
+            <Button href="/dictionary" className="mx-auto my-4 md:my-0 w-fit">
               Dictionary
             </Button>
             <Button href="/word_book" className="mx-auto my-4 md:my-0 w-fit">

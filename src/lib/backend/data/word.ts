@@ -1,5 +1,5 @@
-import { dictionaryModel } from "../ai";
-import { DBTypes, Word, WordSearchResult } from "../types";
+import { dictionaryModel } from "@/lib/ai";
+import { DBTypes, Word, WordSearchResult } from "@/lib/types";
 
 function unescapeString(str: string): string {
   return str.replace(/&#39;/g, "'");
@@ -426,4 +426,55 @@ export async function getWordsByIndex(
       };
     }),
   );
+}
+
+export async function getDBWordsUpdateIn(
+  db: D1Database,
+  update_after: number,
+  update_before: number,
+  limit: number,
+  offset: number,
+): Promise<Array<DBTypes.Word>> {
+  const result = await db
+    .prepare(
+      `SELECT * FROM Word WHERE update_time > ?1 AND update_time < ?2 LIMIT ?3 OFFSET ?4`,
+    )
+    .bind(update_after, update_before, limit, offset)
+    .all<DBTypes.Word>();
+  if (!result.success) throw new Error(result.error);
+  return unescapeObject(result.results);
+}
+
+export async function getDBWordIndexesUpdateIn(
+  db: D1Database,
+  update_after: number,
+  update_before: number,
+  limit: number,
+  offset: number,
+): Promise<Array<DBTypes.WordIndex>> {
+  const result = await db
+    .prepare(
+      `SELECT * FROM WordIndex WHERE update_time > ?1 AND update_time < ?2 LIMIT ?3 OFFSET ?4`,
+    )
+    .bind(update_after, update_before, limit, offset)
+    .all<DBTypes.WordIndex>();
+  if (!result.success) throw new Error(result.error);
+  return unescapeObject(result.results);
+}
+
+export async function getDBLexemesUpdateIn(
+  db: D1Database,
+  update_after: number,
+  update_before: number,
+  limit: number,
+  offset: number,
+): Promise<Array<DBTypes.Lexeme>> {
+  const result = await db
+    .prepare(
+      `SELECT * FROM Lexeme WHERE update_time > ?1 AND update_time < ?2 LIMIT ?3 OFFSET ?4`,
+    )
+    .bind(update_after, update_before, limit, offset)
+    .all<DBTypes.Lexeme>();
+  if (!result.success) throw new Error(result.error);
+  return unescapeObject(result.results);
 }

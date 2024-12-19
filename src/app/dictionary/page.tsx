@@ -11,11 +11,15 @@ import {
   Table,
   TableCell,
 } from "flowbite-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { fetchWithSemaphore } from "@/lib/fetch";
 import { WordDetail } from "../_components/WordDetail";
 import { SaveToWordBookButton } from "../_components/SaveToWordBook";
 import { useSession } from "next-auth/react";
+import { useNetworkState } from "@uidotdev/usehooks";
+import { syncLexeme, syncWord, syncWordIndex } from "@/lib/frontend/data/sync";
+import { localIsNewEnough } from "@/lib/frontend/data/word";
+import { searchWord } from "@/lib/frontend/data/word";
 
 export const runtime = "edge";
 
@@ -45,6 +49,7 @@ function WordDetailModal({
 }
 
 export default function Words() {
+  const network = useNetworkState();
   const [words, setWords] = useState<Array<WordSearchResult>>([]);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const search = debounce((e) => {
@@ -53,13 +58,26 @@ export default function Words() {
         setWords([]);
         return;
       }
-      const response = await fetchWithSemaphore(
-        `/api/words?search=${e.target.value}`,
-      );
-      const result: Array<WordSearchResult> = await response.json();
-      setWords(result);
+      if (!network.online || (await localIsNewEnough())) {
+        const result = await searchWord(e.target.value);
+        setWords(result);
+      } else {
+        const response = await fetchWithSemaphore(
+          `/api/words?search=${e.target.value}`
+        );
+        const result: Array<WordSearchResult> = await response.json();
+        setWords(result);
+      }
     })();
   }, 500);
+  useEffect(() => {
+    if (network.online) {
+      syncWord();
+      syncWordIndex();
+      syncLexeme();
+    }
+  }, [network.online]);
+
   return (
     <div>
       <FloatingLabel
@@ -79,7 +97,7 @@ export default function Words() {
               key={word.id}
               onClick={async () => {
                 const selectedWord = await fetchWithSemaphore(
-                  `/api/words/${word.id}`,
+                  `/api/words/${word.id}`
                 );
                 const result: Word = await selectedWord.json();
                 setSelectedWord(result);

@@ -4,8 +4,8 @@ import {
   getReviewProgressByWord,
   getReviewProgressesAtSnapshot,
   getReviewProgressesUpdatedAfter,
-} from "@/lib/data/review_progress";
-import { getDB } from "@/lib/db";
+} from "@/lib/backend/data/review_progress";
+import { getDB } from "@/lib/backend/db";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";

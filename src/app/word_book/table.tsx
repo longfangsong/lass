@@ -1,11 +1,9 @@
 import { auth } from "@/lib/auth";
 import {
   getReviewProgressAtSnapshotWithWord,
-  getReviewProgressesAtSnapshot,
   PAGE_SIZE,
-} from "@/lib/data/review_progress";
-import { getWords } from "@/lib/data/word";
-import { getDB } from "@/lib/db";
+} from "@/lib/backend/data/review_progress";
+import { getDB } from "@/lib/backend/db";
 import { Table, TableBody, TableHead, TableHeadCell } from "flowbite-react";
 import { redirect } from "next/navigation";
 import { WordRow } from "./wordRow";

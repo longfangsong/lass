@@ -1,4 +1,4 @@
-import { DBTypes } from "../types";
+import { DBTypes } from "@/lib/types";
 
 export async function getArticleMetas(
   db: D1Database,
