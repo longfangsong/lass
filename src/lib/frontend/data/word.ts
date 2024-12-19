@@ -1,7 +1,8 @@
 import {  Word, WordSearchResult } from "@/lib/types";
-import { db } from "../db";
+import { getDB } from "../db";
 
 export async function getWord(id: string): Promise<Word | null> {
+  const db = await getDB();
   const word = await db.word.get(id);
   if (!word) {
     return null;
@@ -16,6 +17,7 @@ export async function getWord(id: string): Promise<Word | null> {
 }
 
 export async function localIsNewEnough(): Promise<boolean> {
+  const db = await getDB();
   const meta = await db.meta.toArray();
   if (meta.length === 0) {
     return false;
@@ -28,6 +30,7 @@ export async function localIsNewEnough(): Promise<boolean> {
 export async function searchWord(
   spell: string,
 ): Promise<WordSearchResult[]> {
+  const db = await getDB();
   const directMatchTask = db.word
     .where("lemma")
     .equals(spell)

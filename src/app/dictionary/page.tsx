@@ -74,7 +74,6 @@ export default function Words() {
       if (!isOnline) {
         const response = await fetch("/api/ping");
         const isOnline = response.ok;
-        console.log("ping", isOnline);
         setIsOnline(isOnline);
       }
     }, 60000);
@@ -85,9 +84,10 @@ export default function Words() {
     });
     window.addEventListener("offline", () => setIsOnline(false));
     if (isOnline) {
-      syncWord();
-      syncWordIndex();
-      syncLexeme();
+      console.log("syncing");
+      Promise.all([syncWord(), syncWordIndex(), syncLexeme()]).then(() => {
+        console.log("synced");
+      });
     }
   }, [isOnline]);
   return (

@@ -1,5 +1,5 @@
 import { fetchWithSemaphore } from "@/lib/fetch";
-import { db } from "../db";
+import { DB, getDB } from "../db";
 import { DBTypes } from "@/lib/types";
 import { EntityTable } from "dexie";
 import Semaphore from "semaphore-promise";
@@ -9,6 +9,7 @@ const PAGE_SIZE = 2000;
 export const syncSemaphore = new Semaphore(1);
 
 async function sync<T>(table: EntityTable<T, keyof T>, tableName: string) {
+    const db = table.db as DB;
     const release = await syncSemaphore.acquire();
     const lastUpdatedTime = await db.meta.get(tableName).then(meta => meta?.version || 0);
     const now = new Date();
@@ -32,13 +33,16 @@ async function sync<T>(table: EntityTable<T, keyof T>, tableName: string) {
 }
 
 export async function syncWord() {
+    const db = await getDB();
     await sync(db.word as EntityTable<DBTypes.Word, keyof DBTypes.Word>, "Word");
 }
 
 export async function syncWordIndex() {
+    const db = await getDB();
     await sync(db.wordIndex as EntityTable<DBTypes.WordIndex, keyof DBTypes.WordIndex>, "WordIndex");
 }
 
 export async function syncLexeme() {
+    const db = await getDB();
     await sync(db.lexeme as EntityTable<DBTypes.Lexeme, keyof DBTypes.Lexeme>, "Lexeme");
 }
