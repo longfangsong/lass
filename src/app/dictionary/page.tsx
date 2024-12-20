@@ -57,7 +57,8 @@ export default function Words() {
         setWords([]);
         return;
       }
-      if (!isOnline || (await localIsNewEnough())) {
+      const newEnough = await localIsNewEnough();
+      if (!isOnline || newEnough) {
         const result = await searchWord(e.target.value);
         setWords(result);
       } else {
