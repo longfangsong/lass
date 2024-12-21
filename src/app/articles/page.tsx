@@ -31,7 +31,7 @@ export default function Articles({
       <ListGroup className="w-full">
         {articles.map((article) => (
           <ListGroupItem
-            href={process.env.CF_PAGES_URL + `/articles/${article.id}`}
+            href={process.env.CF_PAGES_URL || "" + `/articles/${article.id}`}
             key={article.id}
           >
             {article.title}
