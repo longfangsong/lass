@@ -60,7 +60,7 @@ export async function searchWord(spell: string): Promise<WordSearchResult[]> {
 
   const likeMatchTask = db.word
     .where("lemma")
-    .startsWithIgnoreCase(spell)
+    .startsWith(spell)
     .toArray()
     .then(words => {
       console.log(`Like match ${spell} in local took ${new Date().getTime() - startTime.getTime()}ms`);
@@ -70,7 +70,7 @@ export async function searchWord(spell: string): Promise<WordSearchResult[]> {
 
   const likeFormMatchIndexesTask = db.wordIndex
     .where("spell")
-    .startsWithIgnoreCase(spell)
+    .startsWith(spell)
     .toArray()
     .then(indexes => {
       const resultSet = new Set<string>();
