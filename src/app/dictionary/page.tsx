@@ -19,8 +19,9 @@ import { useSession } from "next-auth/react";
 import { syncLexeme, syncWord, syncWordIndex } from "@/lib/frontend/data/sync";
 import { localIsNewEnough } from "@/lib/frontend/data/word";
 import { searchWord } from "@/lib/frontend/data/word";
+import { MdDownloadDone, MdOutlineSync } from "react-icons/md";
 
-export const runtime = 'edge';
+export const runtime = "edge";
 
 function WordDetailModal({
   word,
@@ -49,6 +50,7 @@ function WordDetailModal({
 
 export default function Words() {
   const [isOnline, setIsOnline] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [words, setWords] = useState<Array<WordSearchResult>>([]);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const search = debounce((e) => {
@@ -57,7 +59,12 @@ export default function Words() {
         setWords([]);
         return;
       }
-      const newEnough = await localIsNewEnough();
+      // getting localIsNewEnough can be slow (take more than 200ms) when syncing
+      // if it is syncing, it is not new enough
+      const newEnough = await Promise.race([
+        localIsNewEnough(),
+        new Promise((resolve) => setTimeout(() => resolve(false), 200)),
+      ]);
       if (!isOnline || newEnough) {
         const result = await searchWord(e.target.value);
         setWords(result);
@@ -86,8 +93,10 @@ export default function Words() {
     window.addEventListener("offline", () => setIsOnline(false));
     if (isOnline) {
       console.log("syncing");
+      setIsSyncing(true);
       Promise.all([syncWord(), syncWordIndex(), syncLexeme()]).then(() => {
         console.log("synced");
+        setIsSyncing(false);
       });
     }
   }, [isOnline]);
@@ -137,6 +146,27 @@ export default function Words() {
         word={selectedWord}
         onClose={() => setSelectedWord(null)}
       />
+      {isSyncing ? (
+        <div className="flex flex-row items-center justify-center mt-4">
+          <MdOutlineSync className="animate-spin w-6 h-6" />
+          <div className="ml-2">
+            <p>Downloading dictionary to your device...</p>
+            <p className="text-xs">
+              Your search will be handled on server.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-row items-center justify-center mt-4">
+          <MdDownloadDone className="w-6 h-6" />
+          <div className="ml-2">
+            <p>Dictionary downloaded.</p>
+            <p className="text-xs">
+              Your search will be handled on your device.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
