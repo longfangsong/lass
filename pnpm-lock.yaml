@@ -29,6 +29,9 @@ importers:
       dexie-react-hooks:
         specifier: ^1.1.7
         version: 1.1.7(@types/react@18.3.12)(dexie@4.0.10)(react@18.3.1)
+      events:
+        specifier: ^3.3.0
+        version: 3.3.0
       flowbite-react:
         specifier: ^0.10.2
         version: 0.10.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.24.3)(tailwindcss@3.4.14(ts-node@10.9.1(@types/node@22.8.7)(typescript@5.6.3)))
@@ -1966,6 +1969,10 @@ packages:
 
   events-intercept@2.0.0:
     resolution: {integrity: sha512-blk1va0zol9QOrdZt0rFXo5KMkNPVSp92Eju/Qz8THwKWKRKeE0T8Br/1aW6+Edkyq9xHYgYxn2QtOnUKPUp+Q==}
+
+  events@3.3.0:
+    resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
+    engines: {node: '>=0.8.x'}
 
   execa@3.2.0:
     resolution: {integrity: sha512-kJJfVbI/lZE1PZYDI5VPxp8zXPO9rtxOkhpZ0jMKha56AI9y2gGVC6bkukStQf0ka5Rh15BA5m7cCCH4jmHqkw==}
@@ -5466,6 +5473,8 @@ snapshots:
   etag@1.8.1: {}
 
   events-intercept@2.0.0: {}
+
+  events@3.3.0: {}
 
   execa@3.2.0:
     dependencies:

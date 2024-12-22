@@ -11,15 +11,12 @@ import {
   Table,
   TableCell,
 } from "flowbite-react";
-import React, { useEffect, useState } from "react";
-import { fetchWithSemaphore } from "@/lib/fetch";
+import React, { useState } from "react";
 import { WordDetail } from "../_components/WordDetail";
 import { SaveToWordBookButton } from "../_components/SaveToWordBook";
 import { useSession } from "next-auth/react";
-import { syncLexeme, syncWord, syncWordIndex } from "@/lib/frontend/data/sync";
-import { localIsNewEnough } from "@/lib/frontend/data/word";
-import { searchWord } from "@/lib/frontend/data/word";
 import { MdDownloadDone, MdOutlineSync } from "react-icons/md";
+import { SyncState, useSyncState } from "@/lib/datasource/hooks";
 
 export const runtime = "edge";
 
@@ -49,57 +46,22 @@ function WordDetailModal({
 }
 
 export default function Words() {
-  const [isOnline, setIsOnline] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [words, setWords] = useState<Array<WordSearchResult>>([]);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+  const syncState = useSyncState();
   const search = debounce((e) => {
     (async () => {
+      const { localFirstDataSource } = await import(
+        "@/lib/datasource/localFirst"
+      );
       if (e.target.value === "") {
         setWords([]);
         return;
       }
-      // getting localIsNewEnough can be slow (take more than 200ms) when syncing
-      // if it is syncing, it is not new enough
-      const newEnough = await Promise.race([
-        localIsNewEnough(),
-        new Promise((resolve) => setTimeout(() => resolve(false), 200)),
-      ]);
-      if (!isOnline || newEnough) {
-        const result = await searchWord(e.target.value);
-        setWords(result);
-      } else {
-        const response = await fetchWithSemaphore(
-          `/api/words?search=${e.target.value}`
-        );
-        const result: Array<WordSearchResult> = await response.json();
-        setWords(result);
-      }
+      const result = await localFirstDataSource.searchWord(e.target.value);
+      setWords(result);
     })();
   }, 500);
-  useEffect(() => {
-    setInterval(async () => {
-      if (!isOnline) {
-        const response = await fetch("/api/ping");
-        const isOnline = response.ok;
-        setIsOnline(isOnline);
-      }
-    }, 60000);
-    window.addEventListener("online", async () => {
-      const response = await fetch("/api/ping");
-      const isOnline = response.ok;
-      setIsOnline(isOnline);
-    });
-    window.addEventListener("offline", () => setIsOnline(false));
-    if (isOnline) {
-      console.log("syncing");
-      setIsSyncing(true);
-      Promise.all([syncWord(), syncWordIndex(), syncLexeme()]).then(() => {
-        console.log("synced");
-        setIsSyncing(false);
-      });
-    }
-  }, [isOnline]);
   return (
     <div>
       <FloatingLabel
@@ -118,10 +80,10 @@ export default function Words() {
             <Table.Row
               key={word.id}
               onClick={async () => {
-                const selectedWord = await fetchWithSemaphore(
-                  `/api/words/${word.id}`
+                const { localFirstDataSource } = await import(
+                  "@/lib/datasource/localFirst"
                 );
-                const result: Word = await selectedWord.json();
+                const result = await localFirstDataSource.getWord(word.id);
                 setSelectedWord(result);
               }}
             >
@@ -146,17 +108,15 @@ export default function Words() {
         word={selectedWord}
         onClose={() => setSelectedWord(null)}
       />
-      {isSyncing ? (
+      {syncState === SyncState.Syncing ? (
         <div className="flex flex-row items-center justify-center mt-4">
           <MdOutlineSync className="animate-spin w-6 h-6" />
           <div className="ml-2">
             <p>Downloading dictionary to your device...</p>
-            <p className="text-xs">
-              Your search will be handled on server.
-            </p>
+            <p className="text-xs">Your search will be handled on server.</p>
           </div>
         </div>
-      ) : (
+      ) : syncState === SyncState.Synced ? (
         <div className="flex flex-row items-center justify-center mt-4">
           <MdDownloadDone className="w-6 h-6" />
           <div className="ml-2">
@@ -166,6 +126,8 @@ export default function Words() {
             </p>
           </div>
         </div>
+      ) : (
+        <></>
       )}
     </div>
   );

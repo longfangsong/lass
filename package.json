@@ -23,6 +23,7 @@
     "debounce": "^2.2.0",
     "dexie": "^4.0.10",
     "dexie-react-hooks": "^1.1.7",
+    "events": "^3.3.0",
     "flowbite-react": "^0.10.2",
     "next": "14.2.13",
     "next-auth": "5.0.0-beta.25",
