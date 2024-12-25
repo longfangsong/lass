@@ -3,6 +3,7 @@ import {
   ClientReviewProgressAtSnapshotWithWord,
   ClientSideDBReviewProgress,
   ReviewProgressAtSnapshot,
+  ReviewProgressPatchPayload,
   Word,
   WordSearchResult,
 } from "../types";
@@ -15,12 +16,12 @@ export class RemoteDataSource implements DataSource {
     limit: number,
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
     const response = await fetchWithSemaphore(
-      `/api/review_progress?snapshot_time=${snapshotTime}&offset=${offset}&limit=${limit}`,
+      `/api/review_progresses?snapshot_time=${snapshotTime}&offset=${offset}&limit=${limit}`,
     );
     return await response.json();
   }
   async getReviewProgressCount(): Promise<number> {
-    const response = await fetchWithSemaphore("/api/review_progress", {
+    const response = await fetchWithSemaphore("/api/review_progresses", {
       method: "HEAD",
     });
     return parseInt(response.headers.get("X-Total-Count") ?? "0");
@@ -41,6 +42,21 @@ export class RemoteDataSource implements DataSource {
   async getWord(id: string): Promise<Word | null> {
     const response = await fetchWithSemaphore(`/api/words/${id}`);
     return await response.json();
+  }
+
+  async updateReviewProgress(reviewProgress: ClientSideDBReviewProgress) {
+    const payload: ReviewProgressPatchPayload = {
+      review_count: reviewProgress.review_count,
+      last_last_review_time: reviewProgress.last_last_review_time,
+      last_review_time: reviewProgress.last_review_time || undefined,
+    };
+    await fetchWithSemaphore(`/api/review_progresses/${reviewProgress.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
   }
 }
 

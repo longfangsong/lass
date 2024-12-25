@@ -1,6 +1,9 @@
 "use client";
 
-import { ReviewProgress, ReviewProgressPatchPayload } from "@/lib/types";
+import {
+  ClientSideReviewProgress,
+  ReviewProgressPatchPayload,
+} from "@/lib/types";
 import { Button } from "flowbite-react";
 import { MdOutlineRestartAlt } from "react-icons/md";
 import { patch } from "./patch";
@@ -17,7 +20,7 @@ export function ResetButton({
   review,
   onClick,
 }: {
-  review: ReviewProgress;
+  review: ClientSideReviewProgress;
   onClick?: () => void;
 }) {
   return (

@@ -89,6 +89,8 @@ export type ClientSideDBReviewProgress = Omit<
   "user_email"
 >;
 
+export type ClientSideReviewProgress = Omit<ReviewProgress, "user_email">;
+
 export type ClientSideReviewProgressAtSnapshot = Omit<
   ReviewProgressAtSnapshot,
   "user_email"

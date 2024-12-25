@@ -1,27 +1,35 @@
-import { auth } from "@/lib/auth";
-import { getReviewProgressesOfUserCount } from "@/lib/backend/data/review_progress";
+"use client";
+
 import { redirect } from "next/navigation";
 import { WordBookPagination } from "./pagination";
 import WordTable from "./table";
-import { getDB } from "@/lib/backend/db";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 export const runtime = "edge";
 
-export default async function WordBook({
+export default function WordBook({
   searchParams,
 }: {
   searchParams?: { page?: number; fromPage?: string; snapshot?: number };
 }) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    redirect("/api/auth/signin");
-  }
-  const [release, db] = await getDB();
-  const reviewProgressCount = await getReviewProgressesOfUserCount(
-    db,
-    session.user.email,
-  );
-  release();
+  const { data: session, status } = useSession();
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      redirect("/api/auth/signin");
+    }
+  }, [status]);
+
+  const [reviewProgressCount, setReviewProgressCount] = useState(0);
+  useEffect(() => {
+    (async () => {
+      const { localFirstDataSource } = await import(
+        "@/lib/datasource/localFirst"
+      );
+      const count = await localFirstDataSource.getReviewProgressCount();
+      setReviewProgressCount(count);
+    })();
+  });
   return (
     <div>
       <WordTable

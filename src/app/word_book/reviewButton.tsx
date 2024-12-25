@@ -1,31 +1,25 @@
 "use client";
 
-import { fetchWithSemaphore } from "@/lib/fetch";
-import { ReviewProgress, ReviewProgressPatchPayload } from "@/lib/types";
+import { ClientSideReviewProgress } from "@/lib/types";
 import { Button } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import setLargeTimeout from "set-large-timeout";
 
-async function updateWordReview(review: ReviewProgress) {
-  const payload: ReviewProgressPatchPayload = {
-    review_count: review.review_count + 1,
-    last_review_time: new Date().getTime(),
-  };
-  fetchWithSemaphore(`/api/review_progresses/${review.id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+async function updateWordReview(review: ClientSideReviewProgress) {
+  const { localFirstDataSource } = await import("@/lib/datasource/localFirst");
+  review.review_count += 1;
+  review.last_last_review_time = review.last_review_time;
+  review.last_review_time = new Date().getTime();
+  await localFirstDataSource.updateReviewProgress(review);
 }
+
 export function ReviewButton({
   review,
   now,
   onClick,
 }: {
-  review: ReviewProgress;
+  review: ClientSideReviewProgress;
   now: Date;
   onClick?: () => void;
 }) {

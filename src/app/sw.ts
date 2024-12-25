@@ -49,6 +49,7 @@ serwist.addToPrecacheList([
   { url: "/", revision: null },
   { url: "/articles", revision: null },
   { url: "/dictionary", revision: null },
+  { url: "/word_book", revision: null },
 ]);
 
 serwist.addEventListeners();

@@ -1,7 +1,11 @@
 "use client";
 
 import { fetchWithSemaphore } from "@/lib/fetch";
-import { ReviewProgress, ReviewProgressPatchPayload } from "@/lib/types";
+import {
+  ClientSideReviewProgress,
+  ReviewProgress,
+  ReviewProgressPatchPayload,
+} from "@/lib/types";
 import { Button } from "flowbite-react";
 
 function donePayload(): ReviewProgressPatchPayload {
@@ -25,7 +29,7 @@ export function DoneButton({
   review,
   onClick,
 }: {
-  review: ReviewProgress;
+  review: ClientSideReviewProgress;
   onClick?: () => void;
 }) {
   return (

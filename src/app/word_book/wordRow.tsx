@@ -4,7 +4,12 @@ import { formatDistance } from "date-fns";
 import { sv } from "date-fns/locale/sv";
 import { TableCell, TableRow } from "flowbite-react";
 import { PlayButton } from "../_components/PlayButton";
-import { Lexeme, ReviewProgressAtSnapshotWithWord, Word } from "@/lib/types";
+import {
+  ClientReviewProgressAtSnapshotWithWord,
+  Lexeme,
+  ReviewProgressAtSnapshotWithWord,
+  Word,
+} from "@/lib/types";
 import { useEffect, useState } from "react";
 import BlurElement from "./blurElement";
 import { ReviewButton } from "./reviewButton";
@@ -45,12 +50,14 @@ export function Controls({ buttons }: { buttons: Array<React.ReactElement> }) {
   }
 }
 
-export function WordRow({reviewProgressWithWord
+export function WordRow({
+  reviewProgressWithWord,
 }: {
-  reviewProgressWithWord: ReviewProgressAtSnapshotWithWord;
+  reviewProgressWithWord: ClientReviewProgressAtSnapshotWithWord;
 }) {
-  const [currentReviewProgress, setCurrentReviewProgress] =
-    useState(reviewProgressWithWord);
+  const [currentReviewProgress, setCurrentReviewProgress] = useState(
+    reviewProgressWithWord,
+  );
   const [now, setNow] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
 

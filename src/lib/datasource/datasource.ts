@@ -1,5 +1,7 @@
 import {
   ClientReviewProgressAtSnapshotWithWord,
+  ClientSideDBReviewProgress,
+  ClientSideReviewProgress,
   Word,
   WordSearchResult,
 } from "../types";
@@ -14,4 +16,7 @@ export interface DataSource {
     offset: number,
     limit: number,
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>>;
+  updateReviewProgress(
+    reviewProgress: ClientSideDBReviewProgress,
+  ): Promise<void>;
 }

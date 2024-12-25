@@ -58,8 +58,8 @@ export class LocalDataSource implements DataSource {
         });
       reviewProgressesAtSnapshot.sort((a, b) => {
         return (
-          (a.snapshot_next_reviewable_time || 0) -
-          (b.snapshot_next_reviewable_time || 0)
+          (b.snapshot_next_reviewable_time || 0) -
+          (a.snapshot_next_reviewable_time || 0)
         );
       });
       (async () => {
@@ -140,6 +140,9 @@ export class LocalDataSource implements DataSource {
           ),
         );
     }
+    if (resultWords.length === 0 && spell[0].toLocaleUpperCase() === spell[0]) {
+      return await this.getWordsByIndexSpell(spell.toLowerCase());
+    }
     const result = await Promise.all(
       resultWords.map(async (word) => {
         const [indexes, lexemes] = await Promise.all([
@@ -154,6 +157,13 @@ export class LocalDataSource implements DataSource {
 
   async searchWord(spell: string): Promise<Array<WordSearchResult>> {
     return await searchWord(spell);
+  }
+
+  async updateReviewProgress(
+    reviewProgress: ClientSideDBReviewProgress,
+  ): Promise<void> {
+    const db = await getDB();
+    await db.reviewProgress.put(reviewProgress);
   }
 }
 

@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth";
+"use client";
+
 import {
   getReviewProgressAtSnapshotWithWord,
   PAGE_SIZE,
@@ -8,27 +9,41 @@ import { Table, TableBody, TableHead, TableHeadCell } from "flowbite-react";
 import { redirect } from "next/navigation";
 import { WordRow } from "./wordRow";
 import WordTableButtonsHeader from "./wordTableButtonsHeader";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { ClientReviewProgressAtSnapshotWithWord } from "@/lib/types";
 
-export default async function WordTable({
+export default function WordTable({
   page,
   snapshot,
 }: {
   page: number;
   snapshot: number;
 }) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    redirect("/api/auth/signin");
-  }
-  const [release, db] = await getDB();
-  const dataInTable = await getReviewProgressAtSnapshotWithWord(
-    db,
-    session.user.email,
-    snapshot,
-    (page - 1) * PAGE_SIZE,
-    PAGE_SIZE,
-  );
-  release();
+  const { data: session, status } = useSession();
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      redirect("/api/auth/signin");
+    }
+  }, [status]);
+  const [dataInTable, setDataInTable] = useState<
+    Array<ClientReviewProgressAtSnapshotWithWord>
+  >([]);
+  const [dataFetched, setDataFetched] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const { localFirstDataSource } = await import(
+        "@/lib/datasource/localFirst"
+      );
+      const data =
+        await localFirstDataSource.getReviewProgressAtSnapshotWithWord(
+          snapshot,
+          (page - 1) * PAGE_SIZE,
+          PAGE_SIZE,
+        );
+      setDataInTable(data);
+    })();
+  }, []);
   return (
     <div className="max-w-full overflow-scroll">
       <Table striped className="overflow-scroll">

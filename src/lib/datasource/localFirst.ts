@@ -1,5 +1,6 @@
 import {
   ClientReviewProgressAtSnapshotWithWord,
+  ClientSideDBReviewProgress,
   Word,
   WordSearchResult,
 } from "../types";
@@ -95,6 +96,13 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     })();
   }
 
+  async updateReviewProgress(reviewProgress: ClientSideDBReviewProgress) {
+    await Promise.any([
+      this.local.updateReviewProgress(reviewProgress),
+      this.remote.updateReviewProgress(reviewProgress),
+    ]);
+  }
+
   async getWord(id: string): Promise<Word | null> {
     if (!(await this.online) || (await this.localDictionaryNewEnough)) {
       return await this.local.getWord(id);
@@ -121,9 +129,9 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
 
   async getReviewProgressCount(): Promise<number> {
     if (!(await this.online) || (await this.reviewProgressNewEnough)) {
-      return this.local.getReviewProgressCount();
+      return await this.local.getReviewProgressCount();
     } else {
-      return this.remote.getReviewProgressCount();
+      return await this.remote.getReviewProgressCount();
     }
   }
 
@@ -132,15 +140,15 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     offset: number,
     limit: number,
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
-    // fixme: actually we should merge local and remote data even if we are in syncing progress
-    if (!(await this.online) || (await this.reviewProgressNewEnough)) {
-      return this.local.getReviewProgressAtSnapshotWithWord(
+    const db = await getDB();
+    if ((await db.reviewProgress.count()) === 0) {
+      return await this.remote.getReviewProgressAtSnapshotWithWord(
         snapshot,
         offset,
         limit,
       );
     } else {
-      return this.remote.getReviewProgressAtSnapshotWithWord(
+      return await this.local.getReviewProgressAtSnapshotWithWord(
         snapshot,
         offset,
         limit,
