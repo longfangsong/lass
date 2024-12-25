@@ -16,7 +16,7 @@ import { WordDetail } from "../_components/WordDetail";
 import { SaveToWordBookButton } from "../_components/SaveToWordBook";
 import { useSession } from "next-auth/react";
 import { MdDownloadDone, MdOutlineSync } from "react-icons/md";
-import { SyncState, useSyncState } from "@/lib/datasource/hooks";
+import { SyncState, useDictionarySyncState } from "@/lib/datasource/hooks";
 
 export const runtime = "edge";
 
@@ -48,7 +48,7 @@ function WordDetailModal({
 export default function Words() {
   const [words, setWords] = useState<Array<WordSearchResult>>([]);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
-  const syncState = useSyncState();
+  const syncState = useDictionarySyncState();
   const search = debounce((e) => {
     (async () => {
       const { localFirstDataSource } = await import(

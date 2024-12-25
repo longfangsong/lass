@@ -1,9 +1,90 @@
 import { DataSource } from "./datasource";
-import { DBTypes, Word, WordSearchResult } from "../types";
+import {
+  ClientReviewProgressAtSnapshotWithWord,
+  ClientSideDBReviewProgress,
+  ClientSideReviewProgressAtSnapshot,
+  DBTypes,
+  Word,
+  WordSearchResult,
+} from "../types";
 import { getDB } from "../frontend/db";
 import { searchWord } from "../frontend/data/word";
 
+const REVIEW_GAP_DAYS = [0, 1, 3, 7, 15, 30];
+
 export class LocalDataSource implements DataSource {
+  async getReviewProgressAtSnapshotWithWord(
+    snapshotTime: number,
+    offset: number,
+    limit: number,
+  ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
+    const localValue = localStorage.getItem(`review-${snapshotTime}`);
+    if (localValue) {
+      const localJson: Array<ClientSideReviewProgressAtSnapshot> =
+        JSON.parse(localValue);
+      return await Promise.all(
+        localJson.slice(offset, offset + limit).map(async (progress) => {
+          const word = await this.getWord(progress.word_id);
+          return { ...progress, ...word! };
+        }),
+      );
+    } else {
+      const db = await getDB();
+      const reviewProgresses = await db.reviewProgress.toArray();
+      let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
+        reviewProgresses.map((progress) => {
+          const next_reviewable_time =
+            REVIEW_GAP_DAYS[progress.review_count] || null;
+          const snapshot_before_last_review = progress.last_review_time
+            ? snapshotTime < progress.last_review_time
+            : false;
+          let snapshot_next_reviewable_time;
+          if (snapshot_before_last_review) {
+            snapshot_next_reviewable_time = progress.last_last_review_time
+              ? progress.last_last_review_time +
+                24 * 60 * 60 * 1000 * REVIEW_GAP_DAYS[progress.review_count - 1]
+              : null;
+          } else {
+            snapshot_next_reviewable_time = progress.last_review_time
+              ? progress.last_review_time +
+                24 * 60 * 60 * 1000 * REVIEW_GAP_DAYS[progress.review_count]
+              : null;
+          }
+          return {
+            ...progress,
+            snapshot_next_reviewable_time,
+            next_reviewable_time,
+          };
+        });
+      reviewProgressesAtSnapshot.sort((a, b) => {
+        return (
+          (a.snapshot_next_reviewable_time || 0) -
+          (b.snapshot_next_reviewable_time || 0)
+        );
+      });
+      (async () => {
+        Object.keys(localStorage)
+          .filter((key) => key.startsWith("review-"))
+          .forEach((key) => localStorage.removeItem(key));
+        localStorage.setItem(
+          `review-${snapshotTime}`,
+          JSON.stringify(reviewProgressesAtSnapshot),
+        );
+      })();
+      return await Promise.all(
+        reviewProgressesAtSnapshot
+          .slice(offset, offset + limit)
+          .map(async (progress) => {
+            const word = await this.getWord(progress.word_id);
+            return { ...progress, ...word! };
+          }),
+      );
+    }
+  }
+  async getReviewProgressCount(): Promise<number> {
+    const db = await getDB();
+    return await db.reviewProgress.count();
+  }
   async getWord(id: string): Promise<Word | null> {
     const db = await getDB();
     const word = await db.word.get(id);
@@ -26,7 +107,7 @@ export class LocalDataSource implements DataSource {
       .equals(spell)
       .toArray()
       .then((indexes) =>
-        indexes.filter((it) => it.form !== null).map((it) => it.word_id)
+        indexes.filter((it) => it.form !== null).map((it) => it.word_id),
       )
       .then((ids) => db.word.where("id").anyOf(ids).toArray())
       .then((result) => result.sort((a, b) => a.lemma.length - b.lemma.length));
@@ -55,8 +136,8 @@ export class LocalDataSource implements DataSource {
           result.sort(
             (a, b) =>
               Math.abs(a.lemma.length - spell.length) -
-              Math.abs(b.lemma.length - spell.length)
-          )
+              Math.abs(b.lemma.length - spell.length),
+          ),
         );
     }
     const result = await Promise.all(
@@ -66,7 +147,7 @@ export class LocalDataSource implements DataSource {
           db.lexeme.where("word_id").equals(word.id).toArray(),
         ]);
         return { ...word, indexes, lexemes };
-      })
+      }),
     );
     return result;
   }

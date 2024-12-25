@@ -1,18 +1,21 @@
-import { Word, WordSearchResult } from "../types";
+import {
+  ClientReviewProgressAtSnapshotWithWord,
+  Word,
+  WordSearchResult,
+} from "../types";
 import { DataSource } from "./datasource";
 import { fetchWithSemaphore } from "../fetch";
 import { getDB } from "../frontend/db";
-import { syncLexeme } from "../frontend/data/sync";
+import { syncLexeme, syncReviewProgress } from "../frontend/data/sync";
 import { syncWordIndex } from "../frontend/data/sync";
 import { syncWord } from "../frontend/data/sync";
 import { remoteDataSource } from "./remote";
 import { localDataSource } from "./local";
-import { useEffect } from "react";
-import { useState } from "react";
 import { EventEmitter } from "events";
 
 export class LocalFirstDataSource extends EventEmitter implements DataSource {
   private localDictionaryNewEnough: Promise<boolean> = Promise.resolve(false);
+  private reviewProgressNewEnough: Promise<boolean> = Promise.resolve(false);
   private _online: Promise<boolean> = this.checkOnline();
 
   get online() {
@@ -21,7 +24,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
 
   constructor(
     private readonly remote: DataSource,
-    private readonly local: DataSource
+    private readonly local: DataSource,
   ) {
     super();
     (async () => {
@@ -51,24 +54,44 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
         }
       }, 1000 * 60);
 
-      const durationToNextSync = await this.durationToDictionaryNextSync();
-      if (durationToNextSync > 0) {
+      const durationToNextDictionarySync =
+        await this.durationToDictionaryNextSync();
+      if (durationToNextDictionarySync > 0) {
         this.localDictionaryNewEnough = Promise.resolve(true);
-        this.emit("sync-finished");
+        this.emit("dictionary-sync-finished");
       } else {
         this.localDictionaryNewEnough = Promise.resolve(false);
       }
       setTimeout(async () => {
-        this.emit("sync-started");
-        await this.sync();
-        this.localDictionaryNewEnough = Promise.resolve(true);
-        this.emit("sync-finished");
-        setInterval(async () => {
-          this.emit("sync-started");
-          await this.sync();
-          this.emit("sync-finished");
-        }, 1000 * 60 * 60 * 24);
-      }, durationToNextSync);
+        this.emit("dictionary-sync-started");
+        const success = await this.syncDictionary();
+        this.localDictionaryNewEnough = Promise.resolve(success);
+        this.emit("dictionary-sync-finished");
+        setInterval(
+          async () => {
+            this.emit("dictionary-sync-started");
+            const success = await this.syncDictionary();
+            this.localDictionaryNewEnough = Promise.resolve(success);
+            this.emit("dictionary-sync-finished");
+          },
+          1000 * 60 * 60 * 24,
+        );
+      }, durationToNextDictionarySync);
+
+      this.emit("review-sync-started");
+      this.syncReviewProgress().then((success) => {
+        this.reviewProgressNewEnough = Promise.resolve(success);
+        this.emit("review-sync-finished");
+      });
+      setTimeout(
+        async () => {
+          this.emit("review-sync-started");
+          const success = await this.syncReviewProgress();
+          this.reviewProgressNewEnough = Promise.resolve(success);
+          this.emit("review-sync-finished");
+        },
+        1000 * 60 * 60,
+      );
     })();
   }
 
@@ -96,8 +119,39 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     }
   }
 
+  async getReviewProgressCount(): Promise<number> {
+    if (!(await this.online) || (await this.reviewProgressNewEnough)) {
+      return this.local.getReviewProgressCount();
+    } else {
+      return this.remote.getReviewProgressCount();
+    }
+  }
+
+  async getReviewProgressAtSnapshotWithWord(
+    snapshot: number,
+    offset: number,
+    limit: number,
+  ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
+    // fixme: actually we should merge local and remote data even if we are in syncing progress
+    if (!(await this.online) || (await this.reviewProgressNewEnough)) {
+      return this.local.getReviewProgressAtSnapshotWithWord(
+        snapshot,
+        offset,
+        limit,
+      );
+    } else {
+      return this.remote.getReviewProgressAtSnapshotWithWord(
+        snapshot,
+        offset,
+        limit,
+      );
+    }
+  }
+
   private async checkOnline(): Promise<boolean> {
-    const response = await fetchWithSemaphore(process.env.CF_PAGES_URL || "" + "/api/ping");
+    const response = await fetchWithSemaphore(
+      process.env.CF_PAGES_URL || "" + "/api/ping",
+    );
     return response.status === 200;
   }
 
@@ -119,20 +173,33 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     const lastSyncTime = Math.min(
       word.version,
       wordIndex.version,
-      lexeme.version
+      lexeme.version,
     );
     const now = new Date();
     const durationToNextSync = now.getTime() - (lastSyncTime + tolerance);
     return durationToNextSync > 0 ? durationToNextSync : 0;
   }
 
-  private async sync() {
-    await Promise.all([syncWord(), syncWordIndex(), syncLexeme()]);
+  private async syncDictionary() {
+    try {
+      await Promise.all([syncWord(), syncWordIndex(), syncLexeme()]);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  private async syncReviewProgress() {
+    try {
+      await syncReviewProgress();
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
 
 export const localFirstDataSource = new LocalFirstDataSource(
   remoteDataSource,
-  localDataSource
+  localDataSource,
 );
-

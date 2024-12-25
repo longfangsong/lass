@@ -83,3 +83,18 @@ export interface ReviewProgressPatchPayload {
   last_last_review_time?: number | null;
   last_review_time?: number;
 }
+
+export type ClientSideDBReviewProgress = Omit<
+  DBTypes.ReviewProgress,
+  "user_email"
+>;
+
+export type ClientSideReviewProgressAtSnapshot = Omit<
+  ReviewProgressAtSnapshot,
+  "user_email"
+>;
+
+export type ClientReviewProgressAtSnapshotWithWord = Omit<
+  ReviewProgressAtSnapshotWithWord,
+  "user_email"
+>;

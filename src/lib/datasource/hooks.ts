@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 export function useOnline() {
-
   const [online, setOnline] = useState(false);
 
   useEffect(() => {
@@ -20,15 +19,15 @@ export enum SyncState {
   Synced,
 }
 
-export function useSyncState() {
+export function useDictionarySyncState() {
   const [syncState, setSyncState] = useState(SyncState.NotSynced);
   useEffect(() => {
     import("./localFirst").then(({ localFirstDataSource }) => {
-      localFirstDataSource.on("sync-started", () =>
-        setSyncState(SyncState.Syncing)
+      localFirstDataSource.on("dictionary-sync-started", () =>
+        setSyncState(SyncState.Syncing),
       );
-    localFirstDataSource.on("sync-finished", () =>
-        setSyncState(SyncState.Synced)
+      localFirstDataSource.on("dictionary-sync-finished", () =>
+        setSyncState(SyncState.Synced),
       );
     });
   }, []);

@@ -1,5 +1,5 @@
 import type { Dexie as TDexie, EntityTable } from "dexie";
-import { DBTypes } from "../types";
+import { ClientSideDBReviewProgress, DBTypes } from "../types";
 
 export type DB = TDexie & {
   meta: EntityTable<
@@ -12,6 +12,7 @@ export type DB = TDexie & {
   word: EntityTable<DBTypes.Word, "id">;
   wordIndex: EntityTable<DBTypes.WordIndex, "id">;
   lexeme: EntityTable<DBTypes.Lexeme, "id">;
+  reviewProgress: EntityTable<ClientSideDBReviewProgress, "id">;
 };
 
 let db: DB | null = null;
@@ -25,6 +26,7 @@ export async function getDB() {
       word: "id, lemma, update_time",
       wordIndex: "id, word_id, spell, update_time",
       lexeme: "id, word_id, update_time",
+      reviewProgress: "id, word_id, update_time",
     });
   }
   return db;
