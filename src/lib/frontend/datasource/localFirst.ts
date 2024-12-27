@@ -56,8 +56,10 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
         await this.durationToDictionaryNextSync();
       if (durationToNextDictionarySync > 0) {
         this.localDictionaryNewEnough = Promise.resolve(true);
+        this.emit("dictionary-sync-finished", true);
       } else {
         this.localDictionaryNewEnough = Promise.resolve(false);
+        this.emit("dictionary-sync-finished", false);
       }
       setTimeout(async () => {
         const success = await this.syncDictionary();
@@ -198,6 +200,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       this.emit("dictionary-sync-finished", true);
       return true;
     } catch (e) {
+      console.log("sync failed",e);
       this.emit("dictionary-sync-finished", false);
       return false;
     }
@@ -210,6 +213,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       this.emit("review-progress-sync-finished", true);
       return true;
     } catch (e) {
+      console.log("sync failed",e);
       this.emit("review-progress-sync-finished", false);
       return false;
     }

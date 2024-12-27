@@ -5,7 +5,7 @@ function unescapeString(str: string): string {
   return str.replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 }
 
-export function unescapeObject<T>(obj: any): any {
+export function unescapeObject(obj: any): any {
   if (typeof obj === "string") {
     return unescapeString(obj);
   }
