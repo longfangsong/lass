@@ -58,43 +58,24 @@ export class LocalDataSource implements DataSource {
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
     const localValue = localStorage.getItem(`review-${snapshotTime}`);
     if (localValue) {
-      const localJson: Array<ClientSideReviewProgressAtSnapshot> =
-        JSON.parse(localValue);
+      const ids: Array<string> = JSON.parse(localValue);
+      const reviewProgresses = (await this.db.reviewProgress.bulkGet(
+        ids
+      )) as Array<ClientSideDBReviewProgress>;
+      let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
+        this.toSnapshot(reviewProgresses, snapshotTime);
       return await Promise.all(
-        localJson.slice(offset, offset + limit).map(async (progress) => {
-          const word = await this.getWord(progress.word_id);
-          return { ...progress, ...word! };
-        })
+        reviewProgressesAtSnapshot
+          .slice(offset, offset + limit)
+          .map(async (progress) => {
+            const word = await this.getWord(progress.word_id);
+            return { ...progress, ...word! };
+          })
       );
     } else {
       const reviewProgresses = await this.db.reviewProgress.toArray();
       let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
-        reviewProgresses.map((progress) => {
-          const days_to_next_reviewable =
-            REVIEW_GAP_DAYS[progress.review_count] || null;
-          const snapshot_before_last_review = progress.last_review_time
-            ? snapshotTime < progress.last_review_time
-            : false;
-          let snapshot_next_reviewable_time;
-          if (snapshot_before_last_review) {
-            snapshot_next_reviewable_time = progress.last_last_review_time
-              ? progress.last_last_review_time +
-                millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1]
-              : null;
-          } else {
-            snapshot_next_reviewable_time = progress.last_review_time
-              ? progress.last_review_time +
-                millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count]
-              : null;
-          }
-          return {
-            ...progress,
-            snapshot_next_reviewable_time,
-            next_reviewable_time:
-              (progress.last_review_time || 0) +
-              millisecondsInDay * (days_to_next_reviewable || 0),
-          };
-        });
+        this.toSnapshot(reviewProgresses, snapshotTime);
       reviewProgressesAtSnapshot.sort((a, b) => {
         return (
           (a.snapshot_next_reviewable_time || Number.MAX_SAFE_INTEGER) -
@@ -107,7 +88,7 @@ export class LocalDataSource implements DataSource {
           .forEach((key) => localStorage.removeItem(key));
         localStorage.setItem(
           `review-${snapshotTime}`,
-          JSON.stringify(reviewProgressesAtSnapshot)
+          JSON.stringify(reviewProgressesAtSnapshot.map((it) => it.id))
         );
       })();
       return await Promise.all(
@@ -119,6 +100,38 @@ export class LocalDataSource implements DataSource {
           })
       );
     }
+  }
+
+  private toSnapshot(
+    reviewProgresses: ClientSideDBReviewProgress[],
+    snapshotTime: number
+  ): ClientSideReviewProgressAtSnapshot[] {
+    return reviewProgresses.map((progress) => {
+      const days_to_next_reviewable =
+        REVIEW_GAP_DAYS[progress.review_count] || null;
+      const snapshot_before_last_review = progress.last_review_time
+        ? snapshotTime < progress.last_review_time
+        : false;
+      let snapshot_next_reviewable_time;
+      if (snapshot_before_last_review) {
+        snapshot_next_reviewable_time = progress.last_last_review_time
+          ? progress.last_last_review_time +
+            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1]
+          : null;
+      } else {
+        snapshot_next_reviewable_time = progress.last_review_time
+          ? progress.last_review_time +
+            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count]
+          : null;
+      }
+      return {
+        ...progress,
+        snapshot_next_reviewable_time,
+        next_reviewable_time:
+          (progress.last_review_time || 0) +
+          millisecondsInDay * (days_to_next_reviewable || 0),
+      };
+    });
   }
 
   async getReviewProgressCount(): Promise<number> {
