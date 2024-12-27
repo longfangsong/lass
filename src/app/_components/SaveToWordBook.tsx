@@ -19,7 +19,10 @@ export function SaveToWordBookButton({
       className={"p-0 " + className ? className : ""}
       onClick={() => {
         (async () => {
-          await createOrUpdateWordReview(word_id);
+          const { localFirstDataSource } = await import(
+            "@/lib/frontend/datasource/localFirst"
+          );
+          await localFirstDataSource.createOrUpdateWordReview(word_id);
           setClicked(true);
         })();
       }}
@@ -30,31 +33,3 @@ export function SaveToWordBookButton({
   );
 }
 
-async function createOrUpdateWordReview(word_id: string) {
-  const response = await fetchWithSemaphore(`/api/review_progresses`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      word_id: word_id,
-    }),
-  });
-  if (response.status === 409) {
-    const existingReviewProgress: ReviewProgress = await response.json();
-    updateWordReview(existingReviewProgress);
-  }
-}
-
-async function updateWordReview(progress: ReviewProgress) {
-  const payload: ReviewProgressPatchPayload = {
-    query_count: progress.query_count + 1,
-  };
-  await fetch(`/api/review_progresses/${progress.id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-}

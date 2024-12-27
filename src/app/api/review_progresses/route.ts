@@ -19,6 +19,7 @@ export const HEAD = auth(async (request: NextRequest) => {
   }
   const [release, db] = await getDB();
   const count = await getReviewProgressesOfUserCount(db, req.auth.user.email);
+  console.log(count);
   release();
   return new NextResponse(null, {
     headers: {

@@ -85,6 +85,11 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       );
     })();
   }
+  
+  async createOrUpdateWordReview(word_id: string) {
+    await this.local.createOrUpdateWordReview(word_id);
+    this.syncReviewProgress();
+  }
 
   async updateReviewProgress(reviewProgress: ClientSideDBReviewProgress) {
     await Promise.any([

@@ -18,4 +18,5 @@ export interface DataSource {
   updateReviewProgress(
     reviewProgress: ClientSideDBReviewProgress,
   ): Promise<void>;
+  createOrUpdateWordReview(word_id: string): Promise<void>;
 }

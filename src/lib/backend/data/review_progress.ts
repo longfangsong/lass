@@ -14,7 +14,7 @@ export async function createReviewProgess(
   db: D1Database,
   user_email: string,
   word_id: string,
-): Promise<string> {
+) {
   const id = crypto.randomUUID();
   await db
     .prepare(

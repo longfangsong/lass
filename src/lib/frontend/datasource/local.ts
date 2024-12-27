@@ -50,6 +50,23 @@ export class LocalDataSource implements DataSource {
       reviewProgress: "id, word_id, update_time",
     });
   }
+  async createOrUpdateWordReview(word_id: string) {
+    const reviewProgress = await this.db.reviewProgress.get(word_id);
+    if (reviewProgress) {
+      reviewProgress.query_count += 1;
+      await this.db.reviewProgress.put(reviewProgress);
+    } else {
+      await this.db.reviewProgress.add({
+        id: crypto.randomUUID(),
+        word_id,
+        query_count: 1,
+        review_count: 0,
+        last_last_review_time: null,
+        last_review_time: null,
+        update_time: new Date().getTime(),
+      });
+    }
+  }
 
   async getReviewProgressAtSnapshotWithWord(
     snapshotTime: number,
