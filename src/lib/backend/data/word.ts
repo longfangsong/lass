@@ -2,10 +2,10 @@ import { dictionaryModel } from "@/lib/ai";
 import { DBTypes, Word, WordSearchResult } from "@/lib/types";
 
 function unescapeString(str: string): string {
-  return str.replace(/&#39;/g, "'");
+  return str.replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 }
 
-function unescapeObject(obj: any): any {
+export function unescapeObject<T>(obj: any): any {
   if (typeof obj === "string") {
     return unescapeString(obj);
   }

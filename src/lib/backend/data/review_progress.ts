@@ -6,6 +6,7 @@ import {
   ReviewProgressAtSnapshotWithWord,
   ReviewProgressPatchPayload,
 } from "@/lib/types";
+import { unescapeObject } from "./word";
 
 export const PAGE_SIZE = 20;
 
@@ -124,7 +125,7 @@ export async function getReviewProgressesAtSnapshot(
     )
     .bind(userEmail, snapshotTime, offset, limit)
     .all<ReviewProgressAtSnapshot>();
-  return result.results;
+  return unescapeObject(result.results);
 }
 
 export async function getReviewProgressAtSnapshotWithWord(
@@ -238,7 +239,7 @@ export async function getReviewProgressAtSnapshotWithWord(
     });
   }
 
-  return Array.from(resultMap.values());
+  return unescapeObject(Array.from(resultMap.values()));
 }
 
 export async function getReviewProgressByWord(
