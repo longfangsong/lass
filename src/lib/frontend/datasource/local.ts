@@ -97,8 +97,8 @@ export class LocalDataSource implements DataSource {
         });
       reviewProgressesAtSnapshot.sort((a, b) => {
         return (
-          (a.snapshot_next_reviewable_time || 0) -
-          (b.snapshot_next_reviewable_time || 0)
+          (a.snapshot_next_reviewable_time || Number.MAX_SAFE_INTEGER) -
+          (b.snapshot_next_reviewable_time || Number.MAX_SAFE_INTEGER)
         );
       });
       (async () => {
