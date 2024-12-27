@@ -79,7 +79,6 @@ async function getBySnapshot(req: NextRequest & { auth: Session }) {
     ),
   ]);
   release();
-  console.log(reviewProgesses.length);
   const result = NextResponse.json(reviewProgesses);
   result.headers.set("X-Total-Count", count.toString());
   return result;

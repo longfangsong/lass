@@ -11,7 +11,6 @@ async function updateWordReview(review: ClientSideReviewProgress) {
   review.review_count += 1;
   review.last_last_review_time = review.last_review_time;
   review.last_review_time = new Date().getTime();
-  console.log(review);
   await localFirstDataSource.updateReviewProgress(review);
 }
 

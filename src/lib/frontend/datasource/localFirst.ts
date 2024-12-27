@@ -139,22 +139,20 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     offset: number,
     limit: number,
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
-    // const db = this.local.db;
-    // if ((await db.reviewProgress.count()) === 0) {
-    //   console.log("fetch review progress from remote");
+    const db = this.local.db;
+    if ((await db.reviewProgress.count()) === 0) {
       return await this.remote.getReviewProgressAtSnapshotWithWord(
         snapshot,
         offset,
         limit,
       );
-    // } else {
-    //   console.log("fetch review progress from local");
-    //   return await this.local.getReviewProgressAtSnapshotWithWord(
-    //     snapshot,
-    //     offset,
-    //     limit,
-    //   );
-    // }
+    } else {
+      return await this.local.getReviewProgressAtSnapshotWithWord(
+        snapshot,
+        offset,
+        limit,
+      );
+    }
   }
 
   private async checkOnline(): Promise<boolean> {

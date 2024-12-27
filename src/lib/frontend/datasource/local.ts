@@ -97,8 +97,8 @@ export class LocalDataSource implements DataSource {
         });
       reviewProgressesAtSnapshot.sort((a, b) => {
         return (
-          (b.snapshot_next_reviewable_time || 0) -
-          (a.snapshot_next_reviewable_time || 0)
+          (a.snapshot_next_reviewable_time || 0) -
+          (b.snapshot_next_reviewable_time || 0)
         );
       });
       (async () => {
@@ -115,7 +115,7 @@ export class LocalDataSource implements DataSource {
           .slice(offset, offset + limit)
           .map(async (progress) => {
             const word = await this.getWord(progress.word_id);
-            return { ...progress, ...word! };
+            return { ...word!, ...progress };
           })
       );
     }

@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  PAGE_SIZE,
-} from "@/lib/backend/data/review_progress";
+import { PAGE_SIZE } from "@/lib/backend/data/review_progress";
 import { Table, TableBody, TableHead, TableHeadCell } from "flowbite-react";
 import { redirect } from "next/navigation";
 import { WordRow } from "./wordRow";
@@ -36,9 +34,8 @@ export default function WordTable({
         await localFirstDataSource.getReviewProgressAtSnapshotWithWord(
           snapshot,
           (page - 1) * PAGE_SIZE,
-          PAGE_SIZE,
+          PAGE_SIZE
         );
-      console.log("data", data.map((it) => it.lemma));
       setDataInTable(data);
     })();
   }, []);
