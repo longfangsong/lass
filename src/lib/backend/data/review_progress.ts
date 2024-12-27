@@ -136,69 +136,72 @@ export async function getReviewProgressAtSnapshotWithWord(
 ): Promise<Array<ReviewProgressAtSnapshotWithWord>> {
   const result = await db
     .prepare(
-      `SELECT
-      ReviewProgress.id as id,
-      user_email,
-      ReviewProgress.word_id as word_id,
-      query_count,
-      review_count,
-      last_last_review_time,
-      last_review_time,
+      `SELECT 
+        ReviewProgressWithWord.*, 
+        Lexeme.id as lexeme_id, 
+        Lexeme.definition, 
+        Lexeme.example, 
+        Lexeme.example_meaning, 
+        Lexeme.source
+      FROM 
+        (SELECT
+          ReviewProgress.id as id,
+          user_email,
+          ReviewProgress.word_id as word_id,
+          query_count,
+          review_count,
+          last_last_review_time,
+          last_review_time,
+          ReviewProgress.update_time as update_time,
 
-      lemma,
-      part_of_speech,
-      phonetic,
-      phonetic_voice,
-      phonetic_url,
+          lemma,
+          part_of_speech,
+          phonetic,
+          phonetic_voice,
+          phonetic_url,
 
-      Lexeme.id as lexeme_id,
-      definition,
-      example,
-      example_meaning,
-      source,
-      Lexeme.update_time as update_time,
-
-      CASE WHEN ?2 < last_review_time
-        THEN review_count - 1
-        ELSE review_count
-      END as snapshot_review_count,
-      CASE WHEN ?2 < last_review_time
-        THEN (last_last_review_time + 24 * 60 * 60 * 1000 * CASE review_count - 1
-            WHEN 0 THEN 0
-            WHEN 1 THEN 1
-            WHEN 2 THEN 3
-            WHEN 3 THEN 7
-            WHEN 4 THEN 15
-            WHEN 5 THEN 30
-            ELSE NULL
-        END)
-        ELSE (SELECT last_review_time + 24 * 60 * 60 * 1000 * CASE review_count
-            WHEN 0 THEN 0
-            WHEN 1 THEN 1
-            WHEN 2 THEN 3
-            WHEN 3 THEN 7
-            WHEN 4 THEN 15
-            WHEN 5 THEN 30
-            ELSE NULL
-          END)
-      END as snapshot_next_reviewable_time,
-      (
-        SELECT last_review_time+ 24 * 60 * 60 * 1000 * CASE review_count
-            WHEN 0 THEN 0
-            WHEN 1 THEN 1
-            WHEN 2 THEN 3
-            WHEN 3 THEN 7
-            WHEN 4 THEN 15
-            WHEN 5 THEN 30
-            ELSE NULL
-          END
-      ) as next_reviewable_time
-    FROM ReviewProgress, Word, Lexeme
-    WHERE ReviewProgress.user_email = ?1
-      AND ReviewProgress.word_id = Word.id
-      AND ReviewProgress.word_id = Lexeme.word_id
-    ORDER BY snapshot_next_reviewable_time ASC NULLS LAST, snapshot_review_count DESC
-    LIMIT ?4 OFFSET ?3;`,
+          CASE WHEN ?2 < last_review_time
+            THEN review_count - 1
+            ELSE review_count
+          END as snapshot_review_count,
+          CASE WHEN ?2 < last_review_time
+            THEN (last_last_review_time + 24 * 60 * 60 * 1000 * CASE review_count - 1
+                WHEN 0 THEN 0
+                WHEN 1 THEN 1
+                WHEN 2 THEN 3
+                WHEN 3 THEN 7
+                WHEN 4 THEN 15
+                WHEN 5 THEN 30
+                ELSE NULL
+            END)
+            ELSE (SELECT last_review_time + 24 * 60 * 60 * 1000 * CASE review_count
+                WHEN 0 THEN 0
+                WHEN 1 THEN 1
+                WHEN 2 THEN 3
+                WHEN 3 THEN 7
+                WHEN 4 THEN 15
+                WHEN 5 THEN 30
+                ELSE NULL
+              END)
+          END as snapshot_next_reviewable_time,
+          (
+            SELECT last_review_time + 24 * 60 * 60 * 1000 * CASE review_count
+                WHEN 0 THEN 0
+                WHEN 1 THEN 1
+                WHEN 2 THEN 3
+                WHEN 3 THEN 7
+                WHEN 4 THEN 15
+                WHEN 5 THEN 30
+                ELSE NULL
+              END
+          ) as next_reviewable_time
+          FROM ReviewProgress, Word
+          WHERE ReviewProgress.user_email = ?1
+            AND ReviewProgress.word_id = Word.id
+          ORDER BY snapshot_next_reviewable_time ASC NULLS LAST, snapshot_review_count DESC
+          LIMIT ?4 OFFSET ?3 
+        ) AS ReviewProgressWithWord, Lexeme
+      WHERE ReviewProgressWithWord.word_id = Lexeme.word_id;`,
     )
     .bind(userEmail, snapshotTime, offset, limit)
     .all<

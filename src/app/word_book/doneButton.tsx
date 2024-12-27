@@ -3,7 +3,6 @@
 import { fetchWithSemaphore } from "@/lib/fetch";
 import {
   ClientSideReviewProgress,
-  ReviewProgress,
   ReviewProgressPatchPayload,
 } from "@/lib/types";
 import { Button } from "flowbite-react";

@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
 }
 
 export const POST = auth(async (request: NextRequest) => {
-  const req = request as NextRequest & { auth: Session };
-  if (!req.auth.user?.email) {
+  const req = request as NextRequest & { auth?: Session };
+  if (!req.auth?.user?.email) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   const db = getRequestContext().env.DB;

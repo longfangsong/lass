@@ -1,4 +1,9 @@
 pnpm i
+npx wrangler d1 migrations apply DB
+npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/Article.sql
+npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/Word.sql
+npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/WordIndex.sql
+npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/Lexeme.sql
 echo 'CF_PAGES_URL="https://localhost"' >> .dev.vars
 echo "AUTH_SECRET=\"$(npx auth secret --raw)\"" >> .dev.vars
 echo "The following auth related things are optional, you can leave them empty, \
@@ -19,7 +24,4 @@ read -p "Enter your AUTH_GOOGLE_SECRET: " google_secret
 echo "AUTH_GOOGLE_ID=\"$google_id\"" >> .dev.vars
 echo "AUTH_GOOGLE_SECRET=\"$google_secret\"" >> .dev.vars
 ln -s .dev.vars .env.local
-npx wrangler d1 migrations apply DB
-npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/articles.sql
-npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/import_data.sql
 pnpm exec playwright install

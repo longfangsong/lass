@@ -9,6 +9,9 @@ export async function fetchWithSemaphore(
   const release = await fetchSemaphore.acquire();
   try {
     return await fetch(url, options);
+  } catch (e) {
+    console.log("fetch error", e);
+    throw e;
   } finally {
     release();
   }

@@ -24,7 +24,7 @@ export default function WordBook({
   useEffect(() => {
     (async () => {
       const { localFirstDataSource } = await import(
-        "@/lib/datasource/localFirst"
+        "@/lib/frontend/datasource/localFirst"
       );
       const count = await localFirstDataSource.getReviewProgressCount();
       setReviewProgressCount(count);

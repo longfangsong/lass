@@ -7,10 +7,11 @@ import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import setLargeTimeout from "set-large-timeout";
 
 async function updateWordReview(review: ClientSideReviewProgress) {
-  const { localFirstDataSource } = await import("@/lib/datasource/localFirst");
+  const { localFirstDataSource } = await import("@/lib/frontend/datasource/localFirst");
   review.review_count += 1;
   review.last_last_review_time = review.last_review_time;
   review.last_review_time = new Date().getTime();
+  console.log(review);
   await localFirstDataSource.updateReviewProgress(review);
 }
 

@@ -2,7 +2,6 @@
 
 import { SaveToWordBookButton } from "@/app/_components/SaveToWordBook";
 import { WordDetail } from "@/app/_components/WordDetail";
-import { fetchWithSemaphore } from "@/lib/fetch";
 import { Word } from "@/lib/types";
 import { HR, Spinner } from "flowbite-react";
 import React from "react";
@@ -12,11 +11,10 @@ export function PopoverContent({ spell }: { spell: string }) {
   const [words, setWords] = useState<Array<Word> | null>(null);
   useEffect(() => {
     (async () => {
-      /// todo: error handling
-      const result = await fetchWithSemaphore(
-        `/api/words?index_spell=${spell}`,
+      const { localFirstDataSource } = await import(
+        "@/lib/frontend/datasource/localFirst"
       );
-      const queryResult: Array<Word> = await result.json();
+      const queryResult = await localFirstDataSource.getWordsByIndexSpell(spell);
       setWords(queryResult);
     })();
   }, [spell]);

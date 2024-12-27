@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  ClientSideReviewProgress,
-  ReviewProgressPatchPayload,
-} from "@/lib/types";
+import { ClientSideReviewProgress } from "@/lib/types";
 import { Button } from "flowbite-react";
 import { MdOutlineRestartAlt } from "react-icons/md";
-import { patch } from "./patch";
-
-function resetPayload(): ReviewProgressPatchPayload {
-  return {
-    review_count: 1,
-    last_last_review_time: null,
-    last_review_time: new Date().getTime(),
-  };
-}
 
 export function ResetButton({
   review,
@@ -28,7 +16,15 @@ export function ResetButton({
       color="warning"
       className="p-0 mx-auto"
       onClick={async () => {
-        await patch(review.id, resetPayload());
+        const { localFirstDataSource } = await import(
+          "@/lib/frontend/datasource/localFirst"
+        );
+        await localFirstDataSource.updateReviewProgress({
+          ...review,
+          review_count: 1,
+          last_last_review_time: null,
+          last_review_time: new Date().getTime(),
+        });
         onClick && onClick();
       }}
     >

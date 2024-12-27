@@ -3,7 +3,6 @@ import {
   createReviewProgess,
   getReviewProgressAtSnapshotWithWord,
   getReviewProgressByWord,
-  getReviewProgressesAtSnapshot,
   getReviewProgressesOfUserCount,
 } from "@/lib/backend/data/review_progress";
 import { getDB } from "@/lib/backend/db";
@@ -80,6 +79,7 @@ async function getBySnapshot(req: NextRequest & { auth: Session }) {
     ),
   ]);
   release();
+  console.log(reviewProgesses.length);
   const result = NextResponse.json(reviewProgesses);
   result.headers.set("X-Total-Count", count.toString());
   return result;

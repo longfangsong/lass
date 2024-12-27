@@ -1,10 +1,8 @@
 "use client";
 
 import {
-  getReviewProgressAtSnapshotWithWord,
   PAGE_SIZE,
 } from "@/lib/backend/data/review_progress";
-import { getDB } from "@/lib/backend/db";
 import { Table, TableBody, TableHead, TableHeadCell } from "flowbite-react";
 import { redirect } from "next/navigation";
 import { WordRow } from "./wordRow";
@@ -20,7 +18,7 @@ export default function WordTable({
   page: number;
   snapshot: number;
 }) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   useEffect(() => {
     if (status === "unauthenticated") {
       redirect("/api/auth/signin");
@@ -29,11 +27,10 @@ export default function WordTable({
   const [dataInTable, setDataInTable] = useState<
     Array<ClientReviewProgressAtSnapshotWithWord>
   >([]);
-  const [dataFetched, setDataFetched] = useState(false);
   useEffect(() => {
     (async () => {
       const { localFirstDataSource } = await import(
-        "@/lib/datasource/localFirst"
+        "@/lib/frontend/datasource/localFirst"
       );
       const data =
         await localFirstDataSource.getReviewProgressAtSnapshotWithWord(
@@ -41,6 +38,7 @@ export default function WordTable({
           (page - 1) * PAGE_SIZE,
           PAGE_SIZE,
         );
+      console.log("data", data.map((it) => it.lemma));
       setDataInTable(data);
     })();
   }, []);

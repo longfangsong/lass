@@ -16,7 +16,8 @@ import { WordDetail } from "../_components/WordDetail";
 import { SaveToWordBookButton } from "../_components/SaveToWordBook";
 import { useSession } from "next-auth/react";
 import { MdDownloadDone, MdOutlineSync } from "react-icons/md";
-import { SyncState, useDictionarySyncState } from "@/lib/datasource/hooks";
+import { IoCloudOfflineOutline } from "react-icons/io5";
+import { SyncState, useDictionarySyncState, useOnline } from "@/lib/frontend/hooks";
 
 export const runtime = "edge";
 
@@ -48,11 +49,12 @@ function WordDetailModal({
 export default function Words() {
   const [words, setWords] = useState<Array<WordSearchResult>>([]);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+  const online = useOnline();
   const syncState = useDictionarySyncState();
   const search = debounce((e) => {
     (async () => {
       const { localFirstDataSource } = await import(
-        "@/lib/datasource/localFirst"
+        "@/lib/frontend/datasource/localFirst"
       );
       if (e.target.value === "") {
         setWords([]);
@@ -81,7 +83,7 @@ export default function Words() {
               key={word.id}
               onClick={async () => {
                 const { localFirstDataSource } = await import(
-                  "@/lib/datasource/localFirst"
+                  "@/lib/frontend/datasource/localFirst"
                 );
                 const result = await localFirstDataSource.getWord(word.id);
                 setSelectedWord(result);
@@ -108,7 +110,19 @@ export default function Words() {
         word={selectedWord}
         onClose={() => setSelectedWord(null)}
       />
-      {syncState === SyncState.Syncing ? (
+      {!online ? (
+        <>
+          <div className="flex flex-row items-center justify-center mt-4">
+            <IoCloudOfflineOutline className="w-6 h-6" />
+            <div className="ml-2">
+              <p>Cannot connect to the server</p>
+              <p className="text-xs">
+                Your search will be handled on your device.
+              </p>
+            </div>
+          </div>
+        </>
+      ) : syncState === SyncState.Syncing ? (
         <div className="flex flex-row items-center justify-center mt-4">
           <MdOutlineSync className="animate-spin w-6 h-6" />
           <div className="ml-2">
@@ -127,7 +141,10 @@ export default function Words() {
           </div>
         </div>
       ) : (
-        <></>
+        <div>
+          <p>{online}</p>
+          <p>Unknown sync state: {syncState}</p>
+        </div>
       )}
     </div>
   );
