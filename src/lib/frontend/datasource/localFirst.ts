@@ -92,10 +92,8 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
   }
 
   async updateReviewProgress(reviewProgress: ClientSideDBReviewProgress) {
-    await Promise.any([
-      this.local.updateReviewProgress(reviewProgress),
-      this.remote.updateReviewProgress(reviewProgress),
-    ]);
+    await this.local.updateReviewProgress(reviewProgress);
+    this.syncReviewProgress();
   }
 
   async getWord(id: string): Promise<Word | null> {

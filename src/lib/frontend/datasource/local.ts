@@ -56,7 +56,7 @@ export class LocalDataSource implements DataSource {
       reviewProgress.query_count += 1;
       await this.db.reviewProgress.put(reviewProgress);
     } else {
-      await this.db.reviewProgress.add({
+      const newProgress = {
         id: crypto.randomUUID(),
         word_id,
         query_count: 1,
@@ -64,7 +64,8 @@ export class LocalDataSource implements DataSource {
         last_last_review_time: null,
         last_review_time: null,
         update_time: new Date().getTime(),
-      });
+      };
+      await this.db.reviewProgress.add(newProgress);
     }
   }
 
@@ -472,19 +473,20 @@ export class LocalDataSource implements DataSource {
     lastUpdatedTime: number
   ) {
     const now = new Date();
+    console.log(`pushPullUpdateReadwrite ${lastUpdatedTime} ${now.getTime()}`);
     let currentLocalOffset = 0;
     let currentRemoteOffset = 0;
     const release = await this.syncSemaphore.acquire();
     while (true) {
       const localNewData =
         lastUpdatedTime === 0
-          ? await table
+          ? []
+          : await table
               .where("update_time")
               .between(lastUpdatedTime, now.getTime())
               .offset(currentLocalOffset)
               .limit(PAGE_SIZE)
-              .toArray()
-          : [];
+              .toArray();
       const remoteNewDataResponse = await fetchWithSemaphore(
         `/api/sync?table=${tableName}&limit=${PAGE_SIZE}&offset=${currentRemoteOffset}&updated_after=${lastUpdatedTime}&updated_before=${now.getTime()}`,
         {
