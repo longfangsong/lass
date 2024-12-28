@@ -12,6 +12,9 @@ import Semaphore from "semaphore-promise";
 import { fetchWithSemaphore } from "@/lib/fetch";
 import { hoursToMilliseconds } from "date-fns";
 import { millisecondsInDay } from "date-fns/constants";
+import assert from "assert";
+
+const maxDate = 8640000000000000;
 
 export type DB = TDexie & {
   meta: EntityTable<
@@ -96,12 +99,15 @@ export class LocalDataSource implements DataSource {
       console.log("create new snapshot");
       let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
         this.toSnapshot(reviewProgresses, snapshotTime);
-      reviewProgressesAtSnapshot.sort((a, b) => {
+        reviewProgressesAtSnapshot = reviewProgressesAtSnapshot.sort((a, b) => {
         return (
-          (a.snapshot_next_reviewable_time || Number.MAX_SAFE_INTEGER) -
-          (b.snapshot_next_reviewable_time || Number.MAX_SAFE_INTEGER)
+          a.snapshot_next_reviewable_time! - b.snapshot_next_reviewable_time!
         );
-      });
+      }).map((it) => ({
+        ...it,
+        snapshot_next_reviewable_time: it.snapshot_next_reviewable_time! === maxDate ? null : it.snapshot_next_reviewable_time!,
+        next_reviewable_time: it.next_reviewable_time! === maxDate ? null : it.next_reviewable_time!,
+      }));
       (async () => {
         Object.keys(localStorage)
           .filter((key) => key.startsWith("review-"))
@@ -127,29 +133,66 @@ export class LocalDataSource implements DataSource {
     snapshotTime: number
   ): ClientSideReviewProgressAtSnapshot[] {
     return reviewProgresses.map((progress) => {
-      const days_to_next_reviewable =
-        REVIEW_GAP_DAYS[progress.review_count] || null;
-      const snapshot_before_last_review = progress.last_review_time
-        ? snapshotTime < progress.last_review_time
-        : false;
+      let next_reviewable_time;
       let snapshot_next_reviewable_time;
-      if (snapshot_before_last_review) {
-        snapshot_next_reviewable_time = progress.last_last_review_time
-          ? progress.last_last_review_time +
-            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1]
-          : null;
+      if (progress.last_review_time === null) {
+        // not reviewed yet
+        assert(
+          progress.last_last_review_time === null,
+          "last_review_time is null but last_last_review_time is not null"
+        );
+        assert(
+          progress.review_count === 0,
+          "last_review_time is null but review_count is not 0"
+        );
+        next_reviewable_time = 0;
+        snapshot_next_reviewable_time = 0;
+      } else if (REVIEW_GAP_DAYS[progress.review_count] === undefined) {
+        // done all reviews
+        next_reviewable_time = Number.MAX_SAFE_INTEGER;
+        if (
+          progress.last_last_review_time &&
+          snapshotTime < progress.last_review_time
+        ) {
+          // snapshot is before last review time
+          // snapshot_next_reviewable_time is based on (progress.review_count - 1)th review and last_last_review_time
+          snapshot_next_reviewable_time =
+            progress.last_last_review_time +
+            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1];
+        } else {
+          snapshot_next_reviewable_time = next_reviewable_time;
+        }
+      } else if (snapshotTime < progress.last_review_time) {
+        // snapshot is before last review time
+        // snapshot_next_reviewable_time is based on (progress.review_count - 1)th review and last_last_review_time
+        if (progress.last_last_review_time === null) {
+          assert(
+            progress.review_count === 1,
+            "last_last_review_time is null but review_count is not 1"
+          );
+          snapshot_next_reviewable_time = 0;
+        } else {
+          snapshot_next_reviewable_time =
+            progress.last_last_review_time +
+            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1];
+        }
+        // next_reviewable_time is calculated normally based on last_review_time
+        next_reviewable_time =
+          progress.last_review_time +
+          millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count];
       } else {
-        snapshot_next_reviewable_time = progress.last_review_time
-          ? progress.last_review_time +
-            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count]
-          : null;
+        next_reviewable_time =
+          progress.last_review_time +
+          millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count];
+        snapshot_next_reviewable_time = next_reviewable_time;
       }
       return {
         ...progress,
-        snapshot_next_reviewable_time,
-        next_reviewable_time:
-          (progress.last_review_time || 0) +
-          millisecondsInDay * (days_to_next_reviewable || 0),
+        snapshot_next_reviewable_time: Math.min(
+          snapshot_next_reviewable_time,
+          maxDate
+        ),
+        next_reviewable_time: Math.min(next_reviewable_time, maxDate),
       };
     });
   }
@@ -348,6 +391,7 @@ export class LocalDataSource implements DataSource {
   async updateReviewProgress(
     reviewProgress: ClientSideDBReviewProgress
   ): Promise<void> {
+    console.log("xxx", reviewProgress);
     await this.db.reviewProgress.put(reviewProgress);
   }
 

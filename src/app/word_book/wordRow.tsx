@@ -7,7 +7,7 @@ import {
   secondsToMilliseconds,
 } from "date-fns";
 import { sv } from "date-fns/locale/sv";
-import { TableCell, TableRow } from "flowbite-react";
+import { Button, TableCell, TableRow } from "flowbite-react";
 import { PlayButton } from "../_components/PlayButton";
 import { ClientReviewProgressAtSnapshotWithWord, Lexeme } from "@/lib/types";
 import { useEffect, useState } from "react";
@@ -17,6 +17,17 @@ import { DoneButton } from "./doneButton";
 import { ResetButton } from "./resetButton";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { millisecondsInDay } from "date-fns/constants";
+import { IoCheckmarkDoneOutline } from "react-icons/io5";
+
+async function updateWordReview(review: ClientReviewProgressAtSnapshotWithWord) {
+  const now = new Date();
+  const { localFirstDataSource } = await import("@/lib/frontend/datasource/localFirst");
+  review.review_count += 1;
+  review.last_last_review_time = review.last_review_time;
+  review.last_review_time = now.getTime();
+  review.update_time = now.getTime();
+  await localFirstDataSource.updateReviewProgress(review);
+}
 
 function lexemePriority(lexeme: Lexeme) {
   return lexeme.source === "lexin-swe" ? 0 : 1;
@@ -105,6 +116,7 @@ export function WordRow({
   ];
   const handleReview = (newReviewCount: number) => {
     const newCurrentReviewTime = now.getTime();
+    console.log("ncr", newReviewCount);
 
     let daysToAdd: number | null = null;
     if (newReviewCount in REVIEW_GAP_DAYS) {
@@ -170,23 +182,22 @@ export function WordRow({
       </TableCell>
       <TableCell className="px-3">
         {reviewProgressWithWord.lexemes
-            .toSorted((a, b) => lexemePriority(a) - lexemePriority(b))
-            .map((lexeme) => {
-              return (
-                <div key={lexeme.id}>
-                  <BlurElement>{lexeme.definition}</BlurElement>
-                  <div className="grid grid-cols-1 md:grid-cols-2">
-                    <span className="text-sm text-green-500">
-                      {lexeme.example ? lexeme.example : ""}
-                    </span>
-                    <BlurElement className="text-sm text-blue-500">
-                      {lexeme.example_meaning ? lexeme.example_meaning : ""}
-                    </BlurElement>
-                  </div>
+          .toSorted((a, b) => lexemePriority(a) - lexemePriority(b))
+          .map((lexeme) => {
+            return (
+              <div key={lexeme.id}>
+                <BlurElement>{lexeme.definition}</BlurElement>
+                <div className="grid grid-cols-1 md:grid-cols-2">
+                  <span className="text-sm text-green-500">
+                    {lexeme.example ? lexeme.example : ""}
+                  </span>
+                  <BlurElement className="text-sm text-blue-500">
+                    {lexeme.example_meaning ? lexeme.example_meaning : ""}
+                  </BlurElement>
                 </div>
-              );
-            })
-        }
+              </div>
+            );
+          })}
       </TableCell>
       <Controls
         buttons={[
@@ -195,12 +206,17 @@ export function WordRow({
             className="mx-auto"
             voice={reviewProgressWithWord}
           />,
-          <ReviewButton
-            key={`${reviewProgressWithWord.id}-review`}
-            review={currentReviewProgress}
-            onClick={() => handleReview(currentReviewProgress.review_count)}
-            now={now}
-          />,
+          <Button
+            className="p-0 mx-auto"
+            onClick={async () => {
+              const newReviewCount = currentReviewProgress.review_count + 1;
+              await updateWordReview(reviewProgressWithWord);
+              handleReview(newReviewCount);
+            }}
+            disabled={currentReviewProgress.next_reviewable_time === null || currentReviewProgress.next_reviewable_time >= new Date().getTime()}
+          >
+            <IoCheckmarkDoneOutline className="h-4 w-4" />
+          </Button>,
           currentReviewProgress.review_count < 6 ? (
             <DoneButton
               key={`${reviewProgressWithWord.id}-done`}
