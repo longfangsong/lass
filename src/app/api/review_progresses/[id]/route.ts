@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { updateReviewProgress } from "@/lib/backend/data/review_progress";
+import { updateReviewProgress } from "@/lib/backend/review_progress";
 import { ReviewProgressPatchPayload } from "@/lib/types";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { Session } from "next-auth";

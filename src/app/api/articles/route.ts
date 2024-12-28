@@ -2,7 +2,7 @@ import {
   getArticleMetas,
   getArticleCount,
   getArticleMetasUpdatedAfter,
-} from "@/lib/backend/data/article";
+} from "@/lib/backend/article";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { NextResponse, type NextRequest } from "next/server";
 

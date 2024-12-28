@@ -1,6 +1,6 @@
 "use client";
 
-import { PAGE_SIZE } from "@/lib/backend/data/review_progress";
+import { PAGE_SIZE } from "@/lib/backend/review_progress";
 import { Table, TableBody, TableHead, TableHeadCell } from "flowbite-react";
 import { redirect } from "next/navigation";
 import { WordRow } from "./wordRow";

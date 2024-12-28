@@ -3,14 +3,14 @@ import {
   getDBWordsUpdateIn,
   getDBWordIndexesUpdateIn,
   getDBLexemesUpdateIn,
-} from "@/lib/backend/data/word";
+} from "@/lib/backend/word";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { NextRequest, NextResponse } from "next/server";
 import { Session } from "next-auth";
 import {
   getDBReviewProgressUpdateIn,
   upsertDBReviewProgresses,
-} from "@/lib/backend/data/review_progress";
+} from "@/lib/backend/review_progress";
 import { ClientSideDBReviewProgress, DBTypes } from "@/lib/types";
 
 export const runtime = "edge";

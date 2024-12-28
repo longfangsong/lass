@@ -77,6 +77,7 @@ export class LocalDataSource implements DataSource {
     const localValue = localStorage.getItem(`review-${snapshotTime}`);
     if (localValue) {
       const ids: Array<string> = JSON.parse(localValue);
+      console.log("snapshot served from cache");
       const reviewProgresses = (await this.db.reviewProgress.bulkGet(
         ids
       )) as Array<ClientSideDBReviewProgress>;
@@ -92,6 +93,7 @@ export class LocalDataSource implements DataSource {
       );
     } else {
       const reviewProgresses = await this.db.reviewProgress.toArray();
+      console.log("create new snapshot");
       let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
         this.toSnapshot(reviewProgresses, snapshotTime);
       reviewProgressesAtSnapshot.sort((a, b) => {

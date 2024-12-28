@@ -4,8 +4,7 @@ import {
   getReviewProgressAtSnapshotWithWord,
   getReviewProgressByWord,
   getReviewProgressesOfUserCount,
-} from "@/lib/backend/data/review_progress";
-import { getDB } from "@/lib/backend/db";
+} from "@/lib/backend/review_progress";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -17,10 +16,8 @@ export const HEAD = auth(async (request: NextRequest) => {
   if (!req.auth.user?.email) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
-  const [release, db] = await getDB();
+  const db = getRequestContext().env.DB;
   const count = await getReviewProgressesOfUserCount(db, req.auth.user.email);
-  console.log(count);
-  release();
   return new NextResponse(null, {
     headers: {
       "X-Total-Count": count.toString(),
@@ -67,8 +64,8 @@ async function getBySnapshot(req: NextRequest & { auth: Session }) {
     ? parseInt(snapshotTimeString)
     : new Date().getTime();
   const offset = parseInt(req.nextUrl.searchParams.get("offset") || "0");
-  let limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
-  const [release, db] = await getDB();
+  const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
+  const db = getRequestContext().env.DB;
   const [count, reviewProgesses] = await Promise.all([
     getReviewProgressesOfUserCount(db, req.auth.user?.email!),
     getReviewProgressAtSnapshotWithWord(
@@ -79,7 +76,6 @@ async function getBySnapshot(req: NextRequest & { auth: Session }) {
       limit,
     ),
   ]);
-  release();
   const result = NextResponse.json(reviewProgesses);
   result.headers.set("X-Total-Count", count.toString());
   return result;

@@ -1,4 +1,4 @@
-import { getArticle } from "@/lib/backend/data/article";
+import { getArticle } from "@/lib/backend/article";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { NextRequest, NextResponse } from "next/server";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { PAGE_SIZE } from "@/lib/backend/data/review_progress";
+import { PAGE_SIZE } from "@/lib/backend/review_progress";
 import { Pagination } from "flowbite-react";
 import { useSearchParams } from "next/navigation";
 

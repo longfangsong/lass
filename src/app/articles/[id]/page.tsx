@@ -1,10 +1,10 @@
-import { getArticle, toWordsAndPunctuations } from "@/lib/backend/data/article";
-import { getDB } from "@/lib/backend/db";
+import { getArticle, toWordsAndPunctuations } from "@/lib/backend/article";
 import { Button } from "flowbite-react";
 import Link from "next/link";
 import React from "react";
 import { Word } from "./word";
 import { Player } from "./Player";
+import { getRequestContext } from "@cloudflare/next-on-pages";
 
 export const runtime = "edge";
 
@@ -46,9 +46,8 @@ export default async function Article({
 }: {
   params: { id: string };
 }) {
-  const [release, db] = await getDB();
+  const db = getRequestContext().env.DB;
   const article = (await getArticle(db, id))!;
-  release();
   const sentences = toWordsAndPunctuations(article.content);
 
   return (
