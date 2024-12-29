@@ -12,7 +12,6 @@ import { PlayButton } from "../_components/PlayButton";
 import { ClientReviewProgressAtSnapshotWithWord, Lexeme } from "@/lib/types";
 import { useEffect, useState } from "react";
 import BlurElement from "./blurElement";
-import { ReviewButton } from "./reviewButton";
 import { DoneButton } from "./doneButton";
 import { ResetButton } from "./resetButton";
 import { useWindowSize } from "@uidotdev/usehooks";

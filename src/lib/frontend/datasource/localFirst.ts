@@ -144,8 +144,8 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     offset: number,
     limit: number,
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
-    const db = this.local.db;
-    if ((await db.reviewProgress.count()) === 0) {
+    const [online, reviewProgressNewEnough, dictionaryNewEnough] = await Promise.all([this.online, this.reviewProgressNewEnough, this.localDictionaryNewEnough]);
+    if (online && (!reviewProgressNewEnough || !dictionaryNewEnough)) {
       return await this.remote.getReviewProgressAtSnapshotWithWord(
         snapshot,
         offset,

@@ -96,7 +96,6 @@ export class LocalDataSource implements DataSource {
       );
     } else {
       const reviewProgresses = await this.db.reviewProgress.toArray();
-      console.log("create new snapshot");
       let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
         this.toSnapshot(reviewProgresses, snapshotTime);
         reviewProgressesAtSnapshot = reviewProgressesAtSnapshot.sort((a, b) => {
