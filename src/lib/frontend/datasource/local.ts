@@ -53,6 +53,7 @@ export class LocalDataSource implements DataSource {
       reviewProgress: "id, word_id, update_time",
     });
   }
+
   async createOrUpdateWordReview(word_id: string) {
     const reviewProgress = await this.db.reviewProgress.get(word_id);
     if (reviewProgress) {
@@ -98,7 +99,7 @@ export class LocalDataSource implements DataSource {
       const reviewProgresses = await this.db.reviewProgress.toArray();
       let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
         this.toSnapshot(reviewProgresses, snapshotTime);
-        reviewProgressesAtSnapshot = reviewProgressesAtSnapshot.sort((a, b) => {
+      reviewProgressesAtSnapshot = reviewProgressesAtSnapshot.sort((a, b) => {
         return (
           a.snapshot_next_reviewable_time! - b.snapshot_next_reviewable_time!
         );
@@ -390,7 +391,6 @@ export class LocalDataSource implements DataSource {
   async updateReviewProgress(
     reviewProgress: ClientSideDBReviewProgress
   ): Promise<void> {
-    console.log("xxx", reviewProgress);
     await this.db.reviewProgress.put(reviewProgress);
   }
 
@@ -518,7 +518,6 @@ export class LocalDataSource implements DataSource {
     lastUpdatedTime: number
   ) {
     const now = new Date();
-    console.log(`pushPullUpdateReadwrite ${lastUpdatedTime} ${now.getTime()}`);
     let currentLocalOffset = 0;
     let currentRemoteOffset = 0;
     const release = await this.syncSemaphore.acquire();

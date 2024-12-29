@@ -115,7 +115,6 @@ export function WordRow({
   ];
   const handleReview = (newReviewCount: number) => {
     const newCurrentReviewTime = now.getTime();
-    console.log("ncr", newReviewCount);
 
     let daysToAdd: number | null = null;
     if (newReviewCount in REVIEW_GAP_DAYS) {
@@ -150,9 +149,9 @@ export function WordRow({
     <TableRow key={reviewProgressWithWord.id}>
       <TableCell className="px-3">{reviewProgressWithWord.lemma}</TableCell>
       <TableCell className="px-3">
-        {currentReviewProgress.next_reviewable_time === null
+        {currentReviewProgress.review_count >= 6
           ? "Done!"
-          : isClient &&
+          : isClient && currentReviewProgress.next_reviewable_time &&
             currentReviewProgress.next_reviewable_time < new Date().getTime()
           ? "Nu"
           : isClient
