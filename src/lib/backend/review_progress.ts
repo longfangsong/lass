@@ -62,6 +62,7 @@ export async function updateReviewProgress(
     .bind(...params)
     .run();
 }
+
 export async function getReviewProgressAtSnapshotWithWord(
   db: D1Database,
   userEmail: string,

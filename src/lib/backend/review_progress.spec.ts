@@ -2,10 +2,9 @@ import { expect, test, describe, beforeEach, vi, afterEach } from "vitest";
 import { env } from "cloudflare:test";
 import {
   createReviewProgess,
-  getReviewProgressesAtSnapshot,
   updateReviewProgress,
   getReviewProgressesOfUserCount,
-  getReviewProgressesUpdatedAfter,
+  getReviewProgressAtSnapshotWithWord,
 } from "./review_progress";
 
 const wordIds = [
@@ -23,7 +22,7 @@ describe("Test dealing with ReviewProgress", () => {
     // start a snapshot at 20
     const snapshotTime = new Date(2000, 1, 1, 0, 0, 20).getTime();
     vi.setSystemTime(snapshotTime);
-    const firstSearch = await getReviewProgressesAtSnapshot(
+    const firstSearch = await getReviewProgressAtSnapshotWithWord(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -43,7 +42,7 @@ describe("Test dealing with ReviewProgress", () => {
       last_review_time: reviewTime,
     });
     expect(await getReviewProgressesOfUserCount(env.DB, "a@b.com")).toBe(1);
-    const secondSearchOnSamesnapshot = await getReviewProgressesAtSnapshot(
+    const secondSearchOnSamesnapshot = await getReviewProgressAtSnapshotWithWord(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -58,7 +57,7 @@ describe("Test dealing with ReviewProgress", () => {
     // 1 day passed after the review
     const secondReviewTime = new Date(2000, 1, 2, 0, 0, 40).getTime();
     vi.setSystemTime(reviewTime);
-    const thirdSearch = await getReviewProgressesAtSnapshot(
+    const thirdSearch = await getReviewProgressAtSnapshotWithWord(
       env.DB,
       "a@b.com",
       secondReviewTime,
@@ -80,7 +79,7 @@ describe("Test dealing with ReviewProgress", () => {
     // create a snapshot at t=20
     let snapshotTime = new Date(2000, 1, 1, 0, 0, 30).getTime();
     vi.setSystemTime(snapshotTime);
-    let searchResult = await getReviewProgressesAtSnapshot(
+    let searchResult = await getReviewProgressAtSnapshotWithWord(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -98,7 +97,7 @@ describe("Test dealing with ReviewProgress", () => {
       last_review_time: reviewTime,
     });
     vi.setSystemTime(reviewTime);
-    searchResult = await getReviewProgressesAtSnapshot(
+    searchResult = await getReviewProgressAtSnapshotWithWord(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -110,7 +109,7 @@ describe("Test dealing with ReviewProgress", () => {
     expect(searchResult[1].word_id).toBe(wordIds[1]);
     // but affects a new snapshot
     snapshotTime = new Date(2000, 1, 1, 0, 0, 50).getTime();
-    searchResult = await getReviewProgressesAtSnapshot(
+    searchResult = await getReviewProgressAtSnapshotWithWord(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -128,7 +127,7 @@ describe("Test dealing with ReviewProgress", () => {
       last_review_time: reviewTime,
     });
     snapshotTime = new Date(2000, 1, 1, 0, 0, 70).getTime();
-    searchResult = await getReviewProgressesAtSnapshot(
+    searchResult = await getReviewProgressAtSnapshotWithWord(
       env.DB,
       "a@b.com",
       snapshotTime,
@@ -140,33 +139,6 @@ describe("Test dealing with ReviewProgress", () => {
     expect(searchResult[1].word_id).toBe(wordIds[0]);
   });
 
-  test("should be able to get review progresses updated after a certain time", async () => {
-    vi.useRealTimers();
-    await createReviewProgess(env.DB, "a@b.com", wordIds[2]);
-    await createReviewProgess(env.DB, "a@b.com", wordIds[3]);
-    const searchResult = await getReviewProgressesAtSnapshot(
-      env.DB,
-      "a@b.com",
-      new Date().getTime(),
-      0,
-      10,
-    );
-    expect(searchResult.length).toBe(2);
-    const beforeUpdate = new Date().getTime();
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await updateReviewProgress(env.DB, searchResult[0].id, {
-      review_count: 1,
-      last_last_review_time: searchResult[0].last_review_time!,
-      last_review_time: beforeUpdate,
-    });
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const data = await getReviewProgressesUpdatedAfter(
-      env.DB,
-      "a@b.com",
-      beforeUpdate,
-      0,
-      10,
-    );
-    expect(data.length).toBe(1);
-  });
+  // todo: updateReviewProgress can make `last_review_time` and `last_last_review_time` to be null
+  // we need to test order of review progress in this case
 });

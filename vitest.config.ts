@@ -19,7 +19,7 @@ export default defineWorkersProject(async () => {
         "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*",
         "**/ui_tests/**",
       ],
-      setupFiles: ["./test_utils/apply-migrations.ts"],
+      setupFiles: ["vitest-localstorage-mock","./test_utils/apply-migrations.ts"],
       poolOptions: {
         workers: {
           wrangler: { configPath: "./wrangler.test.toml" },

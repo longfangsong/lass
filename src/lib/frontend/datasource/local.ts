@@ -55,9 +55,10 @@ export class LocalDataSource implements DataSource {
   }
 
   async createOrUpdateWordReview(word_id: string) {
-    const reviewProgress = await this.db.reviewProgress.get(word_id);
+    const reviewProgress = await this.db.reviewProgress.where("word_id").equals(word_id).first();
     if (reviewProgress) {
       reviewProgress.query_count += 1;
+      console.log("update review progress", reviewProgress);
       await this.db.reviewProgress.put(reviewProgress);
     } else {
       const newProgress = {
