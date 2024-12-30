@@ -25,6 +25,18 @@ export async function createReviewProgess(
   return id;
 }
 
+export async function getReviewProgress(
+  db: D1Database,
+  id: string,
+): Promise<ReviewProgress | null> {
+  return await db
+    .prepare(
+      `SELECT * FROM ReviewProgress WHERE id = ?1;`,
+    )
+    .bind(id)
+    .first<ReviewProgress>();
+}
+
 function generateSQL(payload: ReviewProgressPatchPayload): string {
   let result = "UPDATE ReviewProgress SET";
   let current_index = 2;

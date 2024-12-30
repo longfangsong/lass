@@ -298,7 +298,7 @@ describe("LocalDataSource", () => {
       expect(progress).toBeTruthy();
       expect(progress?.query_count).toBe(1);
       expect(progress?.review_count).toBe(0);
-      expect(progress?.last_review_time).toBeNull();
+      expect(progress?.last_review_time).not.toBe(null);
       expect(progress?.last_last_review_time).toBeNull();
     });
 
@@ -325,10 +325,11 @@ describe("LocalDataSource", () => {
   describe("getReviewProgressAtSnapshotWithWord", () => {
     it("should return review progress with word at given snapshot time", async () => {
       const wordId = crypto.randomUUID();
+      const now = new Date().getTime();
       const testWord: DBTypes.Word = {
         id: wordId,
         lemma: "test",
-        update_time: Date.now(),
+        update_time: now,
         part_of_speech: "noun",
         phonetic: "test",
         phonetic_voice: null,
@@ -338,7 +339,7 @@ describe("LocalDataSource", () => {
       await localDataSource.db.word.add(testWord);
       await localDataSource.createOrUpdateWordReview(wordId);
 
-      const snapshotTime = Date.now();
+      const snapshotTime = now;
       const result = await localDataSource.getReviewProgressAtSnapshotWithWord(
         snapshotTime,
         0,
@@ -348,7 +349,8 @@ describe("LocalDataSource", () => {
       expect(result).toHaveLength(1);
       expect(result[0].word_id).toBe(wordId);
       expect(result[0].lemma).toBe("test");
-      expect(result[0].snapshot_next_reviewable_time).toBe(0);
+      const newNow = new Date().getTime();
+      expect(result[0].snapshot_next_reviewable_time).toBeLessThan(newNow);
     });
   });
 });

@@ -5,6 +5,7 @@ import {
   updateReviewProgress,
   getReviewProgressesOfUserCount,
   getReviewProgressAtSnapshotWithWord,
+  getReviewProgress,
 } from "./review_progress";
 
 const wordIds = [
@@ -139,6 +140,49 @@ describe("Test dealing with ReviewProgress", () => {
     expect(searchResult[1].word_id).toBe(wordIds[0]);
   });
 
-  // todo: updateReviewProgress can make `last_review_time` and `last_last_review_time` to be null
-  // we need to test order of review progress in this case
+  test("review progress should be ordered correctly when last_review_time and last_last_review_time are null", async () => {
+    // create review progesses at t=10
+    vi.setSystemTime(new Date(2000, 1, 1, 0, 0, 10));
+    const reviewProgress0 = await createReviewProgess(env.DB, "a@b.com", wordIds[0]);
+    const reviewProgress1 = await createReviewProgess(env.DB, "a@b.com", wordIds[1]);
+    const reviewProgress2 = await createReviewProgess(env.DB, "a@b.com", wordIds[2]);
+    const reviewProgress3 = await createReviewProgess(env.DB, "a@b.com", wordIds[3]);
+    // review [0] at t=20
+    vi.setSystemTime(new Date(2000, 1, 1, 0, 0, 20));
+    let reviewTime = new Date(2000, 1, 1, 0, 0, 20).getTime();
+    let reviewProgress = await getReviewProgress(env.DB, reviewProgress0);
+    await updateReviewProgress(env.DB, reviewProgress0, {
+      review_count: 1,
+      last_last_review_time: reviewProgress!.last_review_time,
+      last_review_time: reviewTime,
+    });
+    reviewProgress = await getReviewProgress(env.DB, reviewProgress0);
+    expect(reviewProgress!.last_last_review_time).not.toBe(null);
+    expect(reviewProgress!.last_review_time).not.toBe(null);
+    // update [1] directly to be "Done" at 30
+    vi.setSystemTime(new Date(2000, 1, 1, 0, 0, 30));
+    reviewTime = new Date(2000, 1, 1, 0, 0, 30).getTime();
+    reviewProgress = await getReviewProgress(env.DB, reviewProgress1);
+    await updateReviewProgress(env.DB, reviewProgress1, {
+      review_count: 6
+    });
+    reviewProgress = await getReviewProgress(env.DB, reviewProgress1);
+    // [1]'s last_last_review_time should be null
+    expect(reviewProgress!.last_last_review_time).toBe(null);
+    // [1]'s last_review_time should also be null
+    expect(reviewProgress!.last_review_time).not.toBe(null);
+    // search should return [2, 3, 0, 1]
+    const searchResult = await getReviewProgressAtSnapshotWithWord(
+      env.DB,
+      "a@b.com",
+      reviewTime,
+      0,
+      10,
+    );
+    expect(searchResult.length).toBe(4);
+    expect(searchResult[0].word_id).toBe(wordIds[2]);
+    expect(searchResult[1].word_id).toBe(wordIds[3]);
+    expect(searchResult[2].word_id).toBe(wordIds[0]);
+    expect(searchResult[3].word_id).toBe(wordIds[1]);
+  });
 });

@@ -55,20 +55,23 @@ export class LocalDataSource implements DataSource {
   }
 
   async createOrUpdateWordReview(word_id: string) {
-    const reviewProgress = await this.db.reviewProgress.where("word_id").equals(word_id).first();
+    const reviewProgress = await this.db.reviewProgress
+      .where("word_id")
+      .equals(word_id)
+      .first();
     if (reviewProgress) {
       reviewProgress.query_count += 1;
-      console.log("update review progress", reviewProgress);
       await this.db.reviewProgress.put(reviewProgress);
     } else {
+      const now = new Date().getTime();
       const newProgress = {
         id: crypto.randomUUID(),
         word_id,
         query_count: 1,
         review_count: 0,
         last_last_review_time: null,
-        last_review_time: null,
-        update_time: new Date().getTime(),
+        last_review_time: now,
+        update_time: now,
       };
       await this.db.reviewProgress.add(newProgress);
     }
@@ -100,15 +103,23 @@ export class LocalDataSource implements DataSource {
       const reviewProgresses = await this.db.reviewProgress.toArray();
       let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
         this.toSnapshot(reviewProgresses, snapshotTime);
-      reviewProgressesAtSnapshot = reviewProgressesAtSnapshot.sort((a, b) => {
-        return (
-          a.snapshot_next_reviewable_time! - b.snapshot_next_reviewable_time!
-        );
-      }).map((it) => ({
-        ...it,
-        snapshot_next_reviewable_time: it.snapshot_next_reviewable_time! === maxDate ? null : it.snapshot_next_reviewable_time!,
-        next_reviewable_time: it.next_reviewable_time! === maxDate ? null : it.next_reviewable_time!,
-      }));
+      reviewProgressesAtSnapshot = reviewProgressesAtSnapshot
+        .sort((a, b) => {
+          return (
+            a.snapshot_next_reviewable_time! - b.snapshot_next_reviewable_time!
+          );
+        })
+        .map((it) => ({
+          ...it,
+          snapshot_next_reviewable_time:
+            it.snapshot_next_reviewable_time! === maxDate
+              ? null
+              : it.snapshot_next_reviewable_time!,
+          next_reviewable_time:
+            it.next_reviewable_time! === maxDate
+              ? null
+              : it.next_reviewable_time!,
+        }));
       (async () => {
         Object.keys(localStorage)
           .filter((key) => key.startsWith("review-"))
@@ -168,10 +179,12 @@ export class LocalDataSource implements DataSource {
         // snapshot_next_reviewable_time is based on (progress.review_count - 1)th review and last_last_review_time
         if (progress.last_last_review_time === null) {
           assert(
-            progress.review_count === 1,
-            "last_last_review_time is null but review_count is not 1"
+            progress.review_count === 0,
+            "last_last_review_time is null but review_count is not 0"
           );
-          snapshot_next_reviewable_time = 0;
+          snapshot_next_reviewable_time =
+            progress.last_review_time +
+            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1];
         } else {
           snapshot_next_reviewable_time =
             progress.last_last_review_time +
