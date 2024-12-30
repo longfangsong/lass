@@ -14,7 +14,7 @@ import { hoursToMilliseconds } from "date-fns";
 import { millisecondsInDay } from "date-fns/constants";
 import assert from "assert";
 
-const maxDate = 8640000000000000;
+const maxDate = 253370674800000;
 
 export type DB = TDexie & {
   meta: EntityTable<
@@ -161,7 +161,7 @@ export class LocalDataSource implements DataSource {
         snapshot_next_reviewable_time = 0;
       } else if (REVIEW_GAP_DAYS[progress.review_count] === undefined) {
         // done all reviews
-        next_reviewable_time = Number.MAX_SAFE_INTEGER;
+        next_reviewable_time = maxDate;
         if (
           progress.last_last_review_time &&
           snapshotTime < progress.last_review_time
@@ -184,7 +184,7 @@ export class LocalDataSource implements DataSource {
           );
           snapshot_next_reviewable_time =
             progress.last_review_time +
-            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1];
+            millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count];
         } else {
           snapshot_next_reviewable_time =
             progress.last_last_review_time +
@@ -420,16 +420,19 @@ export class LocalDataSource implements DataSource {
       [...Array(this.INIT_TABLE_FILE_COUNT[tableName]).keys()].map(
         async (i) => {
           const syncRelease = await syncFetchSemaphore.acquire();
-          const initData = await fetch(
-            `/dictionary-init/${tableName}/${i}.json`
-          );
-          if (!initData.ok) {
-            throw new Error(initData.statusText);
+          try {
+            const initData = await fetch(
+              `/dictionary-init/${tableName}/${i}.json`
+            );
+            if (!initData.ok) {
+              throw new Error(initData.statusText);
+            }
+            const result: Array<T> = await initData.json();
+            table.bulkPut(result);
+            resultLength += result.length;
+          } finally {
+            syncRelease();
           }
-          const result: Array<T> = await initData.json();
-          table.bulkPut(result);
-          syncRelease();
-          resultLength += result.length;
         }
       )
     );
@@ -478,8 +481,11 @@ export class LocalDataSource implements DataSource {
     const release = await this.syncSemaphore.acquire();
     const meta = await this.db.meta.get(tableName);
     if (meta === undefined) {
-      await this.initReadonlyTable<T>(table, tableName);
-      release();
+      try {
+        await this.initReadonlyTable<T>(table, tableName);
+      } finally {
+        release();
+      }
       await this.initOrPullUpdateReadonly(table, tableName);
     } else {
       const now = new Date();
@@ -490,8 +496,11 @@ export class LocalDataSource implements DataSource {
         release();
         return;
       } else {
-        await this.pullUpdateReadonly(table, tableName, lastUpdatedTime);
-        release();
+        try {
+          await this.pullUpdateReadonly(table, tableName, lastUpdatedTime);
+        } finally {
+          release();
+        }
       }
     }
   }
@@ -536,34 +545,40 @@ export class LocalDataSource implements DataSource {
     let currentRemoteOffset = 0;
     const release = await this.syncSemaphore.acquire();
     while (true) {
-      const localNewData =
-        lastUpdatedTime === 0
-          ? []
-          : await table
-              .where("update_time")
-              .between(lastUpdatedTime, now.getTime())
-              .offset(currentLocalOffset)
-              .limit(PAGE_SIZE)
-              .toArray();
-      const remoteNewDataResponse = await fetchWithSemaphore(
-        `/api/sync?table=${tableName}&limit=${PAGE_SIZE}&offset=${currentRemoteOffset}&updated_after=${lastUpdatedTime}&updated_before=${now.getTime()}`,
-        {
-          method: "POST",
-          body: JSON.stringify(localNewData),
+      try {
+        const localNewData =
+          lastUpdatedTime === 0
+            ? []
+            : await table
+                .where("update_time")
+                .between(lastUpdatedTime, now.getTime())
+                .offset(currentLocalOffset)
+                .limit(PAGE_SIZE)
+                .toArray();
+        const remoteNewDataResponse = await fetchWithSemaphore(
+          `/api/sync?table=${tableName}&limit=${PAGE_SIZE}&offset=${currentRemoteOffset}&updated_after=${lastUpdatedTime}&updated_before=${now.getTime()}`,
+          {
+            method: "POST",
+            body: JSON.stringify(localNewData),
+          }
+        );
+        if (!remoteNewDataResponse.ok) {
+          throw new Error(remoteNewDataResponse.statusText);
         }
-      );
-      if (!remoteNewDataResponse.ok) {
-        throw new Error(remoteNewDataResponse.statusText);
-      }
-      const remoteNewData: Array<T> = await remoteNewDataResponse.json();
-      table.bulkPut(remoteNewData);
-      currentLocalOffset += localNewData.length;
-      currentRemoteOffset += remoteNewData.length;
-      if (remoteNewData.length < PAGE_SIZE && localNewData.length < PAGE_SIZE) {
-        break;
+        const remoteNewData: Array<T> = await remoteNewDataResponse.json();
+        table.bulkPut(remoteNewData);
+        currentLocalOffset += localNewData.length;
+        currentRemoteOffset += remoteNewData.length;
+        if (
+          remoteNewData.length < PAGE_SIZE &&
+          localNewData.length < PAGE_SIZE
+        ) {
+          break;
+        }
+      } finally {
+        release();
       }
     }
-    release();
     await this.db.meta.put({ table_name: tableName, version: now.getTime() });
     console.log(
       `Sync ${tableName}, upload ${currentLocalOffset} and download ${currentRemoteOffset} items in ${

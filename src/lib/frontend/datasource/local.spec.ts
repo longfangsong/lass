@@ -339,13 +339,13 @@ describe("LocalDataSource", () => {
       await localDataSource.db.word.add(testWord);
       await localDataSource.createOrUpdateWordReview(wordId);
 
-      const snapshotTime = now;
+      const snapshotTime = new Date().getTime();
       const result = await localDataSource.getReviewProgressAtSnapshotWithWord(
         snapshotTime,
         0,
         10
       );
-
+      await new Promise((resolve) => setTimeout(resolve, 250));
       expect(result).toHaveLength(1);
       expect(result[0].word_id).toBe(wordId);
       expect(result[0].lemma).toBe("test");

@@ -116,7 +116,7 @@ export async function getReviewProgressAtSnapshotWithWord(
             ELSE review_count
           END as snapshot_review_count,
           CASE
-            WHEN ?2 >= last_review_time AND review_count >= 6 THEN 8640000000000000
+            WHEN ?2 >= last_review_time AND review_count >= 6 THEN 253370674800000
             WHEN ?2 < last_review_time THEN (coalesce(last_last_review_time + 24 * 60 * 60 * 1000 * CASE review_count - 1
                 WHEN 0 THEN 0
                 WHEN 1 THEN 1

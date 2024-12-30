@@ -5,7 +5,6 @@ import {
   WordSearchResult,
 } from "../../types";
 import { DataSource } from "./datasource";
-import { fetchWithSemaphore } from "../../fetch";
 import { RemoteDataSource, remoteDataSource } from "./remote";
 import { LocalDataSource, localDataSource } from "./local";
 import { EventEmitter } from "events";
@@ -13,12 +12,20 @@ import { hoursToMilliseconds, minutesToMilliseconds } from "date-fns";
 import { millisecondsInWeek } from "date-fns/constants";
 
 export class LocalFirstDataSource extends EventEmitter implements DataSource {
-  private localDictionaryNewEnough: Promise<boolean> = Promise.resolve(false);
-  private reviewProgressNewEnough: Promise<boolean> = Promise.resolve(false);
+  private _localDictionaryNewEnough: Promise<boolean> = Promise.resolve(false);
+  private _reviewProgressNewEnough: Promise<boolean> = Promise.resolve(false);
   private _online: Promise<boolean> = this.checkOnline();
 
   get online() {
     return this._online;
+  }
+
+  get localDictionaryNewEnough() {
+    return this._localDictionaryNewEnough;
+  }
+
+  get reviewProgressNewEnough() {
+    return this._reviewProgressNewEnough;
   }
 
   constructor(
@@ -49,25 +56,25 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
         const originalOnline = await this._online;
         this._online = Promise.resolve(online);
         if (online !== originalOnline) {
-          this.emit("online-changed", online);
+          this.emit("online-changed", online);      
         }
       }, minutesToMilliseconds(1));
 
       const durationToNextDictionarySync =
         await this.durationToDictionaryNextSync();
       if (durationToNextDictionarySync > 0) {
-        this.localDictionaryNewEnough = Promise.resolve(true);
+        this._localDictionaryNewEnough = Promise.resolve(true);
         this.emit("dictionary-sync-finished", true);
       } else {
-        this.localDictionaryNewEnough = Promise.resolve(false);
+        this._localDictionaryNewEnough = Promise.resolve(false);
         this.emit("dictionary-sync-finished", false);
       }
       setTimeout(async () => {
         const success = await this.syncDictionary();
-        this.localDictionaryNewEnough = Promise.resolve(success);
+        this._localDictionaryNewEnough = Promise.resolve(success);
         setInterval(async () => {
           const success = await this.syncDictionary();
-          this.localDictionaryNewEnough = Promise.resolve(success);
+          this._localDictionaryNewEnough = Promise.resolve(success);
         }, hoursToMilliseconds(24));
       }, durationToNextDictionarySync);
 
@@ -79,14 +86,14 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
         new Date().getTime() - last_review_sync_time.version <
           minutesToMilliseconds(1)
       ) {
-        this.reviewProgressNewEnough = Promise.resolve(true);
+        this._reviewProgressNewEnough = Promise.resolve(true);
       }
       this.syncReviewProgress().then((success) => {
-        this.reviewProgressNewEnough = Promise.resolve(success);
+        this._reviewProgressNewEnough = Promise.resolve(success);
       });
       setTimeout(async () => {
         const success = await this.syncReviewProgress();
-        this.reviewProgressNewEnough = Promise.resolve(success);
+        this._reviewProgressNewEnough = Promise.resolve(success);
       }, hoursToMilliseconds(1));
     })();
   }
@@ -183,14 +190,8 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
   }
 
   private async checkOnline(): Promise<boolean> {
-    try {
-      const response = await fetchWithSemaphore(
-        process.env.CF_PAGES_URL || "" + "/api/ping"
-      );
-      return response.status === 200;
-    } catch (e) {
-      return false;
-    }
+    const online = await this.remote.checkOnline();
+    return online;
   }
 
   private async dictionaryLastSyncTime(): Promise<number> {
@@ -222,7 +223,6 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       this.emit("dictionary-sync-finished", true);
       return true;
     } catch (e) {
-      console.log("sync failed", e);
       this.emit("dictionary-sync-finished", false);
       return false;
     }
@@ -235,7 +235,6 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       this.emit("review-progress-sync-finished", true);
       return true;
     } catch (e) {
-      console.log("sync failed", e);
       this.emit("review-progress-sync-finished", false);
       return false;
     }

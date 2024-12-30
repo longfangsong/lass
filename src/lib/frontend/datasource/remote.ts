@@ -34,7 +34,7 @@ export class RemoteDataSource implements DataSource {
       });
     }
   }
-  
+
   async getReviewProgressAtSnapshotWithWord(
     snapshotTime: number,
     offset: number,
@@ -101,6 +101,15 @@ export class RemoteDataSource implements DataSource {
       },
       body: JSON.stringify(payload),
     });
+  }
+
+  async checkOnline(): Promise<boolean> {
+    try {
+      const response = await fetch("/api/ping");
+      return response.ok && response.status === 200;
+    } catch (error) {
+      return false;
+    }
   }
 }
 
