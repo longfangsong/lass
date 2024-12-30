@@ -206,6 +206,7 @@ export function WordRow({
           />,
           <Button
             className="p-0 mx-auto"
+            key={`${reviewProgressWithWord.id}-done`}
             onClick={async () => {
               const newReviewCount = currentReviewProgress.review_count + 1;
               await updateWordReview(reviewProgressWithWord);

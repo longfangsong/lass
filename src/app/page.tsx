@@ -3,7 +3,7 @@ import { useWindowSize } from "@uidotdev/usehooks";
 import { Button } from "flowbite-react";
 import { FaGithub } from "react-icons/fa";
 import { HiOutlineArrowDown } from "react-icons/hi";
-
+import Image from "next/image";
 export const runtime = "edge";
 
 export default function Home() {
@@ -77,8 +77,10 @@ export default function Home() {
         </p>
         <div className="flex flex-row gap-6 md:gap-12 justify-center mt-4">
           <div className="flex flex-col justify-center justify-items-center">
-            <img
-              className="w-32 mx-auto"
+            <Image
+              width={128}
+              height={128}
+              className="mx-auto"
               src="/swish.jpeg"
               alt="Donate via Swish"
             />
@@ -91,8 +93,10 @@ export default function Home() {
             <p className="text-xs text-center">Contribute on GitHub</p>
           </div>
           <div className="flex flex-col justify-center justify-items-center">
-            <img
-              className="w-32 mx-auto"
+            <Image
+              width={128}
+              height={128}
+              className="mx-auto"
               src="/buymeacoffee.png"
               alt="Donate via Buy Me A Coffee"
             />

@@ -1,15 +1,13 @@
 import "fake-indexeddb/auto";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { LocalFirstDataSource } from "./localFirst";
-import { localDataSource, LocalDataSource } from "./local";
+import { LocalDataSource } from "./local";
 import { RemoteDataSource } from "./remote";
 import {
   Word,
   WordSearchResult,
   ClientReviewProgressAtSnapshotWithWord,
 } from "../../types";
-import { resolve } from "path";
-import EventEmitter from "events";
 import { millisecondsInDay, millisecondsInMinute } from "date-fns/constants";
 
 class MockRemoteDataSource extends RemoteDataSource {
@@ -187,9 +185,7 @@ describe("LocalFirstDataSource", () => {
           },
         ];
         mockRemote.online = false;
-        console.log("===================");
         await vi.advanceTimersByTimeAsync(millisecondsInDay * 3);
-        console.log("===================");
         const localDictionaryNewEnough = await datasource.localDictionaryNewEnough;
         expect(localDictionaryNewEnough).toEqual(false);
         const online = await datasource.online;

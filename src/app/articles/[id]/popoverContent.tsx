@@ -35,7 +35,7 @@ export function PopoverContent({ spell }: { spell: string }) {
                 className="max-w-96 overflow-scroll"
                 word={word}
                 buttons={[
-                  <SaveToWordBookButton word_id={word.id} className="ml-3" />,
+                  <SaveToWordBookButton key={`save-${word.id}`} word_id={word.id} className="ml-3" />,
                 ]}
               />
             </div>

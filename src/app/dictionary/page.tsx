@@ -37,7 +37,7 @@ function WordDetailModal({
           word={word}
           buttons={
             status === "authenticated" && word
-              ? [<SaveToWordBookButton word_id={word.id} className="ml-3" />]
+              ? [<SaveToWordBookButton key={`save-${word.id}`} word_id={word.id} className="ml-3" />]
               : []
           }
         />

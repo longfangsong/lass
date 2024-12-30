@@ -60,13 +60,13 @@ export function WordDetail({
               .find((it) => it.form === "best.f.sing.")
               ?.spell.endsWith("t") ? (
               <p>
-                "{word.lemma}" är ett <b className="text-red-500">ett</b>-ord
+                &quot;{word.lemma}&quot; är ett <b className="text-red-500">ett</b>-ord
               </p>
             ) : word?.indexes
                 .find((it) => it.form === "best.f.sing.")
                 ?.spell.endsWith("n") ? (
               <p>
-                "{word.lemma}" är ett <b className="text-green-500">en</b>-ord
+                &quot;{word.lemma}&quot; är ett <b className="text-green-500">en</b>-ord
               </p>
             ) : (
               <></>
