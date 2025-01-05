@@ -4,10 +4,14 @@ import { redirect } from "next/navigation";
 import { WordBookPagination } from "./pagination";
 import WordTable from "./table";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { SyncState, useOnline, useReviewProgressSyncState } from "@/lib/frontend/hooks";
+import {
+  SyncState,
+  useOnline,
+  useReviewProgressSyncState,
+} from "@/lib/frontend/hooks";
 import { MdDownloadDone, MdOutlineSync } from "react-icons/md";
 import { IoCloudOfflineOutline } from "react-icons/io5";
+import { useAuth } from "../hooks/useAuth";
 
 export const runtime = "edge";
 
@@ -16,12 +20,12 @@ export default function WordBook({
 }: {
   searchParams?: { page?: number; fromPage?: string; snapshot?: number };
 }) {
-  const { status } = useSession();
+  const { user, loading } = useAuth();
   useEffect(() => {
-    if (status === "unauthenticated") {
-      redirect("/api/auth/signin");
+    if (!loading && !user) {
+      redirect("/api/auth/github/login");
     }
-  }, [status]);
+  }, [loading, user]);
 
   const [reviewProgressCount, setReviewProgressCount] = useState(0);
   const reviewProgressSyncState = useReviewProgressSyncState();

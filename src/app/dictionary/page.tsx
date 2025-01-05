@@ -14,10 +14,10 @@ import {
 import React, { useState } from "react";
 import { WordDetail } from "../_components/WordDetail";
 import { SaveToWordBookButton } from "../_components/SaveToWordBook";
-import { useSession } from "next-auth/react";
 import { MdDownloadDone, MdOutlineSync } from "react-icons/md";
 import { IoCloudOfflineOutline } from "react-icons/io5";
 import { SyncState, useDictionarySyncState, useOnline } from "@/lib/frontend/hooks";
+import { useAuth } from "../hooks/useAuth";
 
 export const runtime = "edge";
 
@@ -28,7 +28,7 @@ function WordDetailModal({
   word: Word | null;
   onClose?: () => void;
 }) {
-  const { status } = useSession();
+  const { user } = useAuth();
   return (
     <Modal show={word !== null} onClose={onClose}>
       <ModalHeader>{word?.lemma}</ModalHeader>
@@ -36,7 +36,7 @@ function WordDetailModal({
         <WordDetail
           word={word}
           buttons={
-            status === "authenticated" && word
+            user && word
               ? [<SaveToWordBookButton key={`save-${word.id}`} word_id={word.id} className="ml-3" />]
               : []
           }

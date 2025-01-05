@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth";
+import { isSuccess, User } from "@/lib/backend/auth";
+import { auth } from "@/lib/backend/auth";
 import {
   createReviewProgess,
   getReviewProgressAtSnapshotWithWord,
@@ -6,43 +7,42 @@ import {
   getReviewProgressesOfUserCount,
 } from "@/lib/backend/review_progress";
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-export const HEAD = auth(async (request: NextRequest) => {
-  const req = request as NextRequest & { auth: Session };
-  if (!req.auth.user?.email) {
-    return new NextResponse("Unauthorized", { status: 401 });
+export const HEAD = async (request: NextRequest) => {
+  const authResult = await auth(request);
+  if (!isSuccess(authResult)) {
+    return new NextResponse(null, { status: 401 });
   }
   const db = getRequestContext().env.DB;
-  const count = await getReviewProgressesOfUserCount(db, req.auth.user.email);
+  const count = await getReviewProgressesOfUserCount(db, authResult.email);
   return new NextResponse(null, {
     headers: {
       "X-Total-Count": count.toString(),
     },
   });
-});
+}
 
-export const GET = auth(async (request: NextRequest) => {
-  const req = request as NextRequest & { auth: Session };
-  if (!req.auth.user?.email) {
-    return new NextResponse("Unauthorized", { status: 401 });
+export const GET = async (request: NextRequest) => {
+  const authResult = await auth(request);
+  if (!isSuccess(authResult)) {
+    return new NextResponse(null, { status: 401 });
   }
-  return await getBySnapshot(req);
-});
+  return await getBySnapshot(request, authResult);
+};
 
-export const POST = auth(async (request: NextRequest) => {
-  const req = request as NextRequest & { auth: Session };
-  if (!req.auth.user?.email) {
-    return new NextResponse("Unauthorized", { status: 401 });
+export const POST = async (request: NextRequest) => {
+  const authResult = await auth(request);
+  if (!isSuccess(authResult)) {
+    return new NextResponse(null, { status: 401 });
   }
   const db = getRequestContext().env.DB;
   const payload = await request.json<{ word_id: string }>();
   const existing = await getReviewProgressByWord(
     db,
-    req.auth.user.email,
+    authResult.email,
     payload.word_id,
   );
   if (existing) {
@@ -52,13 +52,13 @@ export const POST = auth(async (request: NextRequest) => {
   }
   const id = await createReviewProgess(
     db,
-    req.auth.user.email,
+    authResult.email,
     payload.word_id,
   );
   return NextResponse.json(id);
-});
+};
 
-async function getBySnapshot(req: NextRequest & { auth: Session }) {
+async function getBySnapshot(req: NextRequest, authResult: User) {
   const snapshotTimeString = req.nextUrl.searchParams.get("snapshot_time");
   const snapshotTime = snapshotTimeString
     ? parseInt(snapshotTimeString)
@@ -67,10 +67,10 @@ async function getBySnapshot(req: NextRequest & { auth: Session }) {
   const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
   const db = getRequestContext().env.DB;
   const [count, reviewProgesses] = await Promise.all([
-    getReviewProgressesOfUserCount(db, req.auth.user?.email!),
+    getReviewProgressesOfUserCount(db, authResult.email),
     getReviewProgressAtSnapshotWithWord(
       db,
-      req.auth.user?.email!,
+      authResult.email,
       snapshotTime,
       offset,
       limit,

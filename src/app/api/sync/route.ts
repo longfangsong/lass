@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth";
 import {
   getDBWordsUpdateIn,
   getDBWordIndexesUpdateIn,
@@ -6,12 +5,13 @@ import {
 } from "@/lib/backend/word";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { NextRequest, NextResponse } from "next/server";
-import { Session } from "next-auth";
 import {
   getDBReviewProgressUpdateIn,
   upsertDBReviewProgresses,
 } from "@/lib/backend/review_progress";
 import { ClientSideDBReviewProgress, DBTypes } from "@/lib/types";
+import { auth } from "@/lib/backend/auth";
+import { isSuccess } from "@/lib/backend/auth";
 
 export const runtime = "edge";
 
@@ -66,10 +66,10 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(result);
 }
 
-export const POST = auth(async (request: NextRequest) => {
-  const req = request as NextRequest & { auth?: Session };
-  if (!req.auth?.user?.email) {
-    return new NextResponse("Unauthorized", { status: 401 });
+export const POST = async (request: NextRequest) => {
+  const authResult = await auth(request);
+  if (!isSuccess(authResult)) {
+    return new NextResponse(null, { status: 401 });
   }
   const db = getRequestContext().env.DB;
   const table = request.nextUrl.searchParams.get("table");
@@ -89,13 +89,13 @@ export const POST = auth(async (request: NextRequest) => {
         const payload: Array<ClientSideDBReviewProgress> = await request.json();
         const server_updates = await getDBReviewProgressUpdateIn(
           db,
-          req.auth.user.email,
+          authResult.email,
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
           Number(offsetParam),
         );
-        await upsertDBReviewProgresses(db, req.auth.user.email, payload);
+        await upsertDBReviewProgresses(db, authResult.email, payload);
         return NextResponse.json(server_updates);
       default:
         return new Response(`Updating ${table} is not supported`, {
@@ -103,4 +103,4 @@ export const POST = auth(async (request: NextRequest) => {
         });
     }
   }
-});
+};

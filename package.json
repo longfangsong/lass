@@ -26,7 +26,7 @@
     "events": "^3.3.0",
     "flowbite-react": "^0.10.2",
     "next": "14.2.15",
-    "next-auth": "5.0.0-beta.25",
+    "jose": "^5.9.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.3.0",
@@ -56,5 +56,6 @@
     "vitest": "^2.1.4",
     "vitest-localstorage-mock": "^0.1.2",
     "wrangler": "^3.84.1"
-  }
+  },
+  "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321"
 }

@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 import { WordRow } from "./wordRow";
 import WordTableButtonsHeader from "./wordTableButtonsHeader";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { ClientReviewProgressAtSnapshotWithWord } from "@/lib/types";
+import { useAuth } from "../hooks/useAuth";
 
 export default function WordTable({
   page,
@@ -16,12 +16,12 @@ export default function WordTable({
   page: number;
   snapshot: number;
 }) {
-  const { status } = useSession();
+  const { user, loading } = useAuth();
   useEffect(() => {
-    if (status === "unauthenticated") {
-      redirect("/api/auth/signin");
+    if (!loading && !user) {
+      redirect("/api/auth/github/login");
     }
-  }, [status]);
+  }, [loading, user]);
   const [dataInTable, setDataInTable] = useState<
     Array<ClientReviewProgressAtSnapshotWithWord>
   >([]);
