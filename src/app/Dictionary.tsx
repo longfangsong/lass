@@ -76,9 +76,6 @@ export default function Dictionary() {
             <Table.Row
               key={word.id}
               onClick={async () => {
-                const { localFirstDataSource } = await import(
-                  "@/lib/frontend/datasource/localFirst"
-                );
                 const result = await localFirstDataSource.getWord(word.id);
                 setSelectedWord(result);
               }}

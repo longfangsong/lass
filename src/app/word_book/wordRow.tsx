@@ -15,10 +15,10 @@ import BlurElement from "./BlurElement";
 import DoneButton from "./DoneButton";
 import PlayButton from "../components/PlayButton";
 import ResetButton from "./ResetButton";
+import { localFirstDataSource } from "@/lib/frontend/datasource/localFirst";
 
 async function updateWordReview(review: ClientReviewProgressAtSnapshotWithWord) {
   const now = new Date();
-  const { localFirstDataSource } = await import("@/lib/frontend/datasource/localFirst");
   review.review_count += 1;
   review.last_last_review_time = review.last_review_time;
   review.last_review_time = now.getTime();

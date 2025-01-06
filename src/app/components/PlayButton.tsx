@@ -10,6 +10,7 @@ export default function PlayButton({
 }) {
   return (
     <Button
+      aria-label="Play pronunciation"
       disabled={voice.phonetic_url === null && voice.phonetic_voice === null}
       className={"p-0 " + (className || "")}
       onClick={() => {

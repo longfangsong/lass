@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import { redirect } from "react-router";
 import WordTableButtonsHeader from "./WordTableButtonsHeader";
 import { WordRow } from "./WordRow";
+import { localFirstDataSource } from "@/lib/frontend/datasource/localFirst";
 
 export default function WordTable({
   page,
@@ -25,9 +26,6 @@ export default function WordTable({
   >([]);
   useEffect(() => {
     (async () => {
-      const { localFirstDataSource } = await import(
-        "@/lib/frontend/datasource/localFirst"
-      );
       const data =
         await localFirstDataSource.getReviewProgressAtSnapshotWithWord(
           snapshot,

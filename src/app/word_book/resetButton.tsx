@@ -1,3 +1,4 @@
+import { localFirstDataSource } from "@/lib/frontend/datasource/localFirst";
 import { ClientSideReviewProgress } from "@/lib/types";
 import { Button } from "flowbite-react";
 import { MdOutlineRestartAlt } from "react-icons/md";
@@ -14,9 +15,6 @@ export default function ResetButton({
       color="warning"
       className="p-0 mx-auto"
       onClick={async () => {
-        const { localFirstDataSource } = await import(
-          "@/lib/frontend/datasource/localFirst"
-        );
         const now = new Date();
         await localFirstDataSource.updateReviewProgress({
           ...review,

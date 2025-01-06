@@ -20,7 +20,6 @@ export default function BlurElement({
       className={`${isBlurred ? "blur-sm" : ""} transition-all duration-100 ease-in-out
       cursor-pointer ${className}`}
       onClick={toggleBlur}
-      aria-pressed={!isBlurred}
     >
       {children}
     </p>

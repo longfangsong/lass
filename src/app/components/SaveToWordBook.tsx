@@ -1,3 +1,4 @@
+import { localFirstDataSource } from "@/lib/frontend/datasource/localFirst";
 import { Button } from "flowbite-react";
 import { useState } from "react";
 import { RiStickyNoteAddLine } from "react-icons/ri";
@@ -12,12 +13,10 @@ export default function SaveToWordBookButton({
   const [clicked, setClicked] = useState(false);
   return (
     <Button
+      aria-label="Save to word book"
       className={"p-0 " + className ? className : ""}
       onClick={() => {
         (async () => {
-          const { localFirstDataSource } = await import(
-            "@/lib/frontend/datasource/localFirst"
-          );
           await localFirstDataSource.createOrUpdateWordReview(word_id);
           setClicked(true);
         })();

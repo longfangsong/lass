@@ -2,6 +2,7 @@
     font-family: Norse Bold;
     font-weight: bold;
     src: url("/Norse-Bold.otf") format("opentype");
+    font-display: swap;
 }
 
 .norse-bold {

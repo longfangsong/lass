@@ -13,8 +13,6 @@ import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router";
 import { localFirstDataSource } from "@/lib/frontend/datasource/localFirst";
 
-export const runtime = "edge";
-
 export default function WordBook() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
