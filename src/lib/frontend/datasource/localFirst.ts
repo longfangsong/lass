@@ -35,8 +35,6 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     super();
     this._online = this.checkOnline();
     (async () => {
-      const online = await this.checkOnline();
-      this._online = Promise.resolve(online);
       window.addEventListener("online", async () => {
         const originalOnline = await this._online;
         const online = await this.checkOnline();
@@ -191,7 +189,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     return online;
   }
 
-  private async dictionaryLastSyncTime(): Promise<number> {
+  async dictionaryLastSyncTime(): Promise<number> {
     const db = this.local.db;
     const [word, wordIndex, lexeme] = await Promise.all([
       db.meta.get("Word"),
@@ -202,10 +200,16 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
   }
 
   private async durationToDictionaryNextSync(): Promise<number> {
+    // | last sync time
+    //               | nextSyncTime = last sync time + olerance
+    //        | now here: new enough, no need to sync
+    //        |------| : nextSyncTime - now <= 0
+    //                          | now here: need to sync
+    //               |++++++++++| : nextSyncTime - now > 0
     const lastSyncTime = await this.dictionaryLastSyncTime();
     const tolerance = hoursToMilliseconds(24);
-    const now = new Date();
     const nextSyncTime = lastSyncTime + tolerance;
+    const now = new Date();
     const durationToNextSync = nextSyncTime - now.getTime();
     return durationToNextSync > 0 ? durationToNextSync : 0;
   }

@@ -8,7 +8,9 @@ export default defineWorkersProject(async () => {
   const migrationsPath = path.join(__dirname, "migrations");
   const migrations = await readD1Migrations(migrationsPath);
   const dataPath = path.join(__dirname, "data");
-  migrations.push(...(await readD1Migrations(dataPath)));
+  const dataMigrations = await readD1Migrations(dataPath);
+  const dataMigrationForTest = dataMigrations.filter(it => it.name.includes("test"));
+  migrations.push(...dataMigrationForTest);
   return {
     test: {
       exclude: [

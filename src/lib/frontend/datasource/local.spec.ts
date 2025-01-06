@@ -345,7 +345,7 @@ describe("LocalDataSource", () => {
         0,
         10
       );
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       expect(result).toHaveLength(1);
       expect(result[0].word_id).toBe(wordId);
       expect(result[0].lemma).toBe("test");
