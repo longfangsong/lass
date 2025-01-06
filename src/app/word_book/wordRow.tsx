@@ -203,6 +203,7 @@ export function WordRow({
             voice={reviewProgressWithWord}
           />,
           <Button
+            aria-label="Review"
             className="p-0 mx-auto"
             key={`${reviewProgressWithWord.id}-done`}
             onClick={async () => {

@@ -8,7 +8,7 @@ import {
   WordSearchResult,
   ClientReviewProgressAtSnapshotWithWord,
 } from "../../types";
-import { millisecondsInDay, millisecondsInMinute } from "date-fns/constants";
+import { millisecondsInDay } from "date-fns/constants";
 
 class MockRemoteDataSource extends RemoteDataSource {
   online = true;
@@ -113,7 +113,6 @@ describe("LocalFirstDataSource", () => {
         table_name: "Lexeme",
         version: now.getTime(),
       });
-      console.log("written", now.getTime());
       mockRemote.wordResults = [
         {
           id: crypto.randomUUID(),
@@ -273,4 +272,129 @@ describe("LocalFirstDataSource", () => {
       vi.useRealTimers();
     });
   });
+
+  describe("getReviewProgressAtSnapshotWithWord in localFirst", () => {
+    it("review does not affect the order of items in snapshot, local", async () => {
+      const mockRemote = new MockRemoteDataSource();
+      const mockLocal = new LocalDataSource();
+      const words = [];
+      const reviewProgresses = [];
+      for (let i = 0; i < 30; i++) {
+        let wordId;
+        if (i < 10) {
+          wordId = `word-0${i}`;
+        } else {
+          wordId = `word-${i}`;
+        }
+        const word = {
+          id: wordId,
+          lemma: `test${i}`,
+          update_time: Date.now(),
+          part_of_speech: "noun",
+          phonetic: "test",
+          phonetic_voice: null,
+          phonetic_url: null,
+          indexes: [{
+            id: crypto.randomUUID(),
+            word_id: wordId,
+            spell: `test${i}`,
+            update_time: Date.now(),
+            form: "test",
+          }],
+          lexemes: [
+            {
+              id: crypto.randomUUID(),
+              word_id: wordId,
+              update_time: Date.now(),
+              definition: "test",
+              example: "test",
+              example_meaning: "test",
+              source: "test",
+            },
+          ],
+        };
+        words.push(word);
+        await mockLocal.db.word?.add(word);
+        for (const index of word.indexes) {
+          await mockLocal.db.wordIndex?.add(index);
+        }
+        for (const lexeme of word.lexemes) {
+          await mockLocal.db.lexeme?.add(lexeme);
+        }
+        const reviewProgress = {
+          id: crypto.randomUUID(),
+          word_id: wordId,
+          query_count: 0,
+          review_count: 0,
+          last_last_review_time: null,
+          last_review_time: null,
+          update_time: Date.now(),
+        };
+        await mockLocal.db.reviewProgress?.add(reviewProgress);
+        reviewProgresses.push(reviewProgress);
+        await new Promise((resolve) => setTimeout(resolve, 2));
+      }
+      const now = new Date();
+      await mockLocal.db.meta.add({
+        table_name: "Word",
+        version: now.getTime(),
+      });
+      await mockLocal.db.meta.add({
+        table_name: "WordIndex",
+        version: now.getTime(),
+      });
+      await mockLocal.db.meta.add({
+        table_name: "Lexeme",
+        version: now.getTime(),
+      });
+      mockRemote.online = false;
+      const datasource = new LocalFirstDataSource(mockRemote, mockLocal);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const online = await datasource.online;
+      expect(online).toEqual(false);
+      const snapshot = new Date().getTime();
+      const first10 = await datasource.getReviewProgressAtSnapshotWithWord(snapshot, 0, 10);
+      expect(first10.length).toEqual(10);
+      expect(first10[0].word_id).toEqual("word-00");
+      expect(first10[9].word_id).toEqual("word-09");
+      let result = await datasource.getReviewProgressAtSnapshotWithWord(snapshot, 20, 10);
+      expect(result.length).toEqual(10);
+      expect(result[0].word_id).toEqual("word-20");
+      expect(result[9].word_id).toEqual("word-29");
+      result = await datasource.getReviewProgressAtSnapshotWithWord(snapshot, 30, 10);
+      expect(result.length).toEqual(0);
+      // review some words
+      first10[0] = {
+        ...first10[0],
+        review_count: 1,
+        last_review_time: Date.now(),
+        last_last_review_time: first10[0].last_review_time,
+      };
+      await new Promise((resolve) => setTimeout(resolve, 2));
+      first10[1] = {
+        ...first10[1],
+        review_count: 1,
+        last_review_time: Date.now(),
+        last_last_review_time: first10[1].last_review_time,
+      };
+      await datasource.updateReviewProgress(first10[0]);
+      await datasource.updateReviewProgress(first10[1]);
+      result = await datasource.getReviewProgressAtSnapshotWithWord(snapshot, 20, 10);
+      expect(result.length).toEqual(10);
+      expect(result[0].word_id).toEqual("word-20");
+      expect(result[9].word_id).toEqual("word-29");
+      result = await datasource.getReviewProgressAtSnapshotWithWord(snapshot, 0, 10);
+      expect(result.length).toEqual(10);
+      expect(result[0].word_id).toEqual("word-00");
+      expect(result[9].word_id).toEqual("word-09");
+      expect(result[0].review_count).toEqual(1);
+      expect(result[1].review_count).toEqual(1);
+      const newSnapshot = new Date().getTime();
+      result = await datasource.getReviewProgressAtSnapshotWithWord(newSnapshot, 0, 10);
+      expect(result.length).toEqual(10);
+      expect(result[0].word_id).toEqual("word-02");
+      expect(result[9].word_id).toEqual("word-11");
+    });
+  });
 });
+

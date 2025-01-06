@@ -201,7 +201,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
 
   private async durationToDictionaryNextSync(): Promise<number> {
     // | last sync time
-    //               | nextSyncTime = last sync time + olerance
+    //               | nextSyncTime = last sync time + tolerance
     //        | now here: new enough, no need to sync
     //        |------| : nextSyncTime - now <= 0
     //                          | now here: need to sync

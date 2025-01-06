@@ -105,9 +105,13 @@ export class LocalDataSource implements DataSource {
         this.toSnapshot(reviewProgresses, snapshotTime);
       reviewProgressesAtSnapshot = reviewProgressesAtSnapshot
         .sort((a, b) => {
-          return (
-            a.snapshot_next_reviewable_time! - b.snapshot_next_reviewable_time!
-          );
+          if (a.snapshot_next_reviewable_time !== b.snapshot_next_reviewable_time) {
+            return a.snapshot_next_reviewable_time! - b.snapshot_next_reviewable_time!;
+          }
+          if (a.snapshot_review_count !== b.snapshot_review_count) {
+            return b.snapshot_review_count - a.snapshot_review_count;
+          }
+          return a.word_id < b.word_id ? -1 : 1;
         })
         .map((it) => ({
           ...it,
@@ -147,6 +151,7 @@ export class LocalDataSource implements DataSource {
     return reviewProgresses.map((progress) => {
       let next_reviewable_time;
       let snapshot_next_reviewable_time;
+      let snapshot_review_count;
       if (progress.last_review_time === null) {
         // not reviewed yet
         assert(
@@ -159,6 +164,7 @@ export class LocalDataSource implements DataSource {
         );
         next_reviewable_time = 0;
         snapshot_next_reviewable_time = 0;
+        snapshot_review_count = 0;
       } else if (REVIEW_GAP_DAYS[progress.review_count] === undefined) {
         // done all reviews
         next_reviewable_time = maxDate;
@@ -171,24 +177,28 @@ export class LocalDataSource implements DataSource {
           snapshot_next_reviewable_time =
             progress.last_last_review_time +
             millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1];
+          snapshot_review_count = progress.review_count - 1;
         } else {
           snapshot_next_reviewable_time = next_reviewable_time;
+          snapshot_review_count = progress.review_count;
         }
       } else if (snapshotTime < progress.last_review_time) {
         // snapshot is before last review time
         // snapshot_next_reviewable_time is based on (progress.review_count - 1)th review and last_last_review_time
         if (progress.last_last_review_time === null) {
           assert(
-            progress.review_count === 0,
+            progress.review_count <= 1,
             "last_last_review_time is null but review_count is not 0"
           );
           snapshot_next_reviewable_time =
             progress.last_review_time +
             millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count];
+          snapshot_review_count = progress.review_count;
         } else {
           snapshot_next_reviewable_time =
             progress.last_last_review_time +
             millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count - 1];
+          snapshot_review_count = progress.review_count - 1;
         }
         // next_reviewable_time is calculated normally based on last_review_time
         next_reviewable_time =
@@ -199,6 +209,7 @@ export class LocalDataSource implements DataSource {
           progress.last_review_time +
           millisecondsInDay * REVIEW_GAP_DAYS[progress.review_count];
         snapshot_next_reviewable_time = next_reviewable_time;
+        snapshot_review_count = progress.review_count;
       }
       return {
         ...progress,
@@ -207,6 +218,7 @@ export class LocalDataSource implements DataSource {
           maxDate
         ),
         next_reviewable_time: Math.min(next_reviewable_time, maxDate),
+        snapshot_review_count,
       };
     });
   }

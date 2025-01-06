@@ -71,6 +71,7 @@ export interface ReviewProgress extends DBTypes.ReviewProgress {
 
 export interface ReviewProgressAtSnapshot extends ReviewProgress {
   snapshot_next_reviewable_time: number | null;
+  snapshot_review_count: number;
 }
 
 export type ReviewProgressAtSnapshotWithWord = ReviewProgressAtSnapshot &

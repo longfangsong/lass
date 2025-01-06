@@ -150,7 +150,7 @@ export async function getReviewProgressAtSnapshotWithWord(
           FROM ReviewProgress, Word
           WHERE ReviewProgress.user_email = ?1
             AND ReviewProgress.word_id = Word.id
-          ORDER BY snapshot_next_reviewable_time ASC NULLS LAST, snapshot_review_count DESC
+          ORDER BY snapshot_next_reviewable_time ASC NULLS LAST, snapshot_review_count DESC, Word.id ASC
           LIMIT ?4 OFFSET ?3 
         ) AS ReviewProgressWithWord, Lexeme
       WHERE ReviewProgressWithWord.word_id = Lexeme.word_id;`,

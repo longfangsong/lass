@@ -33,8 +33,8 @@ export default function WordTable({
           PAGE_SIZE
         );
       setDataInTable(data);
-    })();
-  }, [page, snapshot]);
+    })(); 
+  });
   return (
     <div className="max-w-full overflow-scroll">
       <Table striped className="overflow-scroll">
