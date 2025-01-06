@@ -1,5 +1,3 @@
-"use client";
-
 import { fetchWithSemaphore } from "@/lib/fetch";
 import {
   ClientSideReviewProgress,
@@ -24,7 +22,7 @@ async function patch(id: string, payload: ReviewProgressPatchPayload) {
   });
 }
 
-export function DoneButton({
+export default function DoneButton({
   review,
   onClick,
 }: {

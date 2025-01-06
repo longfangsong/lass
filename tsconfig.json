@@ -13,26 +13,19 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "@/*": ["./src/*"]
     },
     "types": [
-      "@cloudflare/workers-types/2023-07-01",
-      "@cloudflare/vitest-pool-workers",
-      "@serwist/next/typings"
+      "@cloudflare/workers-types",
+      "@cloudflare/vitest-pool-workers"
     ]
   },
   "include": [
     "next-env.d.ts",
     "**/*.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
+    "**/*.tsx"
   ],
   "exclude": ["node_modules", "scripts", "cron","public/sw.js"]
 }

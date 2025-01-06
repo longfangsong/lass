@@ -1,5 +1,3 @@
-"use client";
-
 import {
   formatDistance,
   hoursToMilliseconds,
@@ -8,15 +6,15 @@ import {
 } from "date-fns";
 import { sv } from "date-fns/locale/sv";
 import { Button, TableCell, TableRow } from "flowbite-react";
-import { PlayButton } from "../_components/PlayButton";
 import { ClientReviewProgressAtSnapshotWithWord, Lexeme } from "@/lib/types";
 import { useEffect, useState } from "react";
-import BlurElement from "./blurElement";
-import { DoneButton } from "./doneButton";
-import { ResetButton } from "./resetButton";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { millisecondsInDay } from "date-fns/constants";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
+import BlurElement from "./BlurElement";
+import DoneButton from "./DoneButton";
+import PlayButton from "../components/PlayButton";
+import ResetButton from "./ResetButton";
 
 async function updateWordReview(review: ClientReviewProgressAtSnapshotWithWord) {
   const now = new Date();

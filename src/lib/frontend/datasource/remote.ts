@@ -112,5 +112,3 @@ export class RemoteDataSource implements DataSource {
     }
   }
 }
-
-export const remoteDataSource = new RemoteDataSource();

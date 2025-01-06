@@ -1,10 +1,8 @@
-"use client";
-
 import { ClientSideReviewProgress } from "@/lib/types";
 import { Button } from "flowbite-react";
 import { MdOutlineRestartAlt } from "react-icons/md";
 
-export function ResetButton({
+export default function ResetButton({
   review,
   onClick,
 }: {

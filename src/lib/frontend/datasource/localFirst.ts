@@ -5,8 +5,8 @@ import {
   WordSearchResult,
 } from "../../types";
 import { DataSource } from "./datasource";
-import { RemoteDataSource, remoteDataSource } from "./remote";
-import { LocalDataSource, localDataSource } from "./local";
+import { RemoteDataSource } from "./remote";
+import { LocalDataSource } from "./local";
 import { EventEmitter } from "events";
 import { hoursToMilliseconds, minutesToMilliseconds } from "date-fns";
 import { millisecondsInWeek } from "date-fns/constants";
@@ -14,7 +14,7 @@ import { millisecondsInWeek } from "date-fns/constants";
 export class LocalFirstDataSource extends EventEmitter implements DataSource {
   private _localDictionaryNewEnough: Promise<boolean> = Promise.resolve(false);
   private _reviewProgressNewEnough: Promise<boolean> = Promise.resolve(false);
-  private _online: Promise<boolean> = this.checkOnline();
+  private _online: Promise<boolean>;
 
   get online() {
     return this._online;
@@ -33,6 +33,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     private readonly local: LocalDataSource
   ) {
     super();
+    this._online = this.checkOnline();
     (async () => {
       const online = await this.checkOnline();
       this._online = Promise.resolve(online);
@@ -161,26 +162,22 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
         this.online,
         (async () => {
           const reviewProgress = await this.local.db.meta.get("ReviewProgress");
-          return (
-            reviewProgress?.version &&
-            new Date().getTime() - reviewProgress.version <
-              hoursToMilliseconds(1)
-          );
+          const durationSinceLastSync = new Date().getTime() - (reviewProgress?.version || 0);
+          return durationSinceLastSync < hoursToMilliseconds(1);
         })(),
         (async () => {
           const dictionaryLastSyncTime = await this.dictionaryLastSyncTime();
-          return Math.abs(dictionaryLastSyncTime - new Date().getTime()) < millisecondsInWeek;
+          const durationSinceLastSync = new Date().getTime() - dictionaryLastSyncTime;
+          return durationSinceLastSync < millisecondsInWeek;
         })(),
       ]);
     if (online && (!reviewProgressNewEnough || !dictionaryNewEnough)) {
-      console.log("get review progress from remote");
       return await this.remote.getReviewProgressAtSnapshotWithWord(
         snapshot,
         offset,
         limit
       );
     } else {
-      console.log("get review progress from local");
       return await this.local.getReviewProgressAtSnapshotWithWord(
         snapshot,
         offset,
@@ -208,7 +205,8 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     const lastSyncTime = await this.dictionaryLastSyncTime();
     const tolerance = hoursToMilliseconds(24);
     const now = new Date();
-    const durationToNextSync = now.getTime() - (lastSyncTime + tolerance);
+    const nextSyncTime = lastSyncTime + tolerance;
+    const durationToNextSync = nextSyncTime - now.getTime();
     return durationToNextSync > 0 ? durationToNextSync : 0;
   }
 
@@ -242,6 +240,6 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
 }
 
 export const localFirstDataSource = new LocalFirstDataSource(
-  remoteDataSource,
-  localDataSource
+  new RemoteDataSource(),
+  new LocalDataSource()
 );

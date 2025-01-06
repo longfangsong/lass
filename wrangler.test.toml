@@ -28,6 +28,9 @@ CF_PAGES_URL = "https://lassvenska.pages.dev"
 # Docs: https://developers.cloudflare.com/pages/functions/bindings/#d1-databases
 [[d1_databases]]
 preview_database_id = "DB"
+binding = "DB"
+database_name = "lass"
+database_id = "5539ba3d-983e-456f-8814-cd3f2442bf1d"
 
 # Bind a Durable Object. Durable objects are a scale-to-zero compute primitive based on the actor model.
 # Durable Objects can live for as long as needed. Use these when you need a long-running "server", such as in realtime apps.
@@ -83,6 +86,3 @@ preview_database_id = "DB"
 # [[env.production.kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
 # id = "<PRODUCTION_NAMESPACE_ID>"
-binding = "DB"
-database_name = "lass"
-database_id = "5539ba3d-983e-456f-8814-cd3f2442bf1d"

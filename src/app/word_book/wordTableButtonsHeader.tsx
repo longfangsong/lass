@@ -1,5 +1,3 @@
-"use client";
-
 import { useWindowSize } from "@uidotdev/usehooks";
 import { TableHeadCell } from "flowbite-react";
 

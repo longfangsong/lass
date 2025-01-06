@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
+import { localFirstDataSource } from "./datasource/localFirst";
 
 export function useOnline() {
   const [online, setOnline] = useState(false);
 
   useEffect(() => {
-    import("./datasource/localFirst").then(({ localFirstDataSource }) => {
-      localFirstDataSource.online.then(setOnline);
-      localFirstDataSource.on("online-changed", setOnline);
-    });
+    localFirstDataSource.online.then(setOnline);
+    localFirstDataSource.on("online-changed", setOnline);
   }, []);
 
   return online;
@@ -22,14 +21,12 @@ export enum SyncState {
 export function useDictionarySyncState() {
   const [syncState, setSyncState] = useState(SyncState.NotSynced);
   useEffect(() => {
-    import("./datasource/localFirst").then(({ localFirstDataSource }) => {
-      localFirstDataSource.on("dictionary-sync-started", () =>
-        setSyncState(SyncState.Syncing),
-      );
-      localFirstDataSource.on("dictionary-sync-finished", (syncSuccess) =>
-        setSyncState(syncSuccess ? SyncState.Synced : SyncState.NotSynced),
-      );
-    });
+    localFirstDataSource.on("dictionary-sync-started", () =>
+      setSyncState(SyncState.Syncing),
+    );
+    localFirstDataSource.on("dictionary-sync-finished", (syncSuccess) =>
+      setSyncState(syncSuccess ? SyncState.Synced : SyncState.NotSynced),
+    );
   }, []);
   return syncState;
 }
@@ -37,14 +34,12 @@ export function useDictionarySyncState() {
 export function useReviewProgressSyncState() {
   const [syncState, setSyncState] = useState(SyncState.NotSynced);
   useEffect(() => {
-    import("./datasource/localFirst").then(({ localFirstDataSource }) => {
-      localFirstDataSource.on("review-progress-sync-started", () =>
-        setSyncState(SyncState.Syncing),
-      );
-      localFirstDataSource.on("review-progress-sync-finished", (syncSuccess) =>
-        setSyncState(syncSuccess ? SyncState.Synced : SyncState.NotSynced),
-      );
-    });
+    localFirstDataSource.on("review-progress-sync-started", () =>
+      setSyncState(SyncState.Syncing),
+    );
+    localFirstDataSource.on("review-progress-sync-finished", (syncSuccess) =>
+      setSyncState(syncSuccess ? SyncState.Synced : SyncState.NotSynced),
+    );
   }, []);
   return syncState;
 }

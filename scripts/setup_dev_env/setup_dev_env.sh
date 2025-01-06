@@ -4,7 +4,7 @@ npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/Article.sql
 npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/Word.sql
 npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/WordIndex.sql
 npx wrangler d1 execute DB --local --file=./scripts/setup_dev_env/Lexeme.sql
-echo 'CF_PAGES_URL="https://localhost"' >> .dev.vars
+echo 'CF_PAGES_URL="https://localhost:8443"' >> .dev.vars
 echo "AUTH_SECRET=\"$(npx auth secret --raw)\"" >> .dev.vars
 echo "The following auth related things are optional, you can leave them empty, \
       use them if and only if you want to work with auth itself, \

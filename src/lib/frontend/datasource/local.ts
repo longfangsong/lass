@@ -12,7 +12,7 @@ import Semaphore from "semaphore-promise";
 import { fetchWithSemaphore } from "@/lib/fetch";
 import { hoursToMilliseconds } from "date-fns";
 import { millisecondsInDay } from "date-fns/constants";
-import assert from "assert";
+import {assert} from "@/lib/assert";
 
 const maxDate = 253370674800000;
 
@@ -601,5 +601,3 @@ export class LocalDataSource implements DataSource {
     console.log("synced reviewProgress");
   }
 }
-
-export const localDataSource = new LocalDataSource();
