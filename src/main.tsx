@@ -5,11 +5,11 @@ import Index from "./app/Index";
 import NavBar from "./app/components/NavBar";
 import "./main.css";
 import "./norse-bold.css";
-import Callback from "./app/Callback";
+import Callback from "./app/auth/Callback";
 import Dictionary from "./app/Dictionary";
 import Articles from "./app/article/Articles";
 import Article from "./app/article/Article";
-import WordBook from "./app/WordBook";
+import WordBook from "./app/word_book/WordBook";
 import ThemeToggleWatcher from "./app/ThemeToggleWatcher";
 import Login from "./app/auth/Login";
 
@@ -18,7 +18,7 @@ const router = (
   <BrowserRouter>
     <NavBar />
     <ThemeToggleWatcher />
-    <main className="p-2 sm:p-4 text-gray-900 dark:text-white h-[calc(100vh-63px)] overflow-y-scroll">
+    <main className="p-2 sm:p-4 text-gray-900 dark:text-white dark:bg-gray-900 h-[calc(100vh-63px)] overflow-y-scroll">
       <Routes>
         <Route path="/auth/callback/:provider" element={<Callback />} />
         <Route path="/auth/login" element={<Login />} />

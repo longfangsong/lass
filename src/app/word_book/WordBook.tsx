@@ -8,9 +8,10 @@ import {
 } from "@/lib/frontend/hooks";
 import { MdDownloadDone, MdOutlineSync } from "react-icons/md";
 import { IoCloudOfflineOutline } from "react-icons/io5";
-import { useAuth } from "./hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router";
+import { localFirstDataSource } from "@/lib/frontend/datasource/localFirst";
 
 export const runtime = "edge";
 
@@ -33,9 +34,6 @@ export default function WordBook() {
   const online = useOnline();
   useEffect(() => {
     (async () => {
-      const { localFirstDataSource } = await import(
-        "@/lib/frontend/datasource/localFirst"
-      );
       const count = await localFirstDataSource.getReviewProgressCount();
       setReviewProgressCount(count);
     })();

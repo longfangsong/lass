@@ -51,3 +51,4 @@ public/sw*
 public/swe-worker*
 cert
 dist
+dev-dist
