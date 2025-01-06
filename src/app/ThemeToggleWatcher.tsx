@@ -1,5 +1,3 @@
-"use client";
-
 import { useThemeMode } from "flowbite-react";
 import { useEffect } from "react";
 
@@ -10,7 +8,7 @@ export default function ThemeToggleWatcher() {
     if (mode === "dark") {
       themeElement?.setAttribute("content", "#212836");
     } else {
-      themeElement?.setAttribute("content", "#ffffff");
+      themeElement?.setAttribute("content", "#e5e7eb");
     }
   }, [mode]);
 

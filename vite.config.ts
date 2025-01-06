@@ -14,11 +14,6 @@ export default defineConfig({
       registerType: "autoUpdate",
       injectRegister: "auto",
 
-      pwaAssets: {
-        disabled: false,
-        config: true,
-      },
-
       manifest: {
         name: "Läss",
         short_name: "Läss",

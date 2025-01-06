@@ -10,11 +10,13 @@ import Dictionary from "./app/Dictionary";
 import Articles from "./app/article/Articles";
 import Article from "./app/article/Article";
 import WordBook from "./app/WordBook";
+import ThemeToggleWatcher from "./app/ThemeToggleWatcher";
 
 const serverSideRegex = /^(\/api\/|\/dictionary-init\/).*/;
 const router = (
   <BrowserRouter>
     <NavBar />
+    <ThemeToggleWatcher />
     <main className="p-2 sm:p-4 text-gray-900 dark:text-white h-[calc(100vh-63px)] overflow-y-scroll">
       <Routes>
         <Route path="/auth/callback/:provider" element={<Callback />} />

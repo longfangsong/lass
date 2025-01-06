@@ -18,7 +18,8 @@
     },
     "types": [
       "@cloudflare/workers-types",
-      "@cloudflare/vitest-pool-workers"
+      "@cloudflare/vitest-pool-workers",
+      "vite-plugin-pwa/client"
     ]
   },
   "include": [

@@ -1,5 +1,3 @@
-"use client";
-
 import { Word, WordSearchResult } from "@/lib/types";
 import debounce from "debounce";
 import {
