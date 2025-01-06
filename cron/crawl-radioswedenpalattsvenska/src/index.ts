@@ -38,7 +38,7 @@ async function fetch_single_article(title: string, url: string, db: D1Database):
 }
 
 async function title_exists(title: string, db: D1Database): Promise<boolean> {
-	let query_title_result = await db.prepare('select id from Article where title = ?1;').bind(title).first();
+	const query_title_result = await db.prepare('select id from Article where title = ?1;').bind(title).first();
 	return query_title_result !== null;
 }
 
@@ -47,7 +47,7 @@ async function fetch_all(): Promise<Array<{ title: string; url: string }>> {
 	const html = await latt_svenska_page.text();
 	const $ = load(html);
 	const elements = $('h2.heading.heading-link.h2>a.heading');
-	let all_titles = elements
+	const all_titles = elements
 		.map((_, element) => {
 			return {
 				title: $(element).text(),
@@ -61,10 +61,10 @@ async function fetch_all(): Promise<Array<{ title: string; url: string }>> {
 export default {
 	// The scheduled handler is invoked at the interval set in our wrangler.toml's
 	// [[triggers]] configuration.
-	async scheduled(event, env, ctx): Promise<void> {
-		let all_articles = await fetch_all();
-		let exists = await Promise.all(all_articles.map(({ title }) => title_exists(title, env.DB)));
-		let new_articles = all_articles.filter((_, index) => !exists[index]);
+	async scheduled(event, env): Promise<void> {
+		const all_articles = await fetch_all();
+		const exists = await Promise.all(all_articles.map(({ title }) => title_exists(title, env.DB)));
+		const new_articles = all_articles.filter((_, index) => !exists[index]);
 		await Promise.all(new_articles.map(({ title, url }) => fetch_single_article(title, url, env.DB)));
 	},
 } satisfies ExportedHandler<Env>;

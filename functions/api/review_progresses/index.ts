@@ -52,7 +52,7 @@ export async function onRequestPost(context: EventContext<CloudflareEnv, string,
   return Response.json(id);
 };
 
-async function getBySnapshot(request: Request, authResult: User, env: any) {
+async function getBySnapshot(request: Request, authResult: User, env: CloudflareEnv) {
   const url = new URL(request.url);
   const snapshotTimeString = url.searchParams.get("snapshot_time");
   const snapshotTime = snapshotTimeString

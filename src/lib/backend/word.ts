@@ -5,21 +5,21 @@ function unescapeString(str: string): string {
   return str.replace(/&#39;/g, "'").replace(/&quot;/g, '"');
 }
 
-export function unescapeObject(obj: any): any {
+export function unescapeObject<T>(obj: T): T {
   if (typeof obj === "string") {
-    return unescapeString(obj);
+    return unescapeString(obj) as T;
   }
   if (Array.isArray(obj)) {
-    return obj.map(unescapeObject);
+    return obj.map(unescapeObject) as T;
   }
   if (typeof obj === "object" && obj !== null) {
-    const result: { [key: string]: any } = {};
+    const result: { [key: string]: unknown } = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         result[key] = unescapeObject(obj[key]);
       }
     }
-    return result;
+    return result as T;
   }
   return obj;
 }
@@ -252,10 +252,10 @@ async function fetchPhonetic(spell: string): Promise<ArrayBuffer> {
     body: urlencoded,
     signal: AbortSignal.timeout(5000),
   };
-  let response = await fetch(url, requestOptions);
-  let response_json: any = await response.json();
-  let pronunciation_url = response_json["URL"];
-  let pronunciation_response = await fetch(pronunciation_url!);
+  const response = await fetch(url, requestOptions);
+  const response_json: { URL: string } = await response.json();
+  const pronunciation_url = response_json["URL"];
+  const pronunciation_response = await fetch(pronunciation_url!);
   return await pronunciation_response.arrayBuffer();
 }
 
@@ -271,7 +271,7 @@ export async function getWordByAI(spell: string): Promise<Word> {
 
   const responseJson: AIResponse = JSON.parse(result.response.text());
   const wordId = crypto.randomUUID();
-  let dbWord: Word = {
+  const dbWord: Word = {
     id: wordId,
     lemma: responseJson.spell,
     part_of_speech: responseJson.part_of_speech,

@@ -89,7 +89,7 @@ export class LocalDataSource implements DataSource {
       const reviewProgresses = (await this.db.reviewProgress.bulkGet(
         ids
       )) as Array<ClientSideDBReviewProgress>;
-      let reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
+      const reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
         this.toSnapshot(reviewProgresses, snapshotTime);
       return await Promise.all(
         reviewProgressesAtSnapshot

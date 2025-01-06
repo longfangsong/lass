@@ -25,7 +25,9 @@ export default function ResetButton({
           last_review_time: now.getTime(),
           update_time: now.getTime(),
         });
-        onClick && onClick();
+        if (onClick) {
+          onClick();
+        }
       }}
     >
       <MdOutlineRestartAlt className="h-4 w-4" />

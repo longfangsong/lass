@@ -50,7 +50,7 @@ describe("LocalFirstDataSource", () => {
     vi.stubGlobal("window", window);
 
     indexedDB = new IDBFactory();
-    let localDataSource = new LocalDataSource();
+    const localDataSource = new LocalDataSource();
     await localDataSource.db.open();
     await localDataSource.db.word?.clear();
     await localDataSource.db.wordIndex?.clear();

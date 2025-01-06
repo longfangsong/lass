@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DBTypes {
   export interface ArticleMeta {
     id: string;

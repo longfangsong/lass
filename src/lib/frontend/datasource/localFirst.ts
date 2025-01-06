@@ -224,7 +224,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       ]);
       this.emit("dictionary-sync-finished", true);
       return true;
-    } catch (e) {
+    } catch {
       this.emit("dictionary-sync-finished", false);
       return false;
     }
@@ -236,7 +236,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       await this.local.syncReviewProgress();
       this.emit("review-progress-sync-finished", true);
       return true;
-    } catch (e) {
+    } catch {
       this.emit("review-progress-sync-finished", false);
       return false;
     }

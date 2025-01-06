@@ -17,7 +17,7 @@ async function fetchFile(filePath: string, url: string) {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      await pipeline(response.body as any, fs.createWriteStream(filePath));
+      await pipeline(response.body!, fs.createWriteStream(filePath));
       console.log(`File fetched and saved as ${filePath}`);
     } catch (error) {
       console.error("Error fetching file:", error);
@@ -164,7 +164,7 @@ function collectEnglishLexemes(
   enType: Array<string> | null,
   englishWords: cheerio.Cheerio,
 ): Array<Lexeme> {
-  let lexemes: Array<Lexeme> = [];
+  const lexemes: Array<Lexeme> = [];
   englishWords.each((_, englishWord) => {
     const englishClass = $(englishWord).attr("class");
     const correctEnglishType =
@@ -275,7 +275,7 @@ type PolyfillData = {
 
 function loadPolyfill(polyfillJsonPath: string): PolyfillData {
   const polyfillJson = fs.readFileSync(polyfillJsonPath, "utf-8");
-  let polyfillData = JSON.parse(polyfillJson);
+  const polyfillData = JSON.parse(polyfillJson);
   console.log("Polyfill data loaded successfully");
   return polyfillData;
 }
@@ -305,7 +305,7 @@ async function main() {
   const polyfill = loadPolyfill(polyfillJsonPath);
 
   const inflectionMap = buildInflectionMap($en);
-  let initSqlFile = fs.createWriteStream(`dictionary.sql`, {
+  const initSqlFile = fs.createWriteStream(`dictionary.sql`, {
     flags: "w",
   });
   $swe("Lemma").each((index, element) => {

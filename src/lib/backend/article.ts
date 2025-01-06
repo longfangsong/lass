@@ -67,7 +67,7 @@ export function toWordsAndPunctuations(article: string): Array<Array<string>> {
     .split(/(\s+)|(\.\.\.)|(\.)/)
     .filter((x) => x !== undefined && x.trim().length > 0);
   let result: Array<Array<string>> = [[]];
-  for (let wordAndPunctuation of wordsAndPunctuations) {
+  for (const wordAndPunctuation of wordsAndPunctuations) {
     if (wordAndPunctuation.endsWith("...")) {
       result[result.length - 1].push(wordAndPunctuation.slice(0, -3), "...");
       result.push([]);

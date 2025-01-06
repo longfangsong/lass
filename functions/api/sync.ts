@@ -11,7 +11,9 @@ import { ClientSideDBReviewProgress } from "@/lib/types";
 import { auth } from "@/lib/backend/auth";
 import { isSuccess } from "@/lib/backend/auth";
 
-export async function onRequestGet(context: EventContext<CloudflareEnv, string, unknown>) {
+export async function onRequestGet(
+  context: EventContext<CloudflareEnv, string, unknown>
+) {
   const url = new URL(context.request.url);
   const table = url.searchParams.get("table");
   const limitParam = url.searchParams.get("limit");
@@ -33,7 +35,7 @@ export async function onRequestGet(context: EventContext<CloudflareEnv, string, 
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
-          Number(offsetParam),
+          Number(offsetParam)
         );
         break;
       case "WordIndex":
@@ -42,7 +44,7 @@ export async function onRequestGet(context: EventContext<CloudflareEnv, string, 
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
-          Number(offsetParam),
+          Number(offsetParam)
         );
         break;
       case "Lexeme":
@@ -51,7 +53,7 @@ export async function onRequestGet(context: EventContext<CloudflareEnv, string, 
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
-          Number(offsetParam),
+          Number(offsetParam)
         );
         break;
     }
@@ -62,7 +64,9 @@ export async function onRequestGet(context: EventContext<CloudflareEnv, string, 
   return Response.json(result);
 }
 
-export async function onRequestPost(context: EventContext<CloudflareEnv, string, unknown>) {
+export async function onRequestPost(
+  context: EventContext<CloudflareEnv, string, unknown>
+) {
   const authResult = await auth(context.request, context.env.AUTH_SECRET);
   const url = new URL(context.request.url);
   if (!isSuccess(authResult)) {
@@ -82,18 +86,24 @@ export async function onRequestPost(context: EventContext<CloudflareEnv, string,
     offsetParam !== null
   ) {
     switch (table) {
-      case "ReviewProgress":
-        const payload: Array<ClientSideDBReviewProgress> = await context.request.json();
+      case "ReviewProgress": {
+        const payload: Array<ClientSideDBReviewProgress> =
+          await context.request.json();
         const server_updates = await getDBReviewProgressUpdateIn(
           context.env.DB,
           authResult.email,
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
-          Number(offsetParam),
+          Number(offsetParam)
         );
-        await upsertDBReviewProgresses(context.env.DB, authResult.email, payload);
+        await upsertDBReviewProgresses(
+          context.env.DB,
+          authResult.email,
+          payload
+        );
         return Response.json(server_updates);
+      }
       default:
         return new Response(`Updating ${table} is not supported`, {
           status: 400,

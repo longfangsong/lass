@@ -42,7 +42,7 @@ async function articleMetasUpdatedAfter(
   });
 }
 
-export async function onRequestGet(context: EventContext<CloudflareEnv, string, {}>) {
+export async function onRequestGet(context: EventContext<CloudflareEnv, string, unknown>) {
   const url = new URL(context.request.url);
 
   const limitParam = url.searchParams.get("limit");

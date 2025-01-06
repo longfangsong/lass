@@ -107,7 +107,7 @@ export class RemoteDataSource implements DataSource {
     try {
       const response = await fetch("/api/ping");
       return response.ok && response.status === 200;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

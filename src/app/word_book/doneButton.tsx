@@ -35,7 +35,9 @@ export default function DoneButton({
       className="p-0 mx-auto"
       onClick={async () => {
         await patch(review.id, donePayload());
-        onClick && onClick();
+        if (onClick) {
+          onClick();
+        }
       }}
     >
       Done

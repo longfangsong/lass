@@ -17,6 +17,8 @@ import RegionsPlugin, {
 } from "wavesurfer.js/dist/plugins/regions";
 import WaveSurfer from "wavesurfer.js";
 import { RegionPluginEventListener } from "wavesurfer-react/dist/hooks/useRegionPluginEvent";
+import { PluginType } from "wavesurfer-react/dist/types";
+import { GenericPlugin } from "wavesurfer.js/dist/base-plugin.js";
 
 function splitOnSilence(
   channelData: Float32Array,
@@ -27,7 +29,7 @@ function splitOnSilence(
   const silenceThresholdLinear = Math.pow(10, silenceThreshold / 20);
   const minSilenceSamples = (sampleRate / 1000) * minSilenceDuration;
 
-  let sentences: Array<[number, number]> = [];
+  const sentences: Array<[number, number]> = [];
   let state: "InSentence" | "DetectingSilence" | "InSilence" = "InSentence";
   let sentenceStart = 0;
   let silenceStart = 0;
@@ -120,7 +122,7 @@ export function Player({ url }: { url: string }) {
     setIsClient(true);
   }, []);
   function lastSentence() {
-    const currentTime = wavesurferRef.current?.getCurrentTime()!;
+    const currentTime = wavesurferRef.current?.getCurrentTime() ?? 0;
     const regionPlugin =
       wavesurferRef.current?.getActivePlugins()[0] as RegionsPlugin;
     const regions = regionPlugin.getRegions();
@@ -147,7 +149,7 @@ export function Player({ url }: { url: string }) {
       <>
         <WaveSurferPlayer
           height={50}
-          plugins={plugins as any}
+          plugins={plugins as unknown as PluginType<GenericPlugin>[]}
           onMount={mounted}
           container="#waveform"
         >
