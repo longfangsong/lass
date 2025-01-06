@@ -1,8 +1,8 @@
 import { Button } from "flowbite-react";
 
-export default function SignIn() {
+export default function SignInButton() {
   return (
-    <Button onClick={() => window.location.href = '/api/auth/github/login'}>
+    <Button onClick={() => window.location.href = '/auth/login'}>
       Sign In
     </Button>
   );

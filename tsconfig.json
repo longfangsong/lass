@@ -23,10 +23,9 @@
     ]
   },
   "include": [
-    "next-env.d.ts",
     "**/*.d.ts",
     "**/*.ts",
     "**/*.tsx"
   ],
-  "exclude": ["node_modules", "scripts", "cron","public/sw.js"]
+  "exclude": ["node_modules", "scripts", "cron", "public/sw.js"]
 }

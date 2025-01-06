@@ -17,7 +17,7 @@ export default function WordTable({
   const { user, loading } = useAuth();
   useEffect(() => {
     if (!loading && !user) {
-      redirect("/api/auth/github/login");
+      redirect("/auth/login");
     }
   }, [loading, user]);
   const [dataInTable, setDataInTable] = useState<

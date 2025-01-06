@@ -21,7 +21,7 @@ export default function WordBook() {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/api/auth/github/login");
+      navigate("/auth/login");
     }
   }, [loading, user, navigate]);
 

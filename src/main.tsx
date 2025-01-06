@@ -11,6 +11,7 @@ import Articles from "./app/article/Articles";
 import Article from "./app/article/Article";
 import WordBook from "./app/WordBook";
 import ThemeToggleWatcher from "./app/ThemeToggleWatcher";
+import Login from "./app/auth/Login";
 
 const serverSideRegex = /^(\/api\/|\/dictionary-init\/).*/;
 const router = (
@@ -20,6 +21,7 @@ const router = (
     <main className="p-2 sm:p-4 text-gray-900 dark:text-white h-[calc(100vh-63px)] overflow-y-scroll">
       <Routes>
         <Route path="/auth/callback/:provider" element={<Callback />} />
+        <Route path="/auth/login" element={<Login />} />
         <Route path="/dictionary" element={<Dictionary />} />
         <Route path="/articles" element={<Articles />} />
         <Route path="/articles/:id" element={<Article />} />
