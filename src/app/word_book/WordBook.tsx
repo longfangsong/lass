@@ -24,8 +24,12 @@ export default function WordBook() {
     }
   }, [loading, user, navigate]);
 
-  const page = parseInt(searchParams.get("page") || "1");
-  const snapshot = parseInt(searchParams.get("snapshot") || new Date().getTime().toString());
+  if (searchParams.get("page") === null && searchParams.get("snapshot") === null) {
+    navigate(`/word_book?page=1&snapshot=${new Date().getTime()}`);
+  }
+
+  const page = parseInt(searchParams.get("page")!);
+  const snapshot = parseInt(searchParams.get("snapshot")!);
 
   const [reviewProgressCount, setReviewProgressCount] = useState(0);
   const reviewProgressSyncState = useReviewProgressSyncState();

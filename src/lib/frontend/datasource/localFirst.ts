@@ -14,7 +14,7 @@ import { millisecondsInWeek } from "date-fns/constants";
 export class LocalFirstDataSource extends EventEmitter implements DataSource {
   private _localDictionaryNewEnough: Promise<boolean> = Promise.resolve(false);
   private _reviewProgressNewEnough: Promise<boolean> = Promise.resolve(false);
-  private _online: Promise<boolean>;
+  private _online: Promise<boolean> = Promise.resolve(false);
 
   get online() {
     return this._online;

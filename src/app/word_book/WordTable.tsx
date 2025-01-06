@@ -34,7 +34,7 @@ export default function WordTable({
         );
       setDataInTable(data);
     })(); 
-  });
+  }, [page, snapshot]);
   return (
     <div className="max-w-full overflow-scroll">
       <Table striped className="overflow-scroll">
