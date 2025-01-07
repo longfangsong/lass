@@ -116,15 +116,19 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
   }
 
   async getWordsByIndexSpell(spell: string): Promise<Array<Word>> {
-    if (!(await this.online) || (await this.localDictionaryNewEnough)) {
+    if (!(await this.online)) {
+      // not online, we can only use local
       return await this.local.getWordsByIndexSpell(spell);
     } else {
-      const localResult = await this.remote.getWordsByIndexSpell(spell);
+      // online, we use local first
+      const localResult = await this.local.getWordsByIndexSpell(spell);
       if (localResult.length !== 0) {
         return localResult;
       } else if (await this.online) {
+        // local not found, but online, try to use remote
         const remoteResult = await this.remote.getWordsByIndexSpell(spell);
-        this.syncDictionary();
+        // now server state contains the word, so we need to sync the dictionary
+        this.syncDictionary(true);
         return remoteResult;
       } else {
         return [];
@@ -214,13 +218,13 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
     return durationToNextSync > 0 ? durationToNextSync : 0;
   }
 
-  private async syncDictionary() {
+  private async syncDictionary(force: boolean = false) {
     try {
       this.emit("dictionary-sync-started");
       await Promise.all([
-        this.local.syncWord(),
-        this.local.syncWordIndex(),
-        this.local.syncLexeme(),
+        this.local.syncWord(force),
+        this.local.syncWordIndex(force),
+        this.local.syncLexeme(force),
       ]);
       this.emit("dictionary-sync-finished", true);
       return true;

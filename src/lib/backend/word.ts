@@ -238,7 +238,7 @@ async function saveDBWord(db_client: D1Database, word: DBTypes.Word) {
     .run();
 }
 
-async function fetchPhonetic(spell: string): Promise<ArrayBuffer> {
+async function fetchPhonetic(spell: string): Promise<ArrayBuffer | null> {
   const url = `https://ttsmp3.com/makemp3_new.php`;
   const headers = new Headers();
   headers.append("Content-Type", "application/x-www-form-urlencoded");
@@ -252,15 +252,19 @@ async function fetchPhonetic(spell: string): Promise<ArrayBuffer> {
     body: urlencoded,
     signal: AbortSignal.timeout(5000),
   };
-  const response = await fetch(url, requestOptions);
-  const response_json: { URL: string } = await response.json();
-  const pronunciation_url = response_json["URL"];
-  const pronunciation_response = await fetch(pronunciation_url!);
-  return await pronunciation_response.arrayBuffer();
+  try {
+    const response = await fetch(url, requestOptions);
+    const response_json: { URL: string } = await response.json();
+    const pronunciation_url = response_json["URL"];
+    const pronunciation_response = await fetch(pronunciation_url!);
+    return await pronunciation_response.arrayBuffer();
+  } catch {
+    return null;
+  }
 }
 
-export async function getWordByAI(spell: string): Promise<Word> {
-  const model = dictionaryModel();
+export async function getWordByAI(spell: string, apiToken: string): Promise<Word> {
+  const model = dictionaryModel(apiToken);
   const result = await model.generateContent(
     `Check the Swedish word "${spell}" in dictionary.
     - If it is a noun please check its indefinite single form.
@@ -300,9 +304,12 @@ export async function getWordByAI(spell: string): Promise<Word> {
       },
     ],
   };
-  dbWord.phonetic_voice = Array.from(
-    new Uint8Array(await fetchPhonetic(dbWord.lemma)),
-  );
+  const phonetic_voice = await fetchPhonetic(dbWord.lemma);
+  if (phonetic_voice) {
+    dbWord.phonetic_voice = Array.from(
+      new Uint8Array(phonetic_voice),
+    );
+  }
   return dbWord;
 }
 
@@ -405,11 +412,13 @@ export async function getWords(db: D1Database, ids: string[]): Promise<Word[]> {
 
 export async function getWordsByIndex(
   db: D1Database,
+  apiToken: string,
   index_spell: string,
 ): Promise<Array<Word> | null> {
   let words = await getDBWordsByIndex(db, index_spell);
   if (!words || words.length === 0) {
-    const aiResponse = await getWordByAI(index_spell);
+    const aiResponse = await getWordByAI(index_spell, apiToken);
+    console.log("aiResponse", aiResponse);
     await saveAIResponseIntoDB(db, aiResponse);
     words = [aiResponse];
   }

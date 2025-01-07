@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import { Button, ToggleSwitch } from "flowbite-react";
 import { useRef, useState } from "react";
 import {
@@ -24,7 +24,7 @@ function splitOnSilence(
   channelData: Float32Array,
   sampleRate: number,
   silenceThreshold = -30,
-  minSilenceDuration = 500,
+  minSilenceDuration = 500
 ) {
   const silenceThresholdLinear = Math.pow(10, silenceThreshold / 20);
   const minSilenceSamples = (sampleRate / 1000) * minSilenceDuration;
@@ -66,7 +66,6 @@ function splitOnSilence(
 
 export function Player({ url }: { url: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isClient, setIsClient] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [loopRegion, setLoopRegion] = useState(false);
   const [regions, setRegions] = useState<
@@ -96,7 +95,7 @@ export function Player({ url }: { url: string }) {
           const channelData = decodedData.getChannelData(0);
           const regions = splitOnSilence(
             channelData,
-            decodedData.sampleRate,
+            decodedData.sampleRate
           ).map(([start, end], i) => {
             return {
               start: start / decodedData.sampleRate,
@@ -112,15 +111,13 @@ export function Player({ url }: { url: string }) {
         });
       }
     },
-    [url],
+    [url]
   );
   const onPlayPause = useCallback(() => {
     setIsPlaying(!isPlaying);
     wavesurferRef.current?.playPause();
   }, [isPlaying]);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+
   function lastSentence() {
     const currentTime = wavesurferRef.current?.getCurrentTime() ?? 0;
     const regionPlugin =
@@ -144,77 +141,73 @@ export function Player({ url }: { url: string }) {
       regions[currentRegionIndex + 1].play();
     }
   }
-  if (isClient) {
-    return (
-      <>
-        <WaveSurferPlayer
-          height={50}
-          plugins={plugins as unknown as PluginType<GenericPlugin>[]}
-          onMount={mounted}
-          container="#waveform"
-        >
-          <WaveForm id="waveform"></WaveForm>
-          {isLoaded &&
-            regions.map((regionProps, i) => (
-              <Region
-                key={i}
-                id={i.toString()}
-                {...regionProps}
-                drag={false}
-                resize={false}
-                onIn={
-                  ((e: RegionType) => {
-                    if (e?.id === i.toString()) {
+  return (
+    <>
+      <WaveSurferPlayer
+        height={50}
+        plugins={plugins as unknown as PluginType<GenericPlugin>[]}
+        onMount={mounted}
+        container="#waveform"
+      >
+        <WaveForm id="waveform"></WaveForm>
+        {isLoaded &&
+          regions.map((regionProps, i) => (
+            <Region
+              key={i}
+              id={i.toString()}
+              {...regionProps}
+              drag={false}
+              resize={false}
+              onIn={
+                ((e: RegionType) => {
+                  if (e?.id === i.toString()) {
+                    setCurrentRegion(e.id);
+                  }
+                }) as RegionPluginEventListener
+              }
+              onOut={
+                ((e: RegionType) => {
+                  if (e?.id === i.toString()) {
+                    if (loopRegion && currentRegion === e?.id) {
+                      e.play();
                       setCurrentRegion(e.id);
                     }
-                  }) as RegionPluginEventListener
-                }
-                onOut={
-                  ((e: RegionType) => {
-                    if (e?.id === i.toString()) {
-                      if (loopRegion && currentRegion === e?.id) {
-                        e.play();
-                        setCurrentRegion(e.id);
-                      }
+                  }
+                }) as RegionPluginEventListener
+              }
+              onClick={
+                ((e: RegionType) => {
+                  if (e?.id === i.toString()) {
+                    if (loopRegion && currentRegion === e?.id) {
+                      e.play();
+                      setCurrentRegion(e.id);
                     }
-                  }) as RegionPluginEventListener
-                }
-                onClick={
-                  ((e: RegionType) => {
-                    if (e?.id === i.toString()) {
-                      if (loopRegion && currentRegion === e?.id) {
-                        e.play();
-                        setCurrentRegion(e.id);
-                      }
-                    }
-                  }) as RegionPluginEventListener
-                }
-              />
-            ))}
-        </WaveSurferPlayer>
-        <div className="flex gap-2 items-center">
-          <Button onClick={onPlayPause} className="my-2 p-0">
-            {isPlaying ? (
-              <IoIosPause className="h-5 w-5" />
-            ) : (
-              <IoIosPlay className="h-5 w-5" />
-            )}
-          </Button>
-          <Button onClick={lastSentence} className="my-2 p-0">
-            <IoIosSkipBackward className="h-5 w-5" />
-          </Button>
-          <Button onClick={nextSentence} className="my-2 p-0">
-            <IoIosSkipForward className="h-5 w-5" />
-          </Button>
-          <ToggleSwitch
-            checked={loopRegion}
-            label="Loop sentence"
-            onChange={setLoopRegion}
-          />
-        </div>
-      </>
-    );
-  } else {
-    return <></>;
-  }
-} 
+                  }
+                }) as RegionPluginEventListener
+              }
+            />
+          ))}
+      </WaveSurferPlayer>
+      <div className="flex gap-2 items-center">
+        <Button onClick={onPlayPause} className="my-2 p-0">
+          {isPlaying ? (
+            <IoIosPause className="h-5 w-5" />
+          ) : (
+            <IoIosPlay className="h-5 w-5" />
+          )}
+        </Button>
+        <Button onClick={lastSentence} className="my-2 p-0">
+          <IoIosSkipBackward className="h-5 w-5" />
+        </Button>
+        <Button onClick={nextSentence} className="my-2 p-0">
+          <IoIosSkipForward className="h-5 w-5" />
+        </Button>
+        <ToggleSwitch
+          checked={loopRegion}
+          label="Loop sentence"
+          onChange={setLoopRegion}
+        />
+      </div>
+    </>
+  );
+}

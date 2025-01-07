@@ -13,7 +13,8 @@ export async function onRequestGet(context: EventContext<CloudflareEnv, string, 
   const indexSpellParam = url.searchParams.get("index_spell");
   if (indexSpellParam) {
     const db = context.env.DB;
-    const result = await getWordsByIndex(db, indexSpellParam);
+    const apiToken = context.env.GOOGLE_AI_STUDIO_TOKEN;
+    const result = await getWordsByIndex(db, apiToken, indexSpellParam);
     if (result === null) {
       return new Response("Not found", { status: 404 });
     }

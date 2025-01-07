@@ -7,9 +7,8 @@ import {
 
 let cachedModel: GenerativeModel | undefined;
 
-export function dictionaryModel(): GenerativeModel {
+export function dictionaryModel(apiToken: string): GenerativeModel {
   if (cachedModel) return cachedModel;
-  const apiToken = process.env.GOOGLE_AI_STUDIO_TOKEN!;
   const accountId = "ba6c3ee6481f83e9ced0460cb55a4ade";
   const gatewayName = "swedish-teacher";
   const genAI = new GoogleGenerativeAI(apiToken);

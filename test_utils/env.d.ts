@@ -1,7 +1,5 @@
 declare module "cloudflare:test" {
-  interface ProvidedEnv {
-    DB: D1Database;
-    KV: KVNamespace;
+  interface ProvidedEnv extends CloudflareEnv {
     TEST_MIGRATIONS: D1Migration[];
   }
 }

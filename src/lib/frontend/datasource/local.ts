@@ -488,7 +488,8 @@ export class LocalDataSource implements DataSource {
 
   private async initOrPullUpdateReadonly<T>(
     table: EntityTable<T, keyof T>,
-    tableName: keyof typeof this.INIT_TABLE_FILE_COUNT
+    tableName: keyof typeof this.INIT_TABLE_FILE_COUNT,
+    force: boolean = false
   ) {
     const release = await this.syncSemaphore.acquire();
     const meta = await this.db.meta.get(tableName);
@@ -504,7 +505,7 @@ export class LocalDataSource implements DataSource {
       const lastUpdatedTime = meta.version;
       const isNewEnough =
         now.getTime() - lastUpdatedTime < hoursToMilliseconds(24);
-      if (isNewEnough) {
+      if (isNewEnough && !force) {
         release();
         return;
       } else {
@@ -517,32 +518,35 @@ export class LocalDataSource implements DataSource {
     }
   }
 
-  async syncWord() {
+  async syncWord(force: boolean = false) {
     console.log("syncing word");
     await this.initOrPullUpdateReadonly(
       this.db.word as EntityTable<DBTypes.Word, keyof DBTypes.Word>,
-      "Word"
+      "Word",
+      force
     );
     console.log("synced word");
   }
 
-  async syncWordIndex() {
+  async syncWordIndex(force: boolean = false) {
     console.log("syncing word index");
     await this.initOrPullUpdateReadonly(
       this.db.wordIndex as EntityTable<
         DBTypes.WordIndex,
         keyof DBTypes.WordIndex
       >,
-      "WordIndex"
+      "WordIndex",
+      force
     );
     console.log("synced word index");
   }
 
-  async syncLexeme() {
+  async syncLexeme(force: boolean = false) {
     console.log("syncing lexeme");
     await this.initOrPullUpdateReadonly(
       this.db.lexeme as EntityTable<DBTypes.Lexeme, keyof DBTypes.Lexeme>,
-      "Lexeme"
+      "Lexeme",
+      force
     );
     console.log("synced lexeme");
   }

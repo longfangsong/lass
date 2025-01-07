@@ -260,7 +260,6 @@ describe("LocalFirstDataSource", () => {
         },
       ];
       mockRemote.online = true;
-      console.log("datasource");
       const datasource = new LocalFirstDataSource(mockRemote, local);
       vi.advanceTimersByTime(millisecondsInDay * 2);
       const localDictionaryNewEnough =

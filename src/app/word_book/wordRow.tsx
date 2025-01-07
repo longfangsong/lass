@@ -62,11 +62,7 @@ export function WordRow({
     reviewProgressWithWord
   );
   const [now, setNow] = useState(new Date());
-  const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
@@ -149,16 +145,15 @@ export function WordRow({
       <TableCell className="px-3">
         {currentReviewProgress.review_count >= 6
           ? "Done!"
-          : isClient && currentReviewProgress.next_reviewable_time &&
+          : currentReviewProgress.next_reviewable_time &&
             currentReviewProgress.next_reviewable_time < new Date().getTime()
           ? "Nu"
-          : isClient
-          ? `I ${formatDistance(
+          : `I ${formatDistance(
               currentReviewProgress.next_reviewable_time!,
               new Date(),
               { locale: sv }
             )}`
-          : ""}
+        }
       </TableCell>
       <TableCell className="px-3">
         <div className="flex flex-col-reverse items-center">

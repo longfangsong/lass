@@ -50,12 +50,13 @@ describe("Test word fetching", () => {
   });
 
   test("should be able to get the words by index", async () => {
-    let searchResult = await getWordsByIndex(env.DB, "barnen");
+    const apiToken = env.GOOGLE_AI_STUDIO_TOKEN;
+    let searchResult = await getWordsByIndex(env.DB, apiToken, "barnen");
     expect(searchResult).not.toBeNull();
     expect(searchResult?.length).toBe(1);
     expect(searchResult![0].lemma).toBe("barn");
 
-    searchResult = await getWordsByIndex(env.DB, "abonnerads");
+    searchResult = await getWordsByIndex(env.DB, apiToken, "abonnerads");
     expect(searchResult).not.toBeNull();
     expect(searchResult?.length).toBe(1);
     expect(searchResult![0].lemma).toBe("abonnerar");
@@ -70,7 +71,8 @@ describe("Test word fetching", () => {
   });
 
   test("should be able to get the word by index", async () => {
-    const result = await getWordsByIndex(env.DB, "sitt");
+    const apiToken = env.GOOGLE_AI_STUDIO_TOKEN;
+    const result = await getWordsByIndex(env.DB, apiToken, "sitt");
     const firstResult = result![0];
     expect(firstResult.lemma).toBe("sin");
   });
