@@ -5,26 +5,26 @@ import {
 } from "@cloudflare/vitest-pool-workers/config";
 
 export default defineWorkersProject(async () => {
-  const migrationsPath = path.join(__dirname, "migrations");
+  const migrationsPath = path.join(__dirname, "../../../migrations");
   const migrations = await readD1Migrations(migrationsPath);
-  const dataPath = path.join(__dirname, "data");
+  const dataPath = path.join(__dirname, "../../../data");
   const dataMigrations = await readD1Migrations(dataPath);
   const dataMigrationForTest = dataMigrations.filter(it => it.name.includes("test"));
   migrations.push(...dataMigrationForTest);
   return {
     test: {
+      name: "backend",
+      include: ["./**/*.spec.ts"],
       exclude: [
-        "**/node_modules/**",
         "**/dist/**",
         "**/cypress/**",
         "**/.{idea,git,cache,output,temp}/**",
         "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*",
-        "**/ui_tests/**",
       ],
-      setupFiles: ["vitest-localstorage-mock","./test_utils/apply-migrations.ts"],
+      setupFiles: ["./test_utils/apply-migrations.ts"],
       poolOptions: {
         workers: {
-          wrangler: { configPath: "./wrangler.test.toml" },
+          wrangler: { configPath: "../../../wrangler.test.toml" },
           miniflare: {
             bindings: { TEST_MIGRATIONS: migrations },
             d1Databases: {
@@ -35,7 +35,7 @@ export default defineWorkersProject(async () => {
         experimentalJsonConfig: false,
       },
       alias: {
-        "@": path.resolve(__dirname, "src"),
+        "@": path.resolve(__dirname, "../../../src"),
       },
     },
   };

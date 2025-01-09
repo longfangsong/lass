@@ -1,4 +1,4 @@
-import { expect, test, describe, beforeEach, vi, afterEach } from "vitest";
+import { expect, it, describe, vi } from "vitest";
 import { env } from "cloudflare:test";
 import {
   createReviewProgess,
@@ -6,16 +6,17 @@ import {
   getReviewProgressesOfUserCount,
   getReviewProgressAtSnapshotWithWord,
   getReviewProgress,
+  upsertDBReviewProgresses,
 } from "./review_progress";
 
 const wordIds = [
   "c50b3c3f-039f-4eab-ae0d-822e8b9729ea",
   "8fe8315a-d718-4af7-bb17-2c0df9c44386",
   "0630931c-9b51-4ef6-b477-ad4ffb590016",
-  "8802ad51-b2e6-47f7-8aaf-11cface826ea"
+  "8802ad51-b2e6-47f7-8aaf-11cface826ea",
 ];
 describe("Test dealing with ReviewProgress", () => {
-  test("should be able to deal with a single review progess", async () => {
+  it("should be able to deal with a single review progess", async () => {
     // create a review progess at t=10
     vi.setSystemTime(new Date(2000, 1, 1, 0, 0, 10));
     await createReviewProgess(env.DB, "a@b.com", wordIds[0]);
@@ -28,7 +29,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10,
+      10
     );
     expect(firstSearch.length).toBe(1);
     let result = firstSearch[0];
@@ -43,13 +44,14 @@ describe("Test dealing with ReviewProgress", () => {
       last_review_time: reviewTime,
     });
     expect(await getReviewProgressesOfUserCount(env.DB, "a@b.com")).toBe(1);
-    const secondSearchOnSamesnapshot = await getReviewProgressAtSnapshotWithWord(
-      env.DB,
-      "a@b.com",
-      snapshotTime,
-      0,
-      10,
-    );
+    const secondSearchOnSamesnapshot =
+      await getReviewProgressAtSnapshotWithWord(
+        env.DB,
+        "a@b.com",
+        snapshotTime,
+        0,
+        10
+      );
     result = secondSearchOnSamesnapshot[0];
     // should not be reviewable now
     expect(result.next_reviewable_time).greaterThanOrEqual(reviewTime);
@@ -63,14 +65,14 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       secondReviewTime,
       0,
-      10,
+      10
     );
     result = thirdSearch[0];
     // should be reviewable now
     expect(result.next_reviewable_time).lessThanOrEqual(secondReviewTime);
   });
 
-  test("should order review progesses correctly", async () => {
+  it("should order review progesses correctly", async () => {
     // create a review progess at t=10
     vi.setSystemTime(new Date(2000, 1, 1, 0, 0, 10));
     await createReviewProgess(env.DB, "a@b.com", wordIds[0]);
@@ -85,7 +87,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10,
+      10
     );
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[0]);
@@ -103,7 +105,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10,
+      10
     );
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[0]);
@@ -115,7 +117,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10,
+      10
     );
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[1]);
@@ -133,20 +135,36 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10,
+      10
     );
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[1]);
     expect(searchResult[1].word_id).toBe(wordIds[0]);
   });
 
-  test("review progress should be ordered correctly when last_review_time and last_last_review_time are null", async () => {
+  it("review progress should be ordered correctly when last_review_time and last_last_review_time are null", async () => {
     // create review progesses at t=10
     vi.setSystemTime(new Date(2000, 1, 1, 0, 0, 10));
-    const reviewProgress0 = await createReviewProgess(env.DB, "a@b.com", wordIds[0]);
-    const reviewProgress1 = await createReviewProgess(env.DB, "a@b.com", wordIds[1]);
-    const reviewProgress2 = await createReviewProgess(env.DB, "a@b.com", wordIds[2]);
-    const reviewProgress3 = await createReviewProgess(env.DB, "a@b.com", wordIds[3]);
+    const reviewProgress0 = await createReviewProgess(
+      env.DB,
+      "a@b.com",
+      wordIds[0]
+    );
+    const reviewProgress1 = await createReviewProgess(
+      env.DB,
+      "a@b.com",
+      wordIds[1]
+    );
+    const reviewProgress2 = await createReviewProgess(
+      env.DB,
+      "a@b.com",
+      wordIds[2]
+    );
+    const reviewProgress3 = await createReviewProgess(
+      env.DB,
+      "a@b.com",
+      wordIds[3]
+    );
     // review [0] at t=20
     vi.setSystemTime(new Date(2000, 1, 1, 0, 0, 20));
     let reviewTime = new Date(2000, 1, 1, 0, 0, 20).getTime();
@@ -164,7 +182,7 @@ describe("Test dealing with ReviewProgress", () => {
     reviewTime = new Date(2000, 1, 1, 0, 0, 30).getTime();
     reviewProgress = await getReviewProgress(env.DB, reviewProgress1);
     await updateReviewProgress(env.DB, reviewProgress1, {
-      review_count: 6
+      review_count: 6,
     });
     reviewProgress = await getReviewProgress(env.DB, reviewProgress1);
     // [1]'s last_last_review_time should be null
@@ -177,12 +195,19 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       reviewTime,
       0,
-      10,
+      10
     );
     expect(searchResult.length).toBe(4);
     expect(searchResult[0].word_id).toBe(wordIds[2]);
     expect(searchResult[1].word_id).toBe(wordIds[3]);
     expect(searchResult[2].word_id).toBe(wordIds[0]);
     expect(searchResult[3].word_id).toBe(wordIds[1]);
+  });
+
+  it("cannot create duplicate review progress", async () => {
+    await createReviewProgess(env.DB, "a@b.com", wordIds[0]);
+    expect(() =>
+      createReviewProgess(env.DB, "a@b.com", wordIds[0])
+    ).rejects.toThrowError(/UNIQUE constraint failed/);
   });
 });

@@ -89,7 +89,7 @@ export async function onRequestPost(
       case "ReviewProgress": {
         const payload: Array<ClientSideDBReviewProgress> =
           await context.request.json();
-        const server_updates = await getDBReviewProgressUpdateIn(
+        const serverUpdates = await getDBReviewProgressUpdateIn(
           context.env.DB,
           authResult.email,
           Number(updatedAfter),
@@ -102,7 +102,7 @@ export async function onRequestPost(
           authResult.email,
           payload
         );
-        return Response.json(server_updates);
+        return Response.json(serverUpdates);
       }
       default:
         return new Response(`Updating ${table} is not supported`, {

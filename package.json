@@ -8,6 +8,7 @@
     "dev:pages": "wrangler pages dev --local-protocol https --port 8443 --https-key-path ./cert/localhost-key.pem --https-cert-path ./cert/localhost.pem",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "pnpm run build && wrangler pages dev ./dist",
     "deploy": "pnpm run build && wrangler pages deploy ./dist",
     "bdd": "vitest",
@@ -50,6 +51,7 @@
     "eslint-plugin-react-refresh": "^0.4.14",
     "fake-indexeddb": "^6.0.0",
     "globals": "^15.12.0",
+    "happy-dom": "^16.5.2",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3",
@@ -66,5 +68,14 @@
     "workbox-window": "^7.3.0",
     "wrangler": "^3.99.0"
   },
-  "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321"
+  "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
+  }
 }

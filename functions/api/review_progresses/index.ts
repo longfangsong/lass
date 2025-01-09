@@ -7,12 +7,17 @@ import {
   getReviewProgressesOfUserCount,
 } from "@/lib/backend/review_progress";
 
-export async function onRequestHead(context: EventContext<CloudflareEnv, string, unknown>) {
+export async function onRequestHead(
+  context: EventContext<CloudflareEnv, string, unknown>
+) {
   const authResult = await auth(context.request, context.env.AUTH_SECRET);
   if (!isSuccess(authResult)) {
     return new Response(null, { status: 401 });
   }
-  const count = await getReviewProgressesOfUserCount(context.env.DB, authResult.email);
+  const count = await getReviewProgressesOfUserCount(
+    context.env.DB,
+    authResult.email
+  );
   return new Response(null, {
     headers: {
       "X-Total-Count": count.toString(),
@@ -20,7 +25,9 @@ export async function onRequestHead(context: EventContext<CloudflareEnv, string,
   });
 }
 
-export async function onRequestGet(context: EventContext<CloudflareEnv, string, unknown>) {
+export async function onRequestGet(
+  context: EventContext<CloudflareEnv, string, unknown>
+) {
   const authResult = await auth(context.request, context.env.AUTH_SECRET);
   if (!isSuccess(authResult)) {
     return new Response(null, { status: 401 });
@@ -28,31 +35,42 @@ export async function onRequestGet(context: EventContext<CloudflareEnv, string, 
   return await getBySnapshot(context.request, authResult, context.env);
 }
 
-export async function onRequestPost(context: EventContext<CloudflareEnv, string, unknown>) {
+export async function onRequestPost(
+  context: EventContext<CloudflareEnv, string, unknown>
+) {
   const authResult = await auth(context.request, context.env.AUTH_SECRET);
   if (!isSuccess(authResult)) {
     return new Response(null, { status: 401 });
   }
   const payload = await context.request.json<{ word_id: string }>();
-  const existing = await getReviewProgressByWord(
-    context.env.DB,
-    authResult.email,
-    payload.word_id,
-  );
-  if (existing) {
-    return Response.json(existing, {
-      status: 409,
-    });
+  try {
+    const id = await createReviewProgess(
+      context.env.DB,
+      authResult.email,
+      payload.word_id
+    );
+    return Response.json(id);
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("UNIQUE constraint failed")) {
+      const existing = await getReviewProgressByWord(
+        context.env.DB,
+        authResult.email,
+        payload.word_id
+      );
+      return Response.json(existing, {
+        status: 409,
+      });
+    } else {
+      throw e;
+    }
   }
-  const id = await createReviewProgess(
-    context.env.DB,
-    authResult.email,
-    payload.word_id,
-  );
-  return Response.json(id);
-};
+}
 
-async function getBySnapshot(request: Request, authResult: User, env: CloudflareEnv) {
+async function getBySnapshot(
+  request: Request,
+  authResult: User,
+  env: CloudflareEnv
+) {
   const url = new URL(request.url);
   const snapshotTimeString = url.searchParams.get("snapshot_time");
   const snapshotTime = snapshotTimeString
@@ -67,7 +85,7 @@ async function getBySnapshot(request: Request, authResult: User, env: Cloudflare
       authResult.email,
       snapshotTime,
       offset,
-      limit,
+      limit
     ),
   ]);
   const response = Response.json(reviewProgesses);

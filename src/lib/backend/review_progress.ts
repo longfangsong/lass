@@ -18,7 +18,8 @@ export async function createReviewProgess(
   const id = crypto.randomUUID();
   await db
     .prepare(
-      `INSERT INTO ReviewProgress(id, user_email, word_id, last_review_time, update_time) VALUES (?1, ?2, ?3, ?4, 1000 * strftime ('%s', 'now'));`,
+      `INSERT INTO ReviewProgress(id, user_email, word_id, last_review_time, update_time) 
+      VALUES (?1, ?2, ?3, ?4, 1000 * strftime ('%s', 'now'));`,
     )
     .bind(id, user_email, word_id, new Date().getTime())
     .run();

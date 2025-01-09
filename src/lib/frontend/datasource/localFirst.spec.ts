@@ -56,7 +56,7 @@ describe("LocalFirstDataSource", () => {
     await localDataSource.db.wordIndex?.clear();
     await localDataSource.db.lexeme?.clear();
     await localDataSource.db.reviewProgress?.clear();
-    await localDataSource.db.meta.clear();
+    await localDataSource.db.meta?.clear();
     localStorage.clear();
   });
   afterEach(() => {
@@ -130,10 +130,8 @@ describe("LocalFirstDataSource", () => {
       expect(result[0].id).toEqual(words[0].id);
     });
     it("from local when offline", async () => {
-      vi.useFakeTimers();
       const mockRemote = new MockRemoteDataSource();
       const local = new LocalDataSource();
-      const datasource = new LocalFirstDataSource(mockRemote, local);
       const words: Array<Word> = [
         {
           id: crypto.randomUUID(),
@@ -189,20 +187,21 @@ describe("LocalFirstDataSource", () => {
         },
       ];
       mockRemote.online = false;
+      const datasource = new LocalFirstDataSource(mockRemote, local);
+      // useFakeTimers may block indexeddb operations
+      vi.useFakeTimers();
       await vi.advanceTimersByTimeAsync(millisecondsInDay * 3);
       const localDictionaryNewEnough =
         await datasource.localDictionaryNewEnough;
       expect(localDictionaryNewEnough).toEqual(false);
       const online = await datasource.online;
       expect(online).toEqual(false);
+      vi.useRealTimers();
       const result = await datasource.searchWord("test");
       expect(result.length).toEqual(1);
       expect(result[0].id).toEqual(words[0].id);
-      vi.useRealTimers();
     });
     it("from remote when local is not new enough", async () => {
-      vi.useFakeTimers();
-      console.log("start");
       const mockRemote = new MockRemoteDataSource();
       const local = new LocalDataSource();
       const words: Array<Word> = [
@@ -261,14 +260,15 @@ describe("LocalFirstDataSource", () => {
       ];
       mockRemote.online = true;
       const datasource = new LocalFirstDataSource(mockRemote, local);
+      vi.useFakeTimers();
       vi.advanceTimersByTime(millisecondsInDay * 2);
       const localDictionaryNewEnough =
         await datasource.localDictionaryNewEnough;
       expect(localDictionaryNewEnough).toEqual(false);
+      vi.useRealTimers();
       const result = await datasource.searchWord("test");
       expect(result.length).toEqual(1);
       expect(result[0].id).toEqual(remoteId);
-      vi.useRealTimers();
     });
   });
 
@@ -276,76 +276,7 @@ describe("LocalFirstDataSource", () => {
     it("review does not affect the order of items in snapshot, local", async () => {
       const mockRemote = new MockRemoteDataSource();
       const mockLocal = new LocalDataSource();
-      const words = [];
-      const reviewProgresses = [];
-      for (let i = 0; i < 30; i++) {
-        let wordId;
-        if (i < 10) {
-          wordId = `word-0${i}`;
-        } else {
-          wordId = `word-${i}`;
-        }
-        const word = {
-          id: wordId,
-          lemma: `test${i}`,
-          update_time: Date.now(),
-          part_of_speech: "noun",
-          phonetic: "test",
-          phonetic_voice: null,
-          phonetic_url: null,
-          indexes: [{
-            id: crypto.randomUUID(),
-            word_id: wordId,
-            spell: `test${i}`,
-            update_time: Date.now(),
-            form: "test",
-          }],
-          lexemes: [
-            {
-              id: crypto.randomUUID(),
-              word_id: wordId,
-              update_time: Date.now(),
-              definition: "test",
-              example: "test",
-              example_meaning: "test",
-              source: "test",
-            },
-          ],
-        };
-        words.push(word);
-        await mockLocal.db.word?.add(word);
-        for (const index of word.indexes) {
-          await mockLocal.db.wordIndex?.add(index);
-        }
-        for (const lexeme of word.lexemes) {
-          await mockLocal.db.lexeme?.add(lexeme);
-        }
-        const reviewProgress = {
-          id: crypto.randomUUID(),
-          word_id: wordId,
-          query_count: 0,
-          review_count: 0,
-          last_last_review_time: null,
-          last_review_time: null,
-          update_time: Date.now(),
-        };
-        await mockLocal.db.reviewProgress?.add(reviewProgress);
-        reviewProgresses.push(reviewProgress);
-        await new Promise((resolve) => setTimeout(resolve, 2));
-      }
-      const now = new Date();
-      await mockLocal.db.meta.add({
-        table_name: "Word",
-        version: now.getTime(),
-      });
-      await mockLocal.db.meta.add({
-        table_name: "WordIndex",
-        version: now.getTime(),
-      });
-      await mockLocal.db.meta.add({
-        table_name: "Lexeme",
-        version: now.getTime(),
-      });
+      await prepareData(mockLocal);
       mockRemote.online = false;
       const datasource = new LocalFirstDataSource(mockRemote, mockLocal);
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -397,3 +328,77 @@ describe("LocalFirstDataSource", () => {
   });
 });
 
+async function prepareData(mockLocal: LocalDataSource) {
+  const words = [];
+  const reviewProgresses = [];
+  for (let i = 0; i < 30; i++) {
+    let wordId;
+    if (i < 10) {
+      wordId = `word-0${i}`;
+    } else {
+      wordId = `word-${i}`;
+    }
+    const word = {
+      id: wordId,
+      lemma: `test${i}`,
+      update_time: Date.now(),
+      part_of_speech: "noun",
+      phonetic: "test",
+      phonetic_voice: null,
+      phonetic_url: null,
+      indexes: [
+        {
+          id: crypto.randomUUID(),
+          word_id: wordId,
+          spell: `test${i}`,
+          update_time: Date.now(),
+          form: "test",
+        },
+      ],
+      lexemes: [
+        {
+          id: crypto.randomUUID(),
+          word_id: wordId,
+          update_time: Date.now(),
+          definition: "test",
+          example: "test",
+          example_meaning: "test",
+          source: "test",
+        },
+      ],
+    };
+    words.push(word);
+    await mockLocal.db.word?.add(word);
+    for (const index of word.indexes) {
+      await mockLocal.db.wordIndex?.add(index);
+    }
+    for (const lexeme of word.lexemes) {
+      await mockLocal.db.lexeme?.add(lexeme);
+    }
+    const reviewProgress = {
+      id: crypto.randomUUID(),
+      word_id: wordId,
+      query_count: 0,
+      review_count: 0,
+      last_last_review_time: null,
+      last_review_time: null,
+      update_time: Date.now(),
+    };
+    await mockLocal.db.reviewProgress?.add(reviewProgress);
+    reviewProgresses.push(reviewProgress);
+    await new Promise((resolve) => setTimeout(resolve, 2));
+  }
+  const now = new Date();
+  await mockLocal.db.meta.add({
+    table_name: "Word",
+    version: now.getTime(),
+  });
+  await mockLocal.db.meta.add({
+    table_name: "WordIndex",
+    version: now.getTime(),
+  });
+  await mockLocal.db.meta.add({
+    table_name: "Lexeme",
+    version: now.getTime(),
+  });
+}

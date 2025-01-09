@@ -4,6 +4,7 @@ import {
   ClientSideDBReviewProgress,
   ClientSideReviewProgressAtSnapshot,
   DBTypes,
+  ReviewProgress,
   Word,
   WordSearchResult,
 } from "../../types";
@@ -12,7 +13,7 @@ import Semaphore from "semaphore-promise";
 import { fetchWithSemaphore } from "@/lib/fetch";
 import { hoursToMilliseconds } from "date-fns";
 import { millisecondsInDay } from "date-fns/constants";
-import {assert} from "@/lib/assert";
+import { assert } from "@/lib/assert";
 
 const maxDate = 253370674800000;
 
@@ -34,6 +35,7 @@ const REVIEW_GAP_DAYS = [0, 1, 3, 7, 15, 30];
 const PAGE_SIZE = 5000;
 
 export class LocalDataSource implements DataSource {
+  // todo: maybe a meta.json?
   private INIT_TIME = 1734783524009;
   private INIT_TABLE_FILE_COUNT = {
     Word: 1,
@@ -45,12 +47,12 @@ export class LocalDataSource implements DataSource {
 
   constructor() {
     this.db = new Dexie("lass") as TDexie & DB;
-    this.db.version(1).stores({
+    this.db.version(2).stores({
       meta: "table_name",
       word: "id, lemma, update_time",
       wordIndex: "id, word_id, spell, update_time",
       lexeme: "id, word_id, update_time",
-      reviewProgress: "id, word_id, update_time",
+      reviewProgress: "id, &word_id, update_time",
     });
   }
 
@@ -61,9 +63,10 @@ export class LocalDataSource implements DataSource {
       .first();
     if (reviewProgress) {
       reviewProgress.query_count += 1;
+      reviewProgress.update_time = Date.now();
       await this.db.reviewProgress.put(reviewProgress);
     } else {
-      const now = new Date().getTime();
+      const now = Date.now();
       const newProgress = {
         id: crypto.randomUUID(),
         word_id,
@@ -85,7 +88,6 @@ export class LocalDataSource implements DataSource {
     const localValue = localStorage.getItem(`review-${snapshotTime}`);
     if (localValue) {
       const ids: Array<string> = JSON.parse(localValue);
-      console.log("snapshot served from cache");
       const reviewProgresses = (await this.db.reviewProgress.bulkGet(
         ids
       )) as Array<ClientSideDBReviewProgress>;
@@ -105,8 +107,13 @@ export class LocalDataSource implements DataSource {
         this.toSnapshot(reviewProgresses, snapshotTime);
       reviewProgressesAtSnapshot = reviewProgressesAtSnapshot
         .sort((a, b) => {
-          if (a.snapshot_next_reviewable_time !== b.snapshot_next_reviewable_time) {
-            return a.snapshot_next_reviewable_time! - b.snapshot_next_reviewable_time!;
+          if (
+            a.snapshot_next_reviewable_time !== b.snapshot_next_reviewable_time
+          ) {
+            return (
+              a.snapshot_next_reviewable_time! -
+              b.snapshot_next_reviewable_time!
+            );
           }
           if (a.snapshot_review_count !== b.snapshot_review_count) {
             return b.snapshot_review_count - a.snapshot_review_count;
@@ -440,7 +447,7 @@ export class LocalDataSource implements DataSource {
               throw new Error(initData.statusText);
             }
             const result: Array<T> = await initData.json();
-            table.bulkPut(result);
+            await table.bulkPut(result);
             resultLength += result.length;
           } finally {
             syncRelease();
@@ -472,7 +479,7 @@ export class LocalDataSource implements DataSource {
         throw new Error(response.statusText);
       }
       const result: Array<T> = await response.json();
-      table.bulkPut(result);
+      await table.bulkPut(result);
       currentOffset += result.length;
       if (result.length < PAGE_SIZE) {
         break;
@@ -551,8 +558,8 @@ export class LocalDataSource implements DataSource {
     console.log("synced lexeme");
   }
 
-  private async pushPullUpdateReadwrite<T>(
-    table: EntityTable<T, keyof T>,
+  private async pushPullUpdateReadwrite(
+    table: EntityTable<ReviewProgress, "id">,
     tableName: string,
     lastUpdatedTime: number
   ) {
@@ -562,15 +569,12 @@ export class LocalDataSource implements DataSource {
     const release = await this.syncSemaphore.acquire();
     while (true) {
       try {
-        const localNewData =
-          lastUpdatedTime === 0
-            ? []
-            : await table
-                .where("update_time")
-                .between(lastUpdatedTime, now.getTime())
-                .offset(currentLocalOffset)
-                .limit(PAGE_SIZE)
-                .toArray();
+        const localNewData = await table
+          .where("update_time")
+          .between(lastUpdatedTime, now.getTime())
+          .offset(currentLocalOffset)
+          .limit(PAGE_SIZE)
+          .toArray();
         const remoteNewDataResponse = await fetchWithSemaphore(
           `/api/sync?table=${tableName}&limit=${PAGE_SIZE}&offset=${currentRemoteOffset}&updated_after=${lastUpdatedTime}&updated_before=${now.getTime()}`,
           {
@@ -581,8 +585,32 @@ export class LocalDataSource implements DataSource {
         if (!remoteNewDataResponse.ok) {
           throw new Error(remoteNewDataResponse.statusText);
         }
-        const remoteNewData: Array<T> = await remoteNewDataResponse.json();
-        table.bulkPut(remoteNewData);
+        const remoteNewData: Array<ReviewProgress> = await remoteNewDataResponse.json();
+        try {
+          for (const item of remoteNewData) {
+            table.db.transaction("rw", table, async () => {
+              const localResult = await table.where("word_id").equals(item.word_id).first();
+              if (localResult) {
+                await table.delete(localResult.id);
+                if (localResult.update_time < item.update_time) {
+                  await table.add(item);
+                } else {
+                  await table.add(localResult);
+                }
+              } else {
+                await table.add(item);
+              }
+            });
+          }
+          // console.log(remoteNewData, currentLocalData);
+          // await table.bulkPut(remoteNewData);
+        } catch (e) {
+          if (e instanceof Dexie.BulkError) {
+            if (e.failures.find((it) => it.name !== "ConstraintError")) {
+              throw e;
+            }
+          }
+        }
         currentLocalOffset += localNewData.length;
         currentRemoteOffset += remoteNewData.length;
         if (
@@ -603,14 +631,12 @@ export class LocalDataSource implements DataSource {
     );
   }
 
+  // note: syncReviewProgress is always force
   async syncReviewProgress() {
     console.log("syncing reviewProgress");
     const meta = await this.db.meta.get("ReviewProgress");
     await this.pushPullUpdateReadwrite(
-      this.db.reviewProgress as EntityTable<
-        DBTypes.ReviewProgress,
-        keyof DBTypes.ReviewProgress
-      >,
+      this.db.reviewProgress as EntityTable<ReviewProgress, "id">,
       "ReviewProgress",
       meta?.version || 0
     );
