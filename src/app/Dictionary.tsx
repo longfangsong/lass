@@ -133,7 +133,7 @@ export default function Dictionary() {
         </div>
       ) : (
         <div>
-          <p>Unknown sync state: {syncState}, {online}</p>
+          {/* <p>Unknown sync state: {syncState}, {online}</p> */}
         </div>
       )}
     </div>
