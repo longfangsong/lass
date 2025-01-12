@@ -17,6 +17,8 @@ import PlayButton from "../components/PlayButton";
 import ResetButton from "./ResetButton";
 import { localFirstDataSource } from "@/lib/frontend/datasource/localFirst";
 
+const maxDate = 253370674800000;
+
 async function updateWordReview(review: ClientReviewProgressAtSnapshotWithWord) {
   const now = new Date();
   review.review_count += 1;
@@ -108,7 +110,7 @@ export function WordRow({
     "bg-green-500",
   ];
   const handleReview = (newReviewCount: number) => {
-    const newCurrentReviewTime = now.getTime();
+    const newCurrentReviewTime = Date.now();
 
     let daysToAdd: number | null = null;
     if (newReviewCount in REVIEW_GAP_DAYS) {
@@ -119,12 +121,12 @@ export function WordRow({
 
     const newNextReviewTime = daysToAdd
       ? newCurrentReviewTime + daysToAdd * millisecondsInDay
-      : null;
-
+      : maxDate;
+    console.log(newReviewCount, daysToAdd, newNextReviewTime === maxDate);
     setCurrentReviewProgress({
       ...currentReviewProgress,
       last_last_review_time: currentReviewProgress.last_review_time,
-      last_review_time: now.getTime(),
+      last_review_time: newCurrentReviewTime,
       next_reviewable_time: newNextReviewTime,
       review_count: newReviewCount,
     });
@@ -200,7 +202,7 @@ export function WordRow({
           <Button
             aria-label="Review"
             className="p-0 mx-auto"
-            key={`${reviewProgressWithWord.id}-done`}
+            key={`${reviewProgressWithWord.id}-review`}
             onClick={async () => {
               const newReviewCount = currentReviewProgress.review_count + 1;
               await updateWordReview(reviewProgressWithWord);

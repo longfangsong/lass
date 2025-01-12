@@ -424,6 +424,24 @@ export class LocalDataSource implements DataSource {
   async updateReviewProgress(
     reviewProgress: ClientSideDBReviewProgress
   ): Promise<void> {
+    const sameWord = await this.db.reviewProgress
+      .where("word_id")
+      .equals(reviewProgress.word_id)
+      .toArray()
+      .then((items) => items.filter((item) => item.id !== reviewProgress.id));
+    if (sameWord.length >= 1) {
+      console.warn(
+        `updateReviewProgress: same word found in local, delete all`,
+        reviewProgress,
+        sameWord
+      );
+      await Promise.all(
+        sameWord.map((item) => this.db.reviewProgress.delete(item.id))
+      );
+      Object.keys(localStorage)
+        .filter((key) => key.startsWith("review-"))
+        .forEach((key) => localStorage.removeItem(key));
+    }
     await this.db.reviewProgress.put(reviewProgress);
   }
 
@@ -585,11 +603,15 @@ export class LocalDataSource implements DataSource {
         if (!remoteNewDataResponse.ok) {
           throw new Error(remoteNewDataResponse.statusText);
         }
-        const remoteNewData: Array<ReviewProgress> = await remoteNewDataResponse.json();
+        const remoteNewData: Array<ReviewProgress> =
+          await remoteNewDataResponse.json();
         try {
           for (const item of remoteNewData) {
             table.db.transaction("rw", table, async () => {
-              const localResult = await table.where("word_id").equals(item.word_id).first();
+              const localResult = await table
+                .where("word_id")
+                .equals(item.word_id)
+                .first();
               if (localResult) {
                 await table.delete(localResult.id);
                 if (localResult.update_time < item.update_time) {
@@ -602,8 +624,6 @@ export class LocalDataSource implements DataSource {
               }
             });
           }
-          // console.log(remoteNewData, currentLocalData);
-          // await table.bulkPut(remoteNewData);
         } catch (e) {
           if (e instanceof Dexie.BulkError) {
             if (e.failures.find((it) => it.name !== "ConstraintError")) {

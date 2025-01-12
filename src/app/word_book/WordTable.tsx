@@ -69,7 +69,25 @@ export default function WordTable({
           <WordTableButtonsHeader />
         </TableHead>
         <TableBody>
-          {loadingData ? <Skeleton /> : (
+          {loadingData ? (
+            <TableRow>
+              <TableCell>
+                <Skeleton />
+              </TableCell>
+              <TableCell>
+                <Skeleton />
+              </TableCell>
+              <TableCell>
+                <Skeleton />
+              </TableCell>
+              <TableCell>
+                <Skeleton />
+              </TableCell>
+              <TableCell>
+                <Skeleton />
+              </TableCell>
+            </TableRow>
+          ) : (
             dataInTable.map((reviewProgressWithWord) => (
               <WordRow
                 key={reviewProgressWithWord.id}

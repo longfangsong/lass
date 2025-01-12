@@ -803,7 +803,6 @@ describe("LocalDataSource", () => {
       const reviewProgresses =
         await localDataSource.db.reviewProgress.toArray();
       expect(reviewProgresses).toHaveLength(2);
-      console.log(reviewProgresses);
       expect(reviewProgresses.map((it) => it.word_id)).toContain(
         localEarler.id
       );

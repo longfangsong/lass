@@ -1,9 +1,10 @@
 {
   "name": "lass",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "npm-run-all --parallel watch dev:pages",
     "watch": "vite build --mode development --watch",
     "dev:pages": "wrangler pages dev --local-protocol https --port 8443 --https-key-path ./cert/localhost-key.pem --https-cert-path ./cert/localhost.pem",
     "build": "tsc -b && vite build",
@@ -52,6 +53,7 @@
     "fake-indexeddb": "^6.0.0",
     "globals": "^15.12.0",
     "happy-dom": "^16.5.2",
+    "npm-run-all": "^4.1.5",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3",
