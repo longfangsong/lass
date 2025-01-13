@@ -18,7 +18,7 @@ export async function createReviewProgess(
   const id = crypto.randomUUID();
   await db
     .prepare(
-      `INSERT INTO ReviewProgress(id, user_email, word_id, last_review_time, update_time) 
+      `INSERT INTO ReviewProgress(id, user_email, word_id, last_review_time, update_time)
       VALUES (?1, ?2, ?3, ?4, 1000 * strftime ('%s', 'now'));`,
     )
     .bind(id, user_email, word_id, new Date().getTime())
@@ -31,9 +31,7 @@ export async function getReviewProgress(
   id: string,
 ): Promise<ReviewProgress | null> {
   return await db
-    .prepare(
-      `SELECT * FROM ReviewProgress WHERE id = ?1;`,
-    )
+    .prepare(`SELECT * FROM ReviewProgress WHERE id = ?1;`)
     .bind(id)
     .first<ReviewProgress>();
 }
@@ -88,14 +86,14 @@ export async function getReviewProgressAtSnapshotWithWord(
   //                                                                         ^ snapshot ==> not reviewd
   const result = await db
     .prepare(
-      `SELECT 
-        ReviewProgressWithWord.*, 
-        Lexeme.id as lexeme_id, 
-        Lexeme.definition, 
-        Lexeme.example, 
-        Lexeme.example_meaning, 
+      `SELECT
+        ReviewProgressWithWord.*,
+        Lexeme.id as lexeme_id,
+        Lexeme.definition,
+        Lexeme.example,
+        Lexeme.example_meaning,
         Lexeme.source
-      FROM 
+      FROM
         (SELECT
           ReviewProgress.id as id,
           user_email,
@@ -152,7 +150,7 @@ export async function getReviewProgressAtSnapshotWithWord(
           WHERE ReviewProgress.user_email = ?1
             AND ReviewProgress.word_id = Word.id
           ORDER BY snapshot_next_reviewable_time ASC NULLS LAST, snapshot_review_count DESC, Word.id ASC
-          LIMIT ?4 OFFSET ?3 
+          LIMIT ?4 OFFSET ?3
         ) AS ReviewProgressWithWord, Lexeme
       WHERE ReviewProgressWithWord.word_id = Lexeme.word_id;`,
     )
@@ -289,7 +287,8 @@ export async function upsertDBReviewProgresses(
   const stmt = db.prepare(
     `INSERT INTO ReviewProgress(id, user_email, word_id, query_count, review_count, last_last_review_time, last_review_time, update_time)
           VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
-          ON CONFLICT(id) DO UPDATE SET
+          ON CONFLICT(user_email, word_id) DO UPDATE SET
+            id=excluded.id,
             query_count=excluded.query_count,
             review_count=excluded.review_count,
             last_last_review_time=excluded.last_last_review_time,

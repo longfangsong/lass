@@ -8,6 +8,7 @@ import {
   getReviewProgress,
   upsertDBReviewProgresses,
 } from "./review_progress";
+import { ClientSideDBReviewProgress, DBTypes, ReviewProgress } from "../types";
 
 const wordIds = [
   "c50b3c3f-039f-4eab-ae0d-822e8b9729ea",
@@ -29,7 +30,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10
+      10,
     );
     expect(firstSearch.length).toBe(1);
     let result = firstSearch[0];
@@ -50,7 +51,7 @@ describe("Test dealing with ReviewProgress", () => {
         "a@b.com",
         snapshotTime,
         0,
-        10
+        10,
       );
     result = secondSearchOnSamesnapshot[0];
     // should not be reviewable now
@@ -65,7 +66,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       secondReviewTime,
       0,
-      10
+      10,
     );
     result = thirdSearch[0];
     // should be reviewable now
@@ -87,7 +88,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10
+      10,
     );
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[0]);
@@ -105,7 +106,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10
+      10,
     );
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[0]);
@@ -117,7 +118,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10
+      10,
     );
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[1]);
@@ -135,7 +136,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       snapshotTime,
       0,
-      10
+      10,
     );
     expect(searchResult.length).toBe(2);
     expect(searchResult[0].word_id).toBe(wordIds[1]);
@@ -148,22 +149,22 @@ describe("Test dealing with ReviewProgress", () => {
     const reviewProgress0 = await createReviewProgess(
       env.DB,
       "a@b.com",
-      wordIds[0]
+      wordIds[0],
     );
     const reviewProgress1 = await createReviewProgess(
       env.DB,
       "a@b.com",
-      wordIds[1]
+      wordIds[1],
     );
     const reviewProgress2 = await createReviewProgess(
       env.DB,
       "a@b.com",
-      wordIds[2]
+      wordIds[2],
     );
     const reviewProgress3 = await createReviewProgess(
       env.DB,
       "a@b.com",
-      wordIds[3]
+      wordIds[3],
     );
     // review [0] at t=20
     vi.setSystemTime(new Date(2000, 1, 1, 0, 0, 20));
@@ -195,7 +196,7 @@ describe("Test dealing with ReviewProgress", () => {
       "a@b.com",
       reviewTime,
       0,
-      10
+      10,
     );
     expect(searchResult.length).toBe(4);
     expect(searchResult[0].word_id).toBe(wordIds[2]);
@@ -207,7 +208,66 @@ describe("Test dealing with ReviewProgress", () => {
   it("cannot create duplicate review progress", async () => {
     await createReviewProgess(env.DB, "a@b.com", wordIds[0]);
     expect(() =>
-      createReviewProgess(env.DB, "a@b.com", wordIds[0])
+      createReviewProgess(env.DB, "a@b.com", wordIds[0]),
     ).rejects.toThrowError(/UNIQUE constraint failed/);
+  });
+
+  describe("should be able to upsert review progresses", async () => {
+    it("replace when user_email and word_id conflict", async () => {
+      await env.DB.exec(`
+        INSERT INTO Word (id, lemma, part_of_speech, phonetic, phonetic_url, update_time) VALUES ('word-0', '', '', '', '', 0);`);
+      const device1ReviewProgress: ClientSideDBReviewProgress = {
+        id: "device-1-review-progress",
+        word_id: "word-0",
+        query_count: 1,
+        review_count: 0,
+        last_last_review_time: null,
+        last_review_time: null,
+        update_time: 2,
+      };
+      await upsertDBReviewProgresses(env.DB, "dev@dev.com", [
+        device1ReviewProgress,
+      ]);
+      const device2ReviewProgress: ClientSideDBReviewProgress = {
+        id: "device-2-review-progress",
+        word_id: "word-0",
+        query_count: 1,
+        review_count: 0,
+        last_last_review_time: null,
+        last_review_time: null,
+        update_time: 1,
+      };
+      await upsertDBReviewProgresses(env.DB, "dev@dev.com", [
+        device2ReviewProgress,
+      ]);
+      const reviewProgress1 = await getReviewProgress(
+        env.DB,
+        "device-1-review-progress",
+      );
+      expect(reviewProgress1).not.toBe(null);
+      const reviewProgress2 = await getReviewProgress(
+        env.DB,
+        "device-2-review-progress",
+      );
+      expect(reviewProgress2).toBe(null);
+
+      const device3ReviewProgress: ClientSideDBReviewProgress = {
+        id: "device-3-review-progress",
+        word_id: "word-0",
+        query_count: 1,
+        review_count: 0,
+        last_last_review_time: null,
+        last_review_time: null,
+        update_time: 3,
+      };
+      await upsertDBReviewProgresses(env.DB, "dev@dev.com", [
+        device3ReviewProgress,
+      ]);
+      const reviewProgress3 = await getReviewProgress(
+        env.DB,
+        "device-3-review-progress",
+      );
+      expect(reviewProgress3).not.toBe(null);
+    });
   });
 });

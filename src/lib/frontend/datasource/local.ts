@@ -606,7 +606,7 @@ export class LocalDataSource implements DataSource {
         const remoteNewData: Array<ReviewProgress> =
           await remoteNewDataResponse.json();
         try {
-          for (const item of remoteNewData) {
+          await Promise.all(remoteNewData.map(item => 
             table.db.transaction("rw", table, async () => {
               const localResult = await table
                 .where("word_id")
@@ -622,9 +622,10 @@ export class LocalDataSource implements DataSource {
               } else {
                 await table.add(item);
               }
-            });
-          }
+            })
+          ));
         } catch (e) {
+          // ignore any ConstraintError
           if (e instanceof Dexie.BulkError) {
             if (e.failures.find((it) => it.name !== "ConstraintError")) {
               throw e;
