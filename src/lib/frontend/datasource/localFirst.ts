@@ -1,6 +1,7 @@
 import {
   ClientReviewProgressAtSnapshotWithWord,
   ClientSideDBReviewProgress,
+  DBTypes,
   Word,
   WordSearchResult,
 } from "../../types";
@@ -9,7 +10,7 @@ import { RemoteDataSource } from "./remote";
 import { LocalDataSource } from "./local";
 import { EventEmitter } from "events";
 import { hoursToMilliseconds, minutesToMilliseconds } from "date-fns";
-import { millisecondsInWeek } from "date-fns/constants";
+import { millisecondsInDay, millisecondsInWeek } from "date-fns/constants";
 
 export class LocalFirstDataSource extends EventEmitter implements DataSource {
   private _localDictionaryNewEnough: Promise<boolean> = Promise.resolve(false);
@@ -30,7 +31,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
 
   constructor(
     private readonly remote: RemoteDataSource,
-    private readonly local: LocalDataSource
+    private readonly local: LocalDataSource,
   ) {
     super();
     this._online = this.checkOnline();
@@ -55,7 +56,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
         const originalOnline = await this._online;
         this._online = Promise.resolve(online);
         if (online !== originalOnline) {
-          this.emit("online-changed", online);      
+          this.emit("online-changed", online);
         }
       }, minutesToMilliseconds(1));
 
@@ -77,9 +78,8 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
         }, hoursToMilliseconds(24));
       }, durationToNextDictionarySync);
 
-      const last_review_sync_time = await this.local.db.meta.get(
-        "ReviewProgress"
-      );
+      const last_review_sync_time =
+        await this.local.db.meta.get("ReviewProgress");
       if (
         last_review_sync_time?.version &&
         new Date().getTime() - last_review_sync_time.version <
@@ -94,7 +94,32 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
         const success = await this.syncReviewProgress();
         this._reviewProgressNewEnough = Promise.resolve(success);
       }, hoursToMilliseconds(1));
+
+      this.syncArticles().then(() => {
+        setInterval(async () => {
+          await this.syncArticles();
+        }, millisecondsInDay);
+      });
     })();
+  }
+
+  async getArticle(id: string): Promise<DBTypes.Article | null> {
+    if (await this.online) {
+      return this.remote.getArticle(id);
+    } else {
+      return this.local.getArticle(id);
+    }
+  }
+
+  async getArticlesAndCount(
+    offset: number,
+    limit: number,
+  ): Promise<{ articles: Array<DBTypes.ArticleMeta>; count: number }> {
+    if (await this.online) {
+      return this.remote.getArticlesAndCount(offset, limit);
+    } else {
+      return this.local.getArticlesAndCount(offset, limit);
+    }
   }
 
   async createOrUpdateWordReview(word_id: string) {
@@ -157,19 +182,21 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
   async getReviewProgressAtSnapshotWithWord(
     snapshot: number,
     offset: number,
-    limit: number
+    limit: number,
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
     const [online, reviewProgressNewEnough, dictionaryNewEnough] =
       await Promise.all([
         this.online,
         (async () => {
           const reviewProgress = await this.local.db.meta.get("ReviewProgress");
-          const durationSinceLastSync = new Date().getTime() - (reviewProgress?.version || 0);
+          const durationSinceLastSync =
+            new Date().getTime() - (reviewProgress?.version || 0);
           return durationSinceLastSync < hoursToMilliseconds(1);
         })(),
         (async () => {
           const dictionaryLastSyncTime = await this.dictionaryLastSyncTime();
-          const durationSinceLastSync = new Date().getTime() - dictionaryLastSyncTime;
+          const durationSinceLastSync =
+            new Date().getTime() - dictionaryLastSyncTime;
           return durationSinceLastSync < millisecondsInWeek;
         })(),
       ]);
@@ -177,13 +204,13 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       return await this.remote.getReviewProgressAtSnapshotWithWord(
         snapshot,
         offset,
-        limit
+        limit,
       );
     } else {
       return await this.local.getReviewProgressAtSnapshotWithWord(
         snapshot,
         offset,
-        limit
+        limit,
       );
     }
   }
@@ -200,7 +227,11 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       db.meta.get("WordIndex"),
       db.meta.get("Lexeme"),
     ]);
-    return Math.min(word?.version || 0, wordIndex?.version || 0, lexeme?.version || 0);
+    return Math.min(
+      word?.version || 0,
+      wordIndex?.version || 0,
+      lexeme?.version || 0,
+    );
   }
 
   private async durationToDictionaryNextSync(): Promise<number> {
@@ -245,9 +276,21 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       return false;
     }
   }
+
+  private async syncArticles() {
+    try {
+      this.emit("articles-sync-started");
+      await this.local.syncArticles();
+      this.emit("articles-sync-finished", true);
+      return true;
+    } catch {
+      this.emit("articles-sync-finished", false);
+      return false;
+    }
+  }
 }
 
 export const localFirstDataSource = new LocalFirstDataSource(
   new RemoteDataSource(),
-  new LocalDataSource()
+  new LocalDataSource(),
 );

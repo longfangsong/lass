@@ -52,12 +52,31 @@ export async function getArticleMetasUpdatedAfter(
     .prepare(
       `SELECT Article.id, Article.title
       FROM Article
-      WHERE Article.update_time > ?1
+      WHERE Article.create_time > ?1
       ORDER BY Article.create_time DESC
       LIMIT ?2;`,
     )
     .bind(timestamp, limit)
     .all<DBTypes.ArticleMeta>();
+  if (!result.success) throw new Error(result.error);
+  return result.results;
+}
+
+export async function getArticlesUpdatedAfter(
+  db: D1Database,
+  timestamp: number,
+  limit: number,
+): Promise<Array<DBTypes.Article>> {
+  const result = await db
+    .prepare(
+      `SELECT Article.id, Article.title, Article.content, Article.create_time, Article.url, Article.voice_url
+      FROM Article
+      WHERE Article.create_time > ?1
+      ORDER BY Article.create_time DESC
+      LIMIT ?2;`,
+    )
+    .bind(timestamp, limit)
+    .all<DBTypes.Article>();
   if (!result.success) throw new Error(result.error);
   return result.results;
 }

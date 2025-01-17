@@ -25,6 +25,7 @@ export type DB = TDexie & {
     },
     "table_name"
   >;
+  articles: EntityTable<DBTypes.Article, "id">;
   word: EntityTable<DBTypes.Word, "id">;
   wordIndex: EntityTable<DBTypes.WordIndex, "id">;
   lexeme: EntityTable<DBTypes.Lexeme, "id">;
@@ -33,6 +34,7 @@ export type DB = TDexie & {
 
 const REVIEW_GAP_DAYS = [0, 1, 3, 7, 15, 30];
 const PAGE_SIZE = 5000;
+const LOCAL_ARTICLE_KEEP_COUNT = 100;
 
 export class LocalDataSource implements DataSource {
   // todo: maybe a meta.json?
@@ -49,11 +51,31 @@ export class LocalDataSource implements DataSource {
     this.db = new Dexie("lass") as TDexie & DB;
     this.db.version(2).stores({
       meta: "table_name",
+      articles: "id, create_time",
       word: "id, lemma, update_time",
       wordIndex: "id, word_id, spell, update_time",
       lexeme: "id, word_id, update_time",
       reviewProgress: "id, &word_id, update_time",
     });
+  }
+
+  async getArticle(id: string): Promise<DBTypes.Article | null> {
+    return (await this.db.articles.get(id)) || null;
+  }
+
+  async getArticlesAndCount(
+    offset: number,
+    limit: number,
+  ): Promise<{ articles: Array<DBTypes.ArticleMeta>; count: number }> {
+    const articlesTask = this.db.articles
+      .orderBy("create_time")
+      .reverse()
+      .offset(offset)
+      .limit(limit)
+      .toArray();
+    const countTask = this.db.articles.count();
+    const [articles, count] = await Promise.all([articlesTask, countTask]);
+    return { articles, count };
   }
 
   async createOrUpdateWordReview(word_id: string) {
@@ -83,13 +105,13 @@ export class LocalDataSource implements DataSource {
   async getReviewProgressAtSnapshotWithWord(
     snapshotTime: number,
     offset: number,
-    limit: number
+    limit: number,
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
     const localValue = localStorage.getItem(`review-${snapshotTime}`);
     if (localValue) {
       const ids: Array<string> = JSON.parse(localValue);
       const reviewProgresses = (await this.db.reviewProgress.bulkGet(
-        ids
+        ids,
       )) as Array<ClientSideDBReviewProgress>;
       const reviewProgressesAtSnapshot: Array<ClientSideReviewProgressAtSnapshot> =
         this.toSnapshot(reviewProgresses, snapshotTime);
@@ -99,7 +121,7 @@ export class LocalDataSource implements DataSource {
           .map(async (progress) => {
             const word = await this.getWord(progress.word_id);
             return { ...progress, ...word! };
-          })
+          }),
       );
     } else {
       const reviewProgresses = await this.db.reviewProgress.toArray();
@@ -137,7 +159,7 @@ export class LocalDataSource implements DataSource {
           .forEach((key) => localStorage.removeItem(key));
         localStorage.setItem(
           `review-${snapshotTime}`,
-          JSON.stringify(reviewProgressesAtSnapshot.map((it) => it.id))
+          JSON.stringify(reviewProgressesAtSnapshot.map((it) => it.id)),
         );
       })();
       return await Promise.all(
@@ -146,14 +168,14 @@ export class LocalDataSource implements DataSource {
           .map(async (progress) => {
             const word = await this.getWord(progress.word_id);
             return { ...word!, ...progress };
-          })
+          }),
       );
     }
   }
 
   private toSnapshot(
     reviewProgresses: ClientSideDBReviewProgress[],
-    snapshotTime: number
+    snapshotTime: number,
   ): ClientSideReviewProgressAtSnapshot[] {
     return reviewProgresses.map((progress) => {
       let next_reviewable_time;
@@ -163,11 +185,11 @@ export class LocalDataSource implements DataSource {
         // not reviewed yet
         assert(
           progress.last_last_review_time === null,
-          "last_review_time is null but last_last_review_time is not null"
+          "last_review_time is null but last_last_review_time is not null",
         );
         assert(
           progress.review_count === 0,
-          "last_review_time is null but review_count is not 0"
+          "last_review_time is null but review_count is not 0",
         );
         next_reviewable_time = 0;
         snapshot_next_reviewable_time = 0;
@@ -195,7 +217,7 @@ export class LocalDataSource implements DataSource {
         if (progress.last_last_review_time === null) {
           assert(
             progress.review_count <= 1,
-            "last_last_review_time is null but review_count is not 0"
+            "last_last_review_time is null but review_count is not 0",
           );
           snapshot_next_reviewable_time =
             progress.last_review_time +
@@ -222,7 +244,7 @@ export class LocalDataSource implements DataSource {
         ...progress,
         snapshot_next_reviewable_time: Math.min(
           snapshot_next_reviewable_time,
-          maxDate
+          maxDate,
         ),
         next_reviewable_time: Math.min(next_reviewable_time, maxDate),
         snapshot_review_count,
@@ -260,7 +282,7 @@ export class LocalDataSource implements DataSource {
       .equals(spell)
       .toArray()
       .then((indexes) =>
-        indexes.filter((it) => it.form !== null).map((it) => it.word_id)
+        indexes.filter((it) => it.form !== null).map((it) => it.word_id),
       )
       .then((ids) => this.db.word.where("id").anyOf(ids).toArray())
       .then((result) => result.sort((a, b) => a.lemma.length - b.lemma.length));
@@ -289,8 +311,8 @@ export class LocalDataSource implements DataSource {
           result.sort(
             (a, b) =>
               Math.abs(a.lemma.length - spell.length) -
-              Math.abs(b.lemma.length - spell.length)
-          )
+              Math.abs(b.lemma.length - spell.length),
+          ),
         );
     }
     if (resultWords.length === 0 && spell[0].toLocaleUpperCase() === spell[0]) {
@@ -303,7 +325,7 @@ export class LocalDataSource implements DataSource {
           this.db.lexeme.where("word_id").equals(word.id).toArray(),
         ]);
         return { ...word, indexes, lexemes };
-      })
+      }),
     );
     return result;
   }
@@ -319,7 +341,7 @@ export class LocalDataSource implements DataSource {
         console.log(
           `Direct match ${spell}, found ${words.length} in local, took ${
             new Date().getTime() - startTime.getTime()
-          }ms`
+          }ms`,
         );
         return words;
       });
@@ -331,13 +353,13 @@ export class LocalDataSource implements DataSource {
       .filter((index) => index.form !== null)
       .toArray()
       .then((indexes) =>
-        Promise.all(indexes.map((index) => this.db.word.get(index.word_id)))
+        Promise.all(indexes.map((index) => this.db.word.get(index.word_id))),
       )
       .then((words) => {
         console.log(
           `Form match ${spell}, found ${words.length} in local, took ${
             new Date().getTime() - startTime.getTime()
-          }ms`
+          }ms`,
         );
         return words;
       });
@@ -351,7 +373,7 @@ export class LocalDataSource implements DataSource {
         console.log(
           `Like match ${spell}, found ${words.length} in local, took ${
             new Date().getTime() - startTime.getTime()
-          }ms`
+          }ms`,
         );
         return words;
       });
@@ -372,7 +394,7 @@ export class LocalDataSource implements DataSource {
       console.log(
         `Like form match ${spell}, found ${words.length} in local, took ${
           new Date().getTime() - startTime.getTime()
-        }ms`
+        }ms`,
       );
       return words;
     })();
@@ -404,11 +426,11 @@ export class LocalDataSource implements DataSource {
           lemma: word!.lemma,
           definitions: lexemes.map((lexeme) => lexeme.definition),
         };
-      })
+      }),
     );
     if (result.length === 0 && spell[0].toLocaleUpperCase() === spell[0]) {
       console.log(
-        `${spell} not found in local, search ${spell.toLowerCase()} instead.`
+        `${spell} not found in local, search ${spell.toLowerCase()} instead.`,
       );
       return await this.searchWord(spell.toLowerCase());
     }
@@ -416,13 +438,13 @@ export class LocalDataSource implements DataSource {
     console.log(
       `Search word ${spell} in local took ${
         endTime.getTime() - startTime.getTime()
-      }ms`
+      }ms`,
     );
     return result;
   }
 
   async updateReviewProgress(
-    reviewProgress: ClientSideDBReviewProgress
+    reviewProgress: ClientSideDBReviewProgress,
   ): Promise<void> {
     const sameWord = await this.db.reviewProgress
       .where("word_id")
@@ -433,10 +455,10 @@ export class LocalDataSource implements DataSource {
       console.warn(
         `updateReviewProgress: same word found in local, delete all`,
         reviewProgress,
-        sameWord
+        sameWord,
       );
       await Promise.all(
-        sameWord.map((item) => this.db.reviewProgress.delete(item.id))
+        sameWord.map((item) => this.db.reviewProgress.delete(item.id)),
       );
       Object.keys(localStorage)
         .filter((key) => key.startsWith("review-"))
@@ -447,7 +469,7 @@ export class LocalDataSource implements DataSource {
 
   private async initReadonlyTable<T>(
     table: EntityTable<T, keyof T>,
-    tableName: keyof typeof this.INIT_TABLE_FILE_COUNT
+    tableName: keyof typeof this.INIT_TABLE_FILE_COUNT,
   ) {
     const now = new Date();
     const db = table.db as DB;
@@ -459,7 +481,7 @@ export class LocalDataSource implements DataSource {
           const syncRelease = await syncFetchSemaphore.acquire();
           try {
             const initData = await fetch(
-              `/dictionary-init/${tableName}/${i}.json`
+              `/dictionary-init/${tableName}/${i}.json`,
             );
             if (!initData.ok) {
               throw new Error(initData.statusText);
@@ -470,28 +492,28 @@ export class LocalDataSource implements DataSource {
           } finally {
             syncRelease();
           }
-        }
-      )
+        },
+      ),
     );
     await db.meta.put({ table_name: tableName, version: this.INIT_TIME });
     console.log(
       `Init ${tableName} with ${resultLength} items in ${
         new Date().getTime() - now.getTime()
-      }ms`
+      }ms`,
     );
   }
 
   private async pullUpdateReadonly<T>(
     table: EntityTable<T, keyof T>,
     tableName: keyof typeof this.INIT_TABLE_FILE_COUNT,
-    lastUpdatedTime: number
+    lastUpdatedTime: number,
   ) {
     const db = table.db as DB;
     const now = new Date();
     let currentOffset = 0;
     while (true) {
       const response = await fetchWithSemaphore(
-        `/api/sync?table=${tableName}&limit=${PAGE_SIZE}&offset=${currentOffset}&updated_after=${lastUpdatedTime}&updated_before=${now.getTime()}`
+        `/api/sync?table=${tableName}&limit=${PAGE_SIZE}&offset=${currentOffset}&updated_after=${lastUpdatedTime}&updated_before=${now.getTime()}`,
       );
       if (!response.ok) {
         throw new Error(response.statusText);
@@ -507,14 +529,14 @@ export class LocalDataSource implements DataSource {
     console.log(
       `Sync ${tableName} with ${currentOffset} items in ${
         new Date().getTime() - now.getTime()
-      }ms`
+      }ms`,
     );
   }
 
   private async initOrPullUpdateReadonly<T>(
     table: EntityTable<T, keyof T>,
     tableName: keyof typeof this.INIT_TABLE_FILE_COUNT,
-    force: boolean = false
+    force: boolean = false,
   ) {
     const release = await this.syncSemaphore.acquire();
     const meta = await this.db.meta.get(tableName);
@@ -548,7 +570,7 @@ export class LocalDataSource implements DataSource {
     await this.initOrPullUpdateReadonly(
       this.db.word as EntityTable<DBTypes.Word, keyof DBTypes.Word>,
       "Word",
-      force
+      force,
     );
     console.log("synced word");
   }
@@ -561,7 +583,7 @@ export class LocalDataSource implements DataSource {
         keyof DBTypes.WordIndex
       >,
       "WordIndex",
-      force
+      force,
     );
     console.log("synced word index");
   }
@@ -571,7 +593,7 @@ export class LocalDataSource implements DataSource {
     await this.initOrPullUpdateReadonly(
       this.db.lexeme as EntityTable<DBTypes.Lexeme, keyof DBTypes.Lexeme>,
       "Lexeme",
-      force
+      force,
     );
     console.log("synced lexeme");
   }
@@ -579,7 +601,7 @@ export class LocalDataSource implements DataSource {
   private async pushPullUpdateReadwrite(
     table: EntityTable<ReviewProgress, "id">,
     tableName: string,
-    lastUpdatedTime: number
+    lastUpdatedTime: number,
   ) {
     const now = new Date();
     let currentLocalOffset = 0;
@@ -598,7 +620,7 @@ export class LocalDataSource implements DataSource {
           {
             method: "POST",
             body: JSON.stringify(localNewData),
-          }
+          },
         );
         if (!remoteNewDataResponse.ok) {
           throw new Error(remoteNewDataResponse.statusText);
@@ -606,24 +628,26 @@ export class LocalDataSource implements DataSource {
         const remoteNewData: Array<ReviewProgress> =
           await remoteNewDataResponse.json();
         try {
-          await Promise.all(remoteNewData.map(item => 
-            table.db.transaction("rw", table, async () => {
-              const localResult = await table
-                .where("word_id")
-                .equals(item.word_id)
-                .first();
-              if (localResult) {
-                await table.delete(localResult.id);
-                if (localResult.update_time < item.update_time) {
-                  await table.add(item);
+          await Promise.all(
+            remoteNewData.map((item) =>
+              table.db.transaction("rw", table, async () => {
+                const localResult = await table
+                  .where("word_id")
+                  .equals(item.word_id)
+                  .first();
+                if (localResult) {
+                  await table.delete(localResult.id);
+                  if (localResult.update_time < item.update_time) {
+                    await table.add(item);
+                  } else {
+                    await table.add(localResult);
+                  }
                 } else {
-                  await table.add(localResult);
+                  await table.add(item);
                 }
-              } else {
-                await table.add(item);
-              }
-            })
-          ));
+              }),
+            ),
+          );
         } catch (e) {
           // ignore any ConstraintError
           if (e instanceof Dexie.BulkError) {
@@ -648,7 +672,7 @@ export class LocalDataSource implements DataSource {
     console.log(
       `Sync ${tableName}, upload ${currentLocalOffset} and download ${currentRemoteOffset} items in ${
         new Date().getTime() - now.getTime()
-      }ms`
+      }ms`,
     );
   }
 
@@ -659,8 +683,33 @@ export class LocalDataSource implements DataSource {
     await this.pushPullUpdateReadwrite(
       this.db.reviewProgress as EntityTable<ReviewProgress, "id">,
       "ReviewProgress",
-      meta?.version || 0
+      meta?.version || 0,
     );
     console.log("synced reviewProgress");
+  }
+
+  async syncArticles() {
+    const meta = await this.db.meta.get("Article");
+    const lastSyncTime = meta?.version || 0;
+    const now = Date.now();
+    if (now - lastSyncTime <= millisecondsInDay) {
+      return;
+    }
+    const serverResponse = await fetchWithSemaphore(
+      `/api/sync?table=Article&limit=${LOCAL_ARTICLE_KEEP_COUNT}&updated_after=${lastSyncTime}`,
+    );
+    if (!serverResponse.ok) {
+      throw new Error(serverResponse.statusText);
+    }
+    const articles: Array<DBTypes.Article> = await serverResponse.json();
+    await this.db.transaction("rw", this.db.articles, async () => {
+      await this.db.articles.bulkPut(articles);
+      await this.db.articles
+        .orderBy("create_time")
+        .reverse()
+        .offset(LOCAL_ARTICLE_KEEP_COUNT)
+        .delete();
+    });
+    await this.db.meta.put({ table_name: "Article", version: now });
   }
 }

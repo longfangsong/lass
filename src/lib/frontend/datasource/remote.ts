@@ -2,6 +2,7 @@ import { fetchWithSemaphore } from "../../fetch";
 import {
   ClientReviewProgressAtSnapshotWithWord,
   ClientSideDBReviewProgress,
+  DBTypes,
   ReviewProgress,
   ReviewProgressPatchPayload,
   Word,
@@ -10,6 +11,20 @@ import {
 import { DataSource } from "./datasource";
 
 export class RemoteDataSource implements DataSource {
+  async getArticlesAndCount(
+    offset: number,
+    limit: number,
+  ): Promise<{ articles: Array<DBTypes.ArticleMeta>; count: number }> {
+    const articlesResponse = await fetchWithSemaphore(
+      `/api/articles?limit=${limit}&offset=${offset}`,
+    );
+    const articles: Array<DBTypes.ArticleMeta> = await articlesResponse.json();
+    const articlesCount = parseInt(
+      articlesResponse.headers.get("X-Total-Count") || "0",
+    );
+    return { articles, count: articlesCount };
+  }
+
   async createOrUpdateWordReview(word_id: string) {
     const response = await fetchWithSemaphore(`/api/review_progresses`, {
       method: "POST",
@@ -38,10 +53,10 @@ export class RemoteDataSource implements DataSource {
   async getReviewProgressAtSnapshotWithWord(
     snapshotTime: number,
     offset: number,
-    limit: number
+    limit: number,
   ): Promise<Array<ClientReviewProgressAtSnapshotWithWord>> {
     const response = await fetchWithSemaphore(
-      `/api/review_progresses?snapshot_time=${snapshotTime}&offset=${offset}&limit=${limit}`
+      `/api/review_progresses?snapshot_time=${snapshotTime}&offset=${offset}&limit=${limit}`,
     );
     if (!response.ok) {
       throw new Error(response.statusText);
@@ -69,7 +84,7 @@ export class RemoteDataSource implements DataSource {
 
   async getWordsByIndexSpell(spell: string): Promise<Array<Word>> {
     const response = await fetchWithSemaphore(
-      `/api/words?index_spell=${spell}`
+      `/api/words?index_spell=${spell}`,
     );
     if (!response.ok) {
       throw new Error(response.statusText);
@@ -110,5 +125,13 @@ export class RemoteDataSource implements DataSource {
     } catch {
       return false;
     }
+  }
+
+  async getArticle(id: string): Promise<DBTypes.Article | null> {
+    const response = await fetchWithSemaphore(`/api/articles/${id}`);
+    if (response.status === 404) {
+      return null;
+    }
+    return response.json();
   }
 }

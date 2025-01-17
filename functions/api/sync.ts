@@ -10,9 +10,10 @@ import {
 import { ClientSideDBReviewProgress } from "@/lib/types";
 import { auth } from "@/lib/backend/auth";
 import { isSuccess } from "@/lib/backend/auth";
+import { getArticlesUpdatedAfter } from "@/lib/backend/article";
 
 export async function onRequestGet(
-  context: EventContext<CloudflareEnv, string, unknown>
+  context: EventContext<CloudflareEnv, string, unknown>,
 ) {
   const url = new URL(context.request.url);
   const table = url.searchParams.get("table");
@@ -35,7 +36,7 @@ export async function onRequestGet(
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
-          Number(offsetParam)
+          Number(offsetParam),
         );
         break;
       case "WordIndex":
@@ -44,7 +45,7 @@ export async function onRequestGet(
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
-          Number(offsetParam)
+          Number(offsetParam),
         );
         break;
       case "Lexeme":
@@ -53,9 +54,17 @@ export async function onRequestGet(
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
-          Number(offsetParam)
+          Number(offsetParam),
         );
         break;
+    }
+  } else if (limitParam !== null && updatedAfter !== null) {
+    if (table === "Article") {
+      result = await getArticlesUpdatedAfter(
+        context.env.DB,
+        Number(updatedAfter),
+        Number(limitParam),
+      );
     }
   }
   if (result === null) {
@@ -65,7 +74,7 @@ export async function onRequestGet(
 }
 
 export async function onRequestPost(
-  context: EventContext<CloudflareEnv, string, unknown>
+  context: EventContext<CloudflareEnv, string, unknown>,
 ) {
   const authResult = await auth(context.request, context.env.AUTH_SECRET);
   const url = new URL(context.request.url);
@@ -95,12 +104,12 @@ export async function onRequestPost(
           Number(updatedAfter),
           Number(updatedBefore),
           Number(limitParam),
-          Number(offsetParam)
+          Number(offsetParam),
         );
         await upsertDBReviewProgresses(
           context.env.DB,
           authResult.email,
-          payload
+          payload,
         );
         return Response.json(serverUpdates);
       }

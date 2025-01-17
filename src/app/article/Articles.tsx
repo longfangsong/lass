@@ -1,9 +1,10 @@
 import { ListGroup, ListGroupItem } from "flowbite-react";
-import { fetchWithSemaphore } from "@/lib/fetch";
 import { DBTypes } from "@/lib/types";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
-import { ArticlesPagination } from "./ArticlesPagination";
+import { PAGE_SIZE } from "@/lib/backend/review_progress";
+import { Pagination } from "flowbite-react";
+import { useSearchParams, useNavigate } from "react-router";
+import { localFirstDataSource } from "@/lib/frontend/datasource/localFirst";
 
 function Skeleton() {
   return (
@@ -15,7 +16,9 @@ function Skeleton() {
 }
 
 export default function Articles() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") || "1");
   const page = parseInt(searchParams.get("page") || "1");
   const offset = (page - 1) * 10;
   const [loading, setLoading] = useState(true);
@@ -25,13 +28,8 @@ export default function Articles() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const articlesResponse = await fetchWithSemaphore(
-        `/api/articles?limit=10&offset=${offset}`,
-      );
-      const articles: Array<DBTypes.ArticleMeta> = await articlesResponse.json();
-      const articlesCount = parseInt(
-        articlesResponse.headers.get("X-Total-Count") || "0",
-      );
+      const { articles, count: articlesCount } =
+        await localFirstDataSource.getArticlesAndCount(offset, 10);
       setArticles(articles);
       setArticlesCount(articlesCount);
       setLoading(false);
@@ -41,16 +39,27 @@ export default function Articles() {
   return (
     <div className="flex flex-col justify-center">
       <ListGroup className="w-full">
-        {loading ? <Skeleton /> : articles.map((article) => (
-          <ListGroupItem
-            href={`/articles/${article.id}`}
-            key={article.id}
-          >
-            {article.title}
-          </ListGroupItem>
-        ))}
+        {loading ? (
+          <Skeleton />
+        ) : (
+          articles.map((article) => (
+            <ListGroupItem href={`/articles/${article.id}`} key={article.id}>
+              {article.title}
+            </ListGroupItem>
+          ))
+        )}
       </ListGroup>
-      <ArticlesPagination count={articlesCount} />
+      <div className="flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(articlesCount / PAGE_SIZE)}
+          onPageChange={(page) => {
+            const params = new URLSearchParams(searchParams);
+            params.set("page", page.toString());
+            navigate(`?${params.toString()}`);
+          }}
+        />
+      </div>
     </div>
   );
-} 
+}

@@ -24,7 +24,7 @@ function splitOnSilence(
   channelData: Float32Array,
   sampleRate: number,
   silenceThreshold = -30,
-  minSilenceDuration = 500
+  minSilenceDuration = 500,
 ) {
   const silenceThresholdLinear = Math.pow(10, silenceThreshold / 20);
   const minSilenceSamples = (sampleRate / 1000) * minSilenceDuration;
@@ -95,7 +95,7 @@ export function Player({ url }: { url: string }) {
           const channelData = decodedData.getChannelData(0);
           const regions = splitOnSilence(
             channelData,
-            decodedData.sampleRate
+            decodedData.sampleRate,
           ).map(([start, end], i) => {
             return {
               start: start / decodedData.sampleRate,
@@ -111,7 +111,7 @@ export function Player({ url }: { url: string }) {
         });
       }
     },
-    [url]
+    [url],
   );
   const onPlayPause = useCallback(() => {
     setIsPlaying(!isPlaying);
