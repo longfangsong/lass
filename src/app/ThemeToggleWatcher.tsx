@@ -12,5 +12,5 @@ export default function ThemeToggleWatcher() {
     }
   }, [mode]);
 
-  return null;
+  return <></>;
 }
