@@ -288,6 +288,18 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
       return false;
     }
   }
+
+  async clearReviewProgress() {
+    await this.local.db.transaction(
+      "rw",
+      this.local.db.reviewProgress,
+      this.local.db.meta,
+      async () => {
+        await this.local.db.reviewProgress.clear();
+        await this.local.db.meta.delete("ReviewProgress");
+      },
+    );
+  }
 }
 
 export const localFirstDataSource = new LocalFirstDataSource(
