@@ -290,6 +290,7 @@ export class LocalFirstDataSource extends EventEmitter implements DataSource {
   }
 
   async clearReviewProgress() {
+    console.log("clear review progress");
     await this.local.db.transaction(
       "rw",
       this.local.db.reviewProgress,
