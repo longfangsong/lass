@@ -46,7 +46,7 @@ async function fetch_all(): Promise<Array<{ title: string; url: string }>> {
 	const latt_svenska_page = await fetch('https://sverigesradio.se/radioswedenpalattsvenska');
 	const html = await latt_svenska_page.text();
 	const $ = load(html);
-	const elements = $('h2.heading.heading-link.h2>a.heading');
+	const elements = $('h4.heading.heading-link.h2>a.heading');
 	const all_titles = elements
 		.map((_, element) => {
 			return {
