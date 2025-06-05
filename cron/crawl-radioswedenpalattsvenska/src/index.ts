@@ -46,7 +46,7 @@ async function fetch_all(): Promise<Array<{ title: string; url: string }>> {
 	const latt_svenska_page = await fetch('https://sverigesradio.se/radioswedenpalattsvenska');
 	const html = await latt_svenska_page.text();
 	const $ = load(html);
-	const elements = $('h2.heading.heading-link.h2>a.heading');
+	const elements = $('h4.heading.heading-link.h2>a.heading');
 	const all_titles = elements
 		.map((_, element) => {
 			return {
@@ -62,7 +62,8 @@ export default {
 	// The scheduled handler is invoked at the interval set in our wrangler.toml's
 	// [[triggers]] configuration.
 	async scheduled(event, env): Promise<void> {
-		const all_articles = await fetch_all();
+		let all_articles = await fetch_all();
+		all_articles = all_articles.slice(0, 10);
 		const exists = await Promise.all(all_articles.map(({ title }) => title_exists(title, env.DB)));
 		const new_articles = all_articles.filter((_, index) => !exists[index]);
 		await Promise.all(new_articles.map(({ title, url }) => fetch_single_article(title, url, env.DB)));
