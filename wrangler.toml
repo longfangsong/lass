@@ -1,0 +1,12 @@
+name = "lass-next"
+main = "src/api/index.ts"
+compatibility_date = "2025-07-12"
+
+[assets]
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lass-next"
+database_id = "8a0a025f-77e8-4321-bcc2-ea8d65d2d56b"
