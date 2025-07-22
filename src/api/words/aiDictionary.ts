@@ -42,7 +42,7 @@ async function getWordDefinitionFromAI(
   \`\`\`json
   {
     "spell": "bil",
-    "pronunciation": "/biːl/",
+    "pronunciation": "biːl",
     "part_of_speech": "subst.",
     "meaning": "car",
     "example_sentence": "Jag har en röd bil.",

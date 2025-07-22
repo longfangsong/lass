@@ -1,58 +1,34 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import cloudflareLogo from './assets/Cloudflare_Logo.svg'
-import './App.css'
+import { BrowserRouter, Route, Routes } from "react-router";
+import NavBar from "@app/components/NavBar";
+import { ThemeProvider } from "@app/components/ThemeProvider";
+import Index from "@app/IndexPage";
+import { Dictionary } from "@app/dictionary";
+
+const serverSideRegex = /^(\/api\/|\/dictionary-init\/).*/;
+const router = (
+  <BrowserRouter>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <NavBar />
+      <main className="p-2 sm:p-4 text-gray-900 dark:text-white dark:bg-gray-900 h-[calc(100vh-63px)] overflow-y-scroll">
+        <Routes>
+          <Route path="/dictionary" element={<Dictionary />} />
+          <Route path="/" element={<Index />} />
+        </Routes>
+      </main>
+    </ThemeProvider>
+  </BrowserRouter>
+);
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [name, setName] = useState('unknown')
-
   return (
     <>
-      <div>
-        <a href='https://vite.dev' target='_blank'>
-          <img src={viteLogo} className='logo' alt='Vite logo' />
-        </a>
-        <a href='https://react.dev' target='_blank'>
-          <img src={reactLogo} className='logo react' alt='React logo' />
-        </a>
-        <a href='https://workers.cloudflare.com/' target='_blank'>
-          <img src={cloudflareLogo} className='logo cloudflare' alt='Cloudflare logo' />
-        </a>
-      </div>
-      <h1>Vite + React + Cloudflare</h1>
-      <div className='card'>
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          aria-label='increment'
-        >
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <div className='card'>
-        <button
-          onClick={() => {
-            fetch('/api/')
-              .then((res) => res.json() as Promise<{ name: string }>)
-              .then((data) => setName(data.name))
-          }}
-          aria-label='get name'
-        >
-          Name from API is: {name}
-        </button>
-        <p>
-          Edit <code>worker/index.ts</code> to change the name
-        </p>
-      </div>
-      <p className='read-the-docs'>
-        Click on the Vite and React logos to learn more
-      </p>
+      {serverSideRegex.test(window.location.pathname) ? (
+        <div>redirecting to API...</div>
+      ) : (
+        router
+      )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -26,7 +26,6 @@ export async function saveWord(word: Word, db: D1Database) {
   });
 
   const lexemesTask = word.lexemes.map((lexeme) => {
-    console.log(lexeme);
     return db
       .prepare(
         "INSERT INTO Lexeme (id, word_id, definition, example, example_meaning, source, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
