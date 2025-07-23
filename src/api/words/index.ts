@@ -3,6 +3,7 @@ import type { Word as DBWord, Lexeme, Word, WordIndex } from "@/types";
 import { searchInDatabase } from "./search";
 import { createWordWithAI } from "./aiDictionary";
 import { saveWord } from "./databaseOperations";
+import { unescapeObject } from "../utils";
 
 export async function getById({ params, env }: RouterContext) {
   const word: DBWord | null = await env.DB.prepare(
@@ -24,7 +25,7 @@ export async function getById({ params, env }: RouterContext) {
     const lexemes = lexemesResult.results;
     const indexes = wordIndexesResult.results;
     const result: Word = { ...word, lexemes, indexes };
-    return Response.json(result);
+    return Response.json(unescapeObject(result));
   }
 }
 
@@ -47,5 +48,5 @@ export async function search({ query, env }: RouterContext) {
       console.error("Getting word meaning with AI failed");
     }
   }
-  return Response.json(words);
+  return Response.json(unescapeObject(words));
 }

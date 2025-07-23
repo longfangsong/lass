@@ -35,7 +35,12 @@ export default function WordDetail({
 }) {
   return (
     <>
-      <div className={"space-y-3 text-gray-500 dark:text-white " + className}>
+      <div
+        className={cn(
+          "space-y-3 text-gray-500 dark:text-white max-w-full overflow-scroll",
+          className,
+        )}
+      >
         <div className="flex flex-row justify-between items-center">
           <p>[{word?.phonetic}]</p>
           <div className="w-fit flex flex-row gap-1 p-1 pr-2">

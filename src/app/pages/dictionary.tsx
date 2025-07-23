@@ -13,11 +13,17 @@ import { Separator } from "@app/components/ui/separator";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@app/components/ui/dialog";
 import type { WordSearchResult, Word } from "@/types";
 import WordDetail from "@app/components/word/WordDetail";
+import { searchWord } from "../data/dictionary/query";
+import { useInitDictionaryIfNeeded } from "../hooks/dictionary/init";
+import { useAtomValue } from "jotai";
+import { progress, tasks } from "../atoms/dictionary/init";
+import { CheckCheck, FileDown } from "lucide-react";
 
 function WordDetailDialog({
   word,
@@ -33,6 +39,7 @@ function WordDetailDialog({
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{word?.lemma}</DialogTitle>
+          <DialogDescription></DialogDescription>
         </DialogHeader>
         <WordDetail word={word} />
       </DialogContent>
@@ -44,25 +51,33 @@ export function Dictionary() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<WordSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const initProgress = useAtomValue(progress);
+  const initTask = useAtomValue(tasks);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const inited = useInitDictionaryIfNeeded();
 
-  const handleSearch = async (searchQuery: string, useAI: boolean = false) => {
-    if (!searchQuery.trim()) {
+  const search = async (spell: string, useAI: boolean = false) => {
+    if (!spell.trim()) {
       setResults([]);
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `/api/words?spell=${encodeURIComponent(searchQuery)}&ai=${useAI}`,
-      );
-      if (!response.ok) {
-        throw new Error("Search request failed");
+      let searchResults: WordSearchResult[];
+      if (!inited || useAI) {
+        const response = await fetch(
+          `/api/words?spell=${encodeURIComponent(spell)}&ai=${useAI}`,
+        );
+        if (!response.ok) {
+          throw new Error("Search request failed");
+        }
+        searchResults = await response.json();
+      } else {
+        searchResults = await searchWord(spell);
       }
-      const searchResults = await response.json();
       setResults(searchResults);
     } catch (error) {
       console.error("Search failed:", error);
@@ -73,7 +88,7 @@ export function Dictionary() {
   };
 
   const handleAISearch = () => {
-    handleSearch(query, true);
+    search(query, true);
   };
 
   const handleKeyUp = () => {
@@ -82,7 +97,7 @@ export function Dictionary() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      handleSearch(query);
+      search(query);
     }, 300);
   };
 
@@ -170,6 +185,38 @@ export function Dictionary() {
           <Button onClick={handleAISearch} variant="outline" size="sm">
             Search with AI
           </Button>
+        </div>
+      )}
+
+      {initProgress === "Done" && (
+        <div className="text-muted-foreground flex flex-row items-center justify-center mt-4">
+          <CheckCheck />
+          <div className="ml-2">
+            <p>Dictionary downloaded.</p>
+            <p className="text-xs">
+              Your search will be handled on your device.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {Array.isArray(initProgress) && (
+        <div className="text-muted-foreground flex flex-row items-center justify-center mt-4">
+          <FileDown />
+          <div className="ml-2">
+            <p>
+              Downloading{" "}
+              {initProgress?.map(([_, count]) => count).reduce((a, b) => a + b)}{" "}
+              of{" "}
+              {initTask?.tables
+                .map(([_, count]) => count)
+                .reduce((a, b) => a + b)}{" "}
+              files.
+            </p>
+            <p className="text-xs">
+              Your search will be handled on the server.
+            </p>
+          </div>
         </div>
       )}
 

@@ -1,0 +1,8 @@
+{
+  "version": 1753266285817,
+  "tables": [
+    ["Word", 7],
+    ["WordIndex", 37],
+    ["Lexeme", 10]
+  ]
+}

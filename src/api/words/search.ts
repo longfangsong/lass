@@ -1,5 +1,4 @@
 import type { WordSearchResult } from "@/types";
-import { unescapeObject } from "@api/utils";
 
 export async function searchInDatabase(
   db: D1Database,
@@ -37,5 +36,5 @@ export async function searchInDatabase(
     }
     groupedResults[row.id].definitions.push(row.definition);
   }
-  return unescapeObject(Object.values(groupedResults));
+  return Object.values(groupedResults);
 }

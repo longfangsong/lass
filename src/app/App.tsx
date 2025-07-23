@@ -2,7 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import NavBar from "@app/components/NavBar";
 import { ThemeProvider } from "@app/components/ThemeProvider";
 import Index from "@app/IndexPage";
-import { Dictionary } from "@app/dictionary";
+import { Dictionary } from "@/app/pages/dictionary";
 
 const serverSideRegex = /^(\/api\/|\/dictionary-init\/).*/;
 const router = (
