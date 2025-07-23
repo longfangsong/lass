@@ -3,6 +3,7 @@ import NavBar from "@app/components/NavBar";
 import { ThemeProvider } from "@app/components/ThemeProvider";
 import Index from "@app/IndexPage";
 import { Dictionary } from "@/app/pages/dictionary";
+import { useInitDictionaryIfNeeded } from "./hooks/dictionary/init";
 
 const serverSideRegex = /^(\/api\/|\/dictionary-init\/).*/;
 const router = (
@@ -20,6 +21,7 @@ const router = (
 );
 
 function App() {
+  useInitDictionaryIfNeeded();
   return (
     <>
       {serverSideRegex.test(window.location.pathname) ? (

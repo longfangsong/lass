@@ -19,10 +19,9 @@ import {
 } from "@app/components/ui/dialog";
 import type { WordSearchResult, Word } from "@/types";
 import WordDetail from "@app/components/word/WordDetail";
-import { searchWord } from "../data/dictionary/query";
-import { useInitDictionaryIfNeeded } from "../hooks/dictionary/init";
+import { searchWord } from "@app/data/dictionary/query";
 import { useAtomValue } from "jotai";
-import { progress, tasks } from "../atoms/dictionary/init";
+import { progress, tasks } from "@app/atoms/dictionary/init";
 import { CheckCheck, FileDown } from "lucide-react";
 
 function WordDetailDialog({
@@ -56,7 +55,6 @@ export function Dictionary() {
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const inited = useInitDictionaryIfNeeded();
 
   const search = async (spell: string, useAI: boolean = false) => {
     if (!spell.trim()) {
@@ -67,7 +65,7 @@ export function Dictionary() {
     setIsLoading(true);
     try {
       let searchResults: WordSearchResult[];
-      if (!inited || useAI) {
+      if (initProgress !== "Done" || useAI) {
         const response = await fetch(
           `/api/words?spell=${encodeURIComponent(spell)}&ai=${useAI}`,
         );
