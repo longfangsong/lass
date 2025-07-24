@@ -3,9 +3,13 @@ import type {
   Lexeme,
   WordIndex,
   WordBookEntry,
+  UserSettings,
 } from "./database";
 
-export type { DBWord, Lexeme, WordIndex, WordBookEntry };
+import { AutoNewReviewPolicy, NotReviewed } from "./database";
+export type { DBWord, Lexeme, WordIndex, WordBookEntry, UserSettings };
+
+export { AutoNewReviewPolicy, NotReviewed };
 
 export interface WordSearchResult {
   id: string;

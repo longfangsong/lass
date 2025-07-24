@@ -4,11 +4,11 @@ CREATE TABLE Article (
     id CHAR(36) PRIMARY KEY,
     title text,
     content text,
-    create_time INTEGER,
+    update_time INTEGER NOT NULL,
     url VARCHAR(2048),
     voice_url VARCHAR(2048)
 );
-CREATE INDEX idx_Article_create_time ON Article (create_time);
+CREATE INDEX idx_Article_update_time ON Article (update_time);
 
 CREATE TABLE Word (
     id CHAR(36) PRIMARY KEY,
@@ -17,7 +17,7 @@ CREATE TABLE Word (
     phonetic VARCHAR(255),
     phonetic_voice BLOB,
     phonetic_url VARCHAR(2048),
-    update_time INTEGER,
+    update_time INTEGER NOT NULL,
     frequency INTEGER
 );
 CREATE INDEX idx_Word_update_time ON Word (update_time);
@@ -27,7 +27,7 @@ CREATE TABLE WordIndex (
     word_id CHAR(36) NOT NULL REFERENCES Word(id),
     spell VARCHAR(255) NOT NULL,
     form VARCHAR(16),
-    update_time INTEGER
+    update_time INTEGER NOT NULL
 );
 CREATE INDEX idx_WordIndex_spell ON WordIndex(spell);
 CREATE INDEX idx_WordIndex_word_id ON WordIndex(word_id);
@@ -41,7 +41,7 @@ CREATE TABLE Lexeme (
     example_meaning TEXT,
     -- lexin-swe | folkets-lexikon | AI
     source VARCHAR(16) NOT NULL,
-    update_time INTEGER
+    update_time INTEGER NOT NULL
 );
 CREATE INDEX idx_Lexeme_word_id ON Lexeme(word_id);
 CREATE INDEX idx_Lexeme_update_time ON Lexeme (update_time);
@@ -51,14 +51,15 @@ CREATE TABLE WordBookEntry (
     user_email VARCHAR(255) NOT NULL,
     word_id CHAR(36) NOT NULL REFERENCES Word(id),
 
-    passive_review_count INTEGER,
-    last_passive_review_time INTEGER,
-
-    active_review_count INTEGER,
-    last_active_review_time INTEGER,
+    -- We use -1 instead of NULL for these 4 fields
+    -- Because indexedb cannot index null values.
+    passive_review_count INTEGER NOT NULL,
+    next_passive_review_time INTEGER NOT NULL,
+    active_review_count INTEGER NOT NULL,
+    next_active_review_time INTEGER NOT NULL,
 
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    update_time INTEGER
+    update_time INTEGER NOT NULL
 );
 CREATE INDEX idx_WordBookEntry_user_email ON WordBookEntry(user_email);
 CREATE INDEX idx_WordBookEntry_update_time ON WordBookEntry (update_time);
@@ -70,5 +71,5 @@ CREATE TABLE UserSettings (
     -- no: 0, random: 1, most frequent: 2, fifo: 3
     auto_new_review INTEGER NOT NULL DEFAULT 2,
     daily_new_review_count INTEGER NOT NULL DEFAULT 10,
-    update_time INTEGER
+    update_time INTEGER NOT NULL
 );

@@ -10,7 +10,8 @@
     "preview": "pnpm run build && vite preview",
     "deploy": "pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
-    "generate-pwa-assets": "pwa-assets-generator"
+    "generate-pwa-assets": "pwa-assets-generator",
+    "test": "vitest"
   },
   "dependencies": {
     "@google/genai": "^1.10.0",
@@ -24,6 +25,7 @@
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "dexie": "^4.0.11",
     "jotai": "^2.12.5",
     "lucide-react": "^0.525.0",
@@ -51,6 +53,7 @@
     "typescript-eslint": "^8.35.1",
     "vite": "^7.0.4",
     "vite-plugin-pwa": "^1.0.1",
+    "vitest": "^3.2.4",
     "wrangler": "^4.25.0"
   }
 }

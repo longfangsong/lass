@@ -5,7 +5,7 @@ export interface Word {
   phonetic: string | null;
   phonetic_voice: Array<number> | null;
   phonetic_url: string | null;
-  update_time: number | null;
+  update_time: number;
   frequency: number | null;
 }
 
@@ -16,7 +16,7 @@ export interface Lexeme {
   example: string | null;
   example_meaning: string | null;
   source: string;
-  update_time: number | null;
+  update_time: number;
 }
 
 export interface WordIndex {
@@ -24,23 +24,31 @@ export interface WordIndex {
   word_id: string;
   spell: string;
   form: string | null;
-  update_time: number | null;
+  update_time: number;
 }
+
+export const NotReviewed = -1;
 
 export interface WordBookEntry {
   id: string;
   word_id: string;
-  passive_review_count: number | null;
-  last_passive_review_time: number | null;
-  active_review_count: number | null;
-  last_active_review_time: number | null;
+  passive_review_count: number;
+  next_passive_review_time: number;
+  active_review_count: number;
+  next_active_review_time: number;
   deleted: boolean;
-  update_time: number | null;
+  update_time: number;
+}
+
+export enum AutoNewReviewPolicy {
+  No = 0,
+  Random = 1,
+  MostFrequent = 2,
+  FirstCome = 3,
 }
 
 export interface UserSettings {
-  user_email: string;
-  auto_new_review: number;
+  auto_new_review: AutoNewReviewPolicy;
   daily_new_review_count: number;
-  update_time: number | null;
+  update_time: number;
 }
