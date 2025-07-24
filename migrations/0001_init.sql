@@ -51,10 +51,10 @@ CREATE TABLE WordBookEntry (
     user_email VARCHAR(255) NOT NULL,
     word_id CHAR(36) NOT NULL REFERENCES Word(id),
 
-    passive_review_count INTEGER NOT NULL DEFAULT 0,
+    passive_review_count INTEGER,
     last_passive_review_time INTEGER,
 
-    active_review_count INTEGER NOT NULL DEFAULT 0,
+    active_review_count INTEGER,
     last_active_review_time INTEGER,
 
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
@@ -63,3 +63,12 @@ CREATE TABLE WordBookEntry (
 CREATE INDEX idx_WordBookEntry_user_email ON WordBookEntry(user_email);
 CREATE INDEX idx_WordBookEntry_update_time ON WordBookEntry (update_time);
 CREATE UNIQUE INDEX idx_WordBookEntry_word_id_user_email ON WordBookEntry (word_id, user_email);
+
+
+CREATE TABLE UserSettings (
+    user_email VARCHAR(255) PRIMARY KEY,
+    -- no: 0, random: 1, most frequent: 2, fifo: 3
+    auto_new_review INTEGER NOT NULL DEFAULT 2,
+    daily_new_review_count INTEGER NOT NULL DEFAULT 10,
+    update_time INTEGER
+);

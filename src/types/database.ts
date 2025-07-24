@@ -26,3 +26,21 @@ export interface WordIndex {
   form: string | null;
   update_time: number | null;
 }
+
+export interface WordBookEntry {
+  id: string;
+  word_id: string;
+  passive_review_count: number | null;
+  last_passive_review_time: number | null;
+  active_review_count: number | null;
+  last_active_review_time: number | null;
+  deleted: boolean;
+  update_time: number | null;
+}
+
+export interface UserSettings {
+  user_email: string;
+  auto_new_review: number;
+  daily_new_review_count: number;
+  update_time: number | null;
+}

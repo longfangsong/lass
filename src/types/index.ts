@@ -1,6 +1,11 @@
-import type { Word as DBWord, Lexeme, WordIndex } from "./database";
+import type {
+  Word as DBWord,
+  Lexeme,
+  WordIndex,
+  WordBookEntry,
+} from "./database";
 
-export type { DBWord, Lexeme, WordIndex };
+export type { DBWord, Lexeme, WordIndex, WordBookEntry };
 
 export interface WordSearchResult {
   id: string;
