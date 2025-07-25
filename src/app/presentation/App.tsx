@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/app/presentation/components/ThemeProvider";
 import Index from "@/app/presentation/pages/indexPage";
 import { Dictionary } from "@/app/presentation/pages/dictionary";
 import { useInitDictionaryIfNeeded } from "@/app/presentation/hooks/dictionary/init";
+import All from "./pages/wordBook/all";
 
 const serverSideRegex = /^(\/api\/|\/dictionary-init\/).*/;
 const router = (
@@ -13,6 +14,7 @@ const router = (
       <main className="p-2 sm:p-4 text-gray-900 dark:text-white dark:bg-gray-900 h-[calc(100vh-63px)] overflow-y-scroll">
         <Routes>
           <Route path="/dictionary" element={<Dictionary />} />
+          <Route path="/wordbook/all" element={<All />} />
           <Route path="/" element={<Index />} />
         </Routes>
       </main>

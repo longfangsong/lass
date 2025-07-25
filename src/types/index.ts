@@ -21,3 +21,5 @@ export type Word = DBWord & {
   indexes: Array<WordIndex>;
   lexemes: Array<Lexeme>;
 };
+
+export type WordBookEntryWithDetails = WordBookEntry & Omit<Word, "id">;

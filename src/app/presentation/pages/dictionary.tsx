@@ -23,13 +23,14 @@ import { useAtomValue } from "jotai";
 import { progress, tasks } from "@app/presentation/atoms/dictionary/init";
 import { CheckCheck, FileDown } from "lucide-react";
 import { searchWord } from "@/app/domain/service/dictionary/search";
+import SaveToWordBookButton from "../components/word/SaveToWordBook";
 
 function WordDetailDialog({
   word,
   open,
   onOpenChange,
 }: {
-  word: Word | null;
+  word: Word;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -40,7 +41,10 @@ function WordDetailDialog({
           <DialogTitle>{word?.lemma}</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <WordDetail word={word} />
+        <WordDetail
+          word={word}
+          buttons={[<SaveToWordBookButton word_id={word?.id} />]}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -61,7 +65,6 @@ export function Dictionary() {
       setResults([]);
       return;
     }
-
     setIsLoading(true);
     try {
       let searchResults: WordSearchResult[];
@@ -218,11 +221,13 @@ export function Dictionary() {
         </div>
       )}
 
-      <WordDetailDialog
-        word={selectedWord}
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-      />
+      {selectedWord && (
+        <WordDetailDialog
+          word={selectedWord}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
+      )}
     </div>
   );
 }

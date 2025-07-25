@@ -71,7 +71,7 @@ export default function NavBar() {
                     <li>
                       <NavigationMenuLink asChild>
                         <Link
-                          to="/words/all"
+                          to="/wordbook/all"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
                           View All
@@ -81,7 +81,7 @@ export default function NavBar() {
                     <li>
                       <NavigationMenuLink asChild>
                         <Link
-                          to="/words/review"
+                          to="/wordbook/review"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
                           Do Review
