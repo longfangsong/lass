@@ -37,17 +37,23 @@ export default function All() {
       accessorKey: "lemma",
       header: "Word",
     },
+
     {
       accessorKey: "passive_review_count",
-      header: "Passive Review",
+      header: () => <div className="text-center">Review</div>,
       cell: ({ row }) => {
         const count: number = row.getValue("passive_review_count");
 
         if (count === NotReviewed) {
           return (
-            <Button onClick={() => startReviewProgress(row.original)}>
-              Start
-            </Button>
+            <div className="flex items-center">
+              <Button
+                className="mx-auto"
+                onClick={() => startReviewProgress(row.original)}
+              >
+                Start
+              </Button>
+            </div>
           );
         }
 
@@ -67,43 +73,13 @@ export default function All() {
         );
       },
     },
-    // {
-    //   accessorKey: "active_review_count",
-    //   header: "Active Review",
-    //   cell: ({ row }) => {
-    //     const count: number = row.getValue("active_review_count");
-    //     if (count === NotReviewed) {
-    //       return <Button>Start</Button>;
-    //     }
-    //     return (
-    //       <div className="flex flex-col-reverse items-center">
-    //         {ReviewIntervals.map((_, index) => (
-    //           <div
-    //             key={index}
-    //             className={cn(
-    //               "w-3.5 h-0.5 rounded-sm m-px",
-    //               index < count ? reviewCountColor[index] : "bg-gray-300",
-    //             )}
-    //           ></div>
-    //         ))}
-    //         <span>{count}</span>
-    //       </div>
-    //     );
-    //   },
-    // },
   ];
-  // const [data, setData] = useState<Array<WordBookEntryWithDetails>>([]);
-  const data = useLiveQuery(() => all(0, 1000));
+  const data = useLiveQuery(() => all());
   const table = useReactTable({
     columns,
     data: data || fallbackData,
     getCoreRowModel: getCoreRowModel(),
   });
-  // useEffect(() => {
-  //   (async () => {
-  //     setData(await all(0, 1000));
-  //   })();
-  // });
   return (
     <div className="overflow-hidden rounded-md border">
       <Table>

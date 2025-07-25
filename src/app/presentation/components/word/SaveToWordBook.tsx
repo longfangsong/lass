@@ -15,7 +15,7 @@ export default function SaveToWordBookButton({
   return (
     <Button
       aria-label="Save to word book"
-      className={cn("p-0", className)}
+      className={cn("p-0 cursor-pointer", className)}
       onClick={async () => {
         await createWordbookEntry(word_id);
         setClicked(true);

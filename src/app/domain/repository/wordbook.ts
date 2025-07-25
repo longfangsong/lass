@@ -7,15 +7,12 @@ export async function save(entry: WordBookEntry): Promise<void> {
   await db.wordBookEntry.put(entry);
 }
 
-export async function all(
-  offset: number,
-  limit: number,
-): Promise<Array<WordBookEntryWithDetails>> {
+export async function all(): Promise<Array<WordBookEntryWithDetails>> {
   const entries = await db.wordBookEntry
     .orderBy("update_time")
     .reverse()
-    .offset(offset)
-    .limit(limit)
+    // .offset(offset)
+    // .limit(limit)
     .toArray();
   return await Promise.all(
     entries.map(async (entry) => {
@@ -35,12 +32,30 @@ export async function all(
   );
 }
 
-export async function needReviewNow(): Promise<Array<WordBookEntry>> {
-  return await db.wordBookEntry
+export async function needReviewNow(): Promise<
+  Array<WordBookEntryWithDetails>
+> {
+  const entries = await db.wordBookEntry
     .where("next_passive_review_time")
     .between(0, Date.now())
     .and((it) => !it.deleted)
     .toArray();
+  return await Promise.all(
+    entries.map(async (entry) => {
+      const [word, indexes, lexemes] = await Promise.all([
+        db.word.get(entry.word_id),
+        db.wordIndex.where("word_id").equals(entry.word_id).toArray(),
+        db.lexeme.where("word_id").equals(entry.word_id).toArray(),
+      ]);
+      const { id: _, ...wordWithoutId } = word!;
+      return {
+        ...entry,
+        ...wordWithoutId,
+        indexes,
+        lexemes,
+      };
+    }),
+  );
 }
 
 export async function allInReview(): Promise<Array<WordBookEntry>> {

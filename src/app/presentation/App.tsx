@@ -5,16 +5,18 @@ import Index from "@/app/presentation/pages/indexPage";
 import { Dictionary } from "@/app/presentation/pages/dictionary";
 import { useInitDictionaryIfNeeded } from "@/app/presentation/hooks/dictionary/init";
 import All from "./pages/wordBook/all";
+import Review from "./pages/wordBook/review";
 
 const serverSideRegex = /^(\/api\/|\/dictionary-init\/).*/;
 const router = (
   <BrowserRouter>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <NavBar />
-      <main className="p-2 sm:p-4 text-gray-900 dark:text-white dark:bg-gray-900 h-[calc(100vh-63px)] overflow-y-scroll">
+      <main className="p-2 sm:p-4 h-[calc(100vh-63px)] overflow-y-scroll">
         <Routes>
           <Route path="/dictionary" element={<Dictionary />} />
           <Route path="/wordbook/all" element={<All />} />
+          <Route path="/wordbook/review" element={<Review />} />
           <Route path="/" element={<Index />} />
         </Routes>
       </main>

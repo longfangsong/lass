@@ -29,6 +29,10 @@ export class DB extends Dexie {
     this.wordIndex = this.table("WordIndex");
     this.lexeme = this.table("Lexeme");
     this.wordBookEntry = this.table("WordBookEntry");
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).db = this;
+    }
   }
 
   clear() {

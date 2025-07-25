@@ -19,7 +19,6 @@ export default defineConfig({
         globPatterns: [
           "**/*.{js,css,html,ico,png,jpg,jpeg,svg,otf,eot,ttf,woff,woff2}",
         ],
-        navigateFallback: "index.html",
       },
       manifest: {
         name: "Läss",

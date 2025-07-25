@@ -1,0 +1,151 @@
+import type { WordBookEntryWithDetails } from "@/types";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import {
+  reviewFailed,
+  reviewSuccessfully,
+  reviewUnsure,
+} from "@/app/domain/service/wordbook/review";
+import { save } from "@/app/domain/repository/wordbook";
+import { Button } from "../ui/button";
+import ClickableBlurElement from "../clickableBlurElement";
+import { useEffect, useState } from "react";
+import OptionalTooltip from "../optionalTooltip";
+
+export default function WordCard({
+  entry,
+  onDone,
+}: {
+  entry: WordBookEntryWithDetails;
+  onDone: () => void;
+}) {
+  const [thinkTimePassed, setThinkTimePassed] = useState(false);
+  const [revealAll, setRevealAll] = useState(false);
+
+  useEffect(() => {
+    // Reset state for the new entry
+    setThinkTimePassed(false);
+    setRevealAll(false);
+
+    const timeout = setTimeout(() => setThinkTimePassed(true), 3000);
+    // Cleanup function: clears the timeout if the component unmounts
+    // or if 'entry' changes before the timeout fires.
+    return () => clearTimeout(timeout);
+  }, [entry]);
+
+  const doneClear = async () => {
+    setRevealAll(true);
+    const newEntry = reviewSuccessfully(entry);
+    await save(newEntry);
+    setTimeout(() => {
+      setRevealAll(false);
+      onDone();
+    }, 2000);
+  };
+
+  const doneMaybe = async () => {
+    setRevealAll(true);
+    const newEntry = reviewUnsure(entry);
+    await save(newEntry);
+    setTimeout(() => {
+      setRevealAll(false);
+      onDone();
+    }, 2000);
+  };
+
+  const doneNo = async () => {
+    setRevealAll(true);
+    const newEntry = reviewFailed(entry);
+    await save(newEntry);
+    setTimeout(() => {
+      setRevealAll(false);
+      onDone();
+    }, 2000);
+  };
+
+  const tryThinkHarderTooltip = !thinkTimePassed ? (
+    <>
+      <p>Try to recall it!</p>
+      <p>Do not give up so quickly!</p>
+    </>
+  ) : undefined;
+
+  return (
+    <Card className="max-w-172 mx-auto">
+      <CardHeader>
+        <CardTitle className="text-4xl text-center">{entry.lemma}</CardTitle>
+        <CardContent>
+          {entry.lexemes.map((lexeme) => (
+            <div key={lexeme.id}>
+              {entry.passive_review_count === 0 || revealAll ? (
+                <div>{lexeme.definition}</div>
+              ) : (
+                <ClickableBlurElement
+                  disabled={!thinkTimePassed}
+                  tooltip={tryThinkHarderTooltip}
+                >
+                  {lexeme.definition}
+                </ClickableBlurElement>
+              )}
+              <p>{lexeme.example}</p>
+              {entry.passive_review_count === 0 || revealAll ? (
+                <p>{lexeme.example_meaning}</p>
+              ) : (
+                <ClickableBlurElement
+                  disabled={!thinkTimePassed}
+                  tooltip={tryThinkHarderTooltip}
+                >
+                  {lexeme.example_meaning}
+                </ClickableBlurElement>
+              )}
+            </div>
+          ))}
+        </CardContent>
+        <CardFooter className="pt-8 flex w-full flex-wrap justify-around">
+          <Button
+            className="bg-green-600 hover:bg-green-700 text-white"
+            disabled={revealAll}
+            onClick={doneClear}
+          >
+            Klar
+          </Button>
+          {entry.passive_review_count > 0 && (
+            <>
+              <OptionalTooltip
+                tooltip={thinkTimePassed ? undefined : tryThinkHarderTooltip}
+              >
+                <div>
+                  <Button
+                    disabled={revealAll || !thinkTimePassed}
+                    className="bg-yellow-400 hover:bg-yellow-300 text-black"
+                    onClick={doneMaybe}
+                  >
+                    Kanske
+                  </Button>
+                </div>
+              </OptionalTooltip>
+              <OptionalTooltip
+                tooltip={thinkTimePassed ? undefined : tryThinkHarderTooltip}
+              >
+                <div>
+                  <Button
+                    disabled={revealAll || !thinkTimePassed}
+                    variant="destructive"
+                    onClick={doneNo}
+                  >
+                    Nej
+                  </Button>
+                </div>
+              </OptionalTooltip>
+            </>
+          )}
+        </CardFooter>
+      </CardHeader>
+    </Card>
+  );
+}
