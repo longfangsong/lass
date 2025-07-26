@@ -11,7 +11,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/app/presentation/components/ui/navigation-menu";
 import { cn } from "@/app/presentation/lib/utils";
-import { ModeToggle } from "./ModeToggle";
+import { ModeToggle } from "./modeToggle";
 import { Button } from "@/app/presentation/components/ui/button";
 import { Separator } from "./ui/separator";
 import {

@@ -32,6 +32,14 @@ export default function WordCard({
     setThinkTimePassed(false);
     setRevealAll(false);
 
+    if (entry.phonetic_url) {
+      new Audio(entry.phonetic_url).play();
+    } else if (entry.phonetic_voice) {
+      const pronunciation_voice = new Uint8Array(entry.phonetic_voice);
+      const blob = new Blob([pronunciation_voice], { type: "audio/mp3" });
+      new Audio(window.URL.createObjectURL(blob)).play();
+    }
+
     const timeout = setTimeout(() => setThinkTimePassed(true), 3000);
     // Cleanup function: clears the timeout if the component unmounts
     // or if 'entry' changes before the timeout fires.
@@ -42,30 +50,39 @@ export default function WordCard({
     setRevealAll(true);
     const newEntry = reviewSuccessfully(entry);
     await save(newEntry);
-    setTimeout(() => {
-      setRevealAll(false);
-      onDone();
-    }, 2000);
+    setTimeout(
+      () => {
+        setRevealAll(false);
+        onDone();
+      },
+      entry.passive_review_count === 0 ? 0 : 2000,
+    );
   };
 
   const doneMaybe = async () => {
     setRevealAll(true);
     const newEntry = reviewUnsure(entry);
     await save(newEntry);
-    setTimeout(() => {
-      setRevealAll(false);
-      onDone();
-    }, 2000);
+    setTimeout(
+      () => {
+        setRevealAll(false);
+        onDone();
+      },
+      entry.passive_review_count === 0 ? 0 : 2000,
+    );
   };
 
   const doneNo = async () => {
     setRevealAll(true);
     const newEntry = reviewFailed(entry);
     await save(newEntry);
-    setTimeout(() => {
-      setRevealAll(false);
-      onDone();
-    }, 2000);
+    setTimeout(
+      () => {
+        setRevealAll(false);
+        onDone();
+      },
+      entry.passive_review_count === 0 ? 0 : 2000,
+    );
   };
 
   const tryThinkHarderTooltip = !thinkTimePassed ? (
@@ -92,17 +109,22 @@ export default function WordCard({
                   {lexeme.definition}
                 </ClickableBlurElement>
               )}
-              <p>{lexeme.example}</p>
-              {entry.passive_review_count === 0 || revealAll ? (
-                <p>{lexeme.example_meaning}</p>
-              ) : (
-                <ClickableBlurElement
-                  disabled={!thinkTimePassed}
-                  tooltip={tryThinkHarderTooltip}
-                >
-                  {lexeme.example_meaning}
-                </ClickableBlurElement>
-              )}
+              <div className="grid grid-cols-2 gap-1">
+                <p className="text-sm text-green-500">{lexeme.example}</p>
+                {entry.passive_review_count === 0 || revealAll ? (
+                  <p className="text-sm text-blue-500">
+                    {lexeme.example_meaning}
+                  </p>
+                ) : (
+                  <ClickableBlurElement
+                    className="text-sm text-blue-500"
+                    disabled={!thinkTimePassed}
+                    tooltip={tryThinkHarderTooltip}
+                  >
+                    {lexeme.example_meaning}
+                  </ClickableBlurElement>
+                )}
+              </div>
             </div>
           ))}
         </CardContent>

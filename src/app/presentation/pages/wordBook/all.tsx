@@ -19,6 +19,7 @@ import {
 } from "../../components/ui/table";
 import { all } from "@/app/domain/repository/wordbook";
 import { startReviewProgress } from "@/app/application/usecase/wordbook/startReviewProgress";
+import PlayButton from "../../components/playAudioButton";
 
 const reviewCountColor = [
   "bg-red-500",
@@ -37,7 +38,6 @@ export default function All() {
       accessorKey: "lemma",
       header: "Word",
     },
-
     {
       accessorKey: "passive_review_count",
       header: () => <div className="text-center">Review</div>,
@@ -72,6 +72,10 @@ export default function All() {
           </div>
         );
       },
+    },
+    {
+      header: "Phonetic",
+      cell: ({ row }) => <PlayButton voice={row.original} />,
     },
   ];
   const data = useLiveQuery(() => all());

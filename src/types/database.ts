@@ -1,10 +1,13 @@
-export interface Word {
+export interface WithPhonetic {
+  phonetic_voice: Array<number> | null;
+  phonetic_url: string | null;
+}
+
+export interface Word extends WithPhonetic {
   id: string;
   lemma: string;
   part_of_speech: string | null;
   phonetic: string | null;
-  phonetic_voice: Array<number> | null;
-  phonetic_url: string | null;
   update_time: number;
   frequency: number | null;
 }

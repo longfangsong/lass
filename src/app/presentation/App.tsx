@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router";
-import NavBar from "@/app/presentation/components/NavBar";
+import NavBar from "@/app/presentation/components/navBar";
 import { ThemeProvider } from "@/app/presentation/components/ThemeProvider";
 import Index from "@/app/presentation/pages/indexPage";
 import { Dictionary } from "@/app/presentation/pages/dictionary";

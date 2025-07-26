@@ -18,12 +18,13 @@ import {
   DialogTitle,
 } from "@app/presentation/components/ui/dialog";
 import type { WordSearchResult, Word } from "@/types";
-import WordDetail from "@app/presentation/components/word/WordDetail";
+import WordDetail from "@app/presentation/components/word/wordDetail";
 import { useAtomValue } from "jotai";
 import { progress, tasks } from "@app/presentation/atoms/dictionary/init";
 import { CheckCheck, FileDown } from "lucide-react";
 import { searchWord } from "@/app/domain/service/dictionary/search";
-import SaveToWordBookButton from "../components/word/SaveToWordBook";
+import SaveToWordBookButton from "../components/word/saveToWordBook";
+import PlayButton from "../components/playAudioButton";
 
 function WordDetailDialog({
   word,
@@ -43,7 +44,10 @@ function WordDetailDialog({
         </DialogHeader>
         <WordDetail
           word={word}
-          buttons={[<SaveToWordBookButton word_id={word?.id} />]}
+          buttons={[
+            <SaveToWordBookButton word_id={word?.id} />,
+            <PlayButton voice={word} />,
+          ]}
         />
       </DialogContent>
     </Dialog>

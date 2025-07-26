@@ -4,10 +4,18 @@ import type {
   WordIndex,
   WordBookEntry,
   UserSettings,
+  WithPhonetic,
 } from "./database";
 
 import { AutoNewReviewPolicy, NotReviewed } from "./database";
-export type { DBWord, Lexeme, WordIndex, WordBookEntry, UserSettings };
+export type {
+  DBWord,
+  Lexeme,
+  WordIndex,
+  WordBookEntry,
+  UserSettings,
+  WithPhonetic,
+};
 
 export { AutoNewReviewPolicy, NotReviewed };
 
