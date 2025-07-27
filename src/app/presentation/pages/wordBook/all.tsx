@@ -20,6 +20,8 @@ import {
 import { all } from "@/app/domain/repository/wordbook";
 import { startReviewProgress } from "@/app/application/usecase/wordbook/startReviewProgress";
 import PlayButton from "../../components/playAudioButton";
+import { formatDistanceToNow } from "date-fns";
+import { sv } from "date-fns/locale";
 
 const reviewCountColor = [
   "bg-red-500",
@@ -37,6 +39,38 @@ export default function All() {
     {
       accessorKey: "lemma",
       header: "Word",
+    },
+    {
+      accessorKey: "next_passive_review_time",
+      header: "Next Review",
+      cell: ({ row }) => {
+        const time: number = row.getValue("next_passive_review_time");
+        const passive_review_count: number = row.getValue(
+          "passive_review_count",
+        );
+        if (passive_review_count === NotReviewed) {
+          return <></>;
+        } else if (passive_review_count >= ReviewIntervals.length) {
+          return "Klart!";
+        } else {
+          return `I ${formatDistanceToNow(time, { locale: sv })}`;
+        }
+      },
+    },
+    {
+      header: "Meaning",
+      cell: ({ row }) => {
+        const meanings: Array<string> = row.original.lexemes.map(
+          (lexeme) => lexeme.definition,
+        );
+        return (
+          <>
+            {meanings.map((meaning) => (
+              <p>{meaning}</p>
+            ))}
+          </>
+        );
+      },
     },
     {
       accessorKey: "passive_review_count",
