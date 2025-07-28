@@ -9,7 +9,7 @@ export class DB extends Dexie {
     },
     "table_name"
   >;
-  readonly word: EntityTable<DBWord, "id">;
+  readonly word: EntityTable<DBWord & { frequency_rank?: number }, "id">;
   readonly wordIndex: EntityTable<WordIndex, "id">;
   readonly lexeme: EntityTable<Lexeme, "id">;
   readonly wordBookEntry: EntityTable<WordBookEntry, "id">;

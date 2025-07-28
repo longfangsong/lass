@@ -7,7 +7,9 @@ export async function save(entry: WordBookEntry): Promise<void> {
   await db.wordBookEntry.put(entry);
 }
 
-export async function all(): Promise<Array<WordBookEntryWithDetails>> {
+export async function all(): Promise<
+  Array<WordBookEntryWithDetails & { frequency_rank?: number }>
+> {
   const entries = await db.wordBookEntry
     .orderBy("update_time")
     .reverse()

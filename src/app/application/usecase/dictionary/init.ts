@@ -37,6 +37,20 @@ export async function initTable<T>(
   await db.meta.put({ table_name: table.name, version });
 }
 
+async function fillFrequencyRank() {
+  db.transaction("rw", db.word, async () => {
+    const allWords = await db.word
+      .toCollection()
+      .filter((it) => it.frequency !== null)
+      .reverse()
+      .sortBy("frequency");
+    allWords.forEach((word, index) => {
+      word.frequency_rank = index + 1;
+    });
+    await db.word.bulkPut(allWords);
+  });
+}
+
 async function init(
   setTasks: (tasks: Tasks) => void,
   setProgress: (progress: Progress) => void,
@@ -45,13 +59,18 @@ async function init(
   setTasks(tasks);
   const initProgress = createInitProgress(tasks.tables);
   setProgress(initProgress);
+  let fillFrequencyTask;
   for (let tableId = 0; tableId < tasks.tables.length; ++tableId) {
     const [key, count] = tasks.tables[tableId];
     await initTable(db.table(key), count, tasks.version, (done) => {
       initProgress[tableId][1] = done;
       setProgress(initProgress);
     });
+    if (key === "Word") {
+      fillFrequencyTask = fillFrequencyRank();
+    }
   }
+  await fillFrequencyTask;
   setProgress("Done");
 }
 

@@ -3,8 +3,10 @@ import { NotReviewed, type WordBookEntryWithDetails } from "@/types";
 import {
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type SortingState,
 } from "@tanstack/react-table";
 import { cn } from "../../lib/utils";
 import { Button } from "../../components/ui/button";
@@ -22,6 +24,8 @@ import { startReviewProgress } from "@/app/application/usecase/wordbook/startRev
 import PlayButton from "../../components/playAudioButton";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
+import { useState } from "react";
+import { ArrowUpDown } from "lucide-react";
 
 const reviewCountColor = [
   "bg-red-500",
@@ -32,10 +36,15 @@ const reviewCountColor = [
   "bg-green-500",
 ];
 
-const fallbackData: Array<WordBookEntryWithDetails> = [];
+const fallbackData: Array<
+  WordBookEntryWithDetails & { frequency_rank?: number }
+> = [];
 
 export default function All() {
-  const columns: ColumnDef<WordBookEntryWithDetails>[] = [
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const columns: ColumnDef<
+    WordBookEntryWithDetails & { frequency_rank?: number }
+  >[] = [
     {
       accessorKey: "lemma",
       header: "Word",
@@ -52,6 +61,8 @@ export default function All() {
           return <></>;
         } else if (passive_review_count >= ReviewIntervals.length) {
           return "Klart!";
+        } else if (time <= Date.now()) {
+          return "Nu!";
         } else {
           return `I ${formatDistanceToNow(time, { locale: sv })}`;
         }
@@ -66,11 +77,37 @@ export default function All() {
         return (
           <>
             {meanings.map((meaning) => (
-              <p>{meaning}</p>
+              <p
+                key={meaning}
+                className="max-w-sm wrap-break-word whitespace-normal mb-3 last:mb-0"
+              >
+                {meaning}
+              </p>
             ))}
           </>
         );
       },
+    },
+    {
+      accessorKey: "frequency_rank",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Frequency Rank
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      // cell: ({ row }) => {
+      //   const frequencyRank = row.original.frequency_rank;
+
+      //   if (frequencyRank !== undefined) {
+      //     return frequencyRank.toString();
+      //   }
+      // },
     },
     {
       accessorKey: "passive_review_count",
@@ -117,6 +154,11 @@ export default function All() {
     columns,
     data: data || fallbackData,
     getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
   });
   return (
     <div className="overflow-hidden rounded-md border">

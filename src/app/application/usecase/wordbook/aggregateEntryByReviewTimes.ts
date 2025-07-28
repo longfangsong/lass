@@ -8,7 +8,6 @@ export async function aggregateEntryByReviewTimes(): Promise<
 > {
   // todo: consider daily auto new start
   const result: Array<Array<WordBookEntry>> = [...Array(30)].map((_) => []);
-  console.log(result);
   const today = new Date();
   const days = eachDayOfInterval({
     start: today,

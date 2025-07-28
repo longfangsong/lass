@@ -25,13 +25,15 @@ import { CheckCheck, FileDown } from "lucide-react";
 import { searchWord } from "@/app/domain/service/dictionary/search";
 import SaveToWordBookButton from "../components/word/saveToWordBook";
 import PlayButton from "../components/playAudioButton";
+import { getWordById } from "@/app/domain/repository/dictionary";
+import { Badge } from "../components/ui/badge";
 
 function WordDetailDialog({
   word,
   open,
   onOpenChange,
 }: {
-  word: Word;
+  word: Word & { frequency_rank?: number };
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -40,7 +42,22 @@ function WordDetailDialog({
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{word?.lemma}</DialogTitle>
-          <DialogDescription></DialogDescription>
+          <DialogDescription>
+            {word.frequency_rank &&
+              (word.frequency_rank <= 100 ? (
+                <Badge>Top 100</Badge>
+              ) : word.frequency_rank <= 500 ? (
+                <Badge>Top 500</Badge>
+              ) : word.frequency_rank <= 1000 ? (
+                <Badge>Top 1000</Badge>
+              ) : word.frequency_rank <= 2000 ? (
+                <Badge>Top 2000</Badge>
+              ) : word.frequency_rank <= 5000 ? (
+                <Badge>Top 5000</Badge>
+              ) : (
+                ""
+              ))}
+          </DialogDescription>
         </DialogHeader>
         <WordDetail
           word={word}
@@ -60,7 +77,9 @@ export function Dictionary() {
   const [isLoading, setIsLoading] = useState(false);
   const initProgress = useAtomValue(progress);
   const initTask = useAtomValue(tasks);
-  const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+  const [selectedWord, setSelectedWord] = useState<
+    (Word & { frequency_rank?: number }) | null
+  >(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -108,11 +127,17 @@ export function Dictionary() {
 
   const handleRowClick = async (wordId: string) => {
     try {
-      const response = await fetch(`/api/words/${wordId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch word details");
+      let word;
+      if (initProgress === "Done") {
+        const localWord = await getWordById(wordId);
+        word = localWord;
+      } else {
+        const response = await fetch(`/api/words/${wordId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch word details");
+        }
+        word = await response.json();
       }
-      const word = await response.json();
       setSelectedWord(word);
       setIsDialogOpen(true);
     } catch (error) {
