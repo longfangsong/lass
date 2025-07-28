@@ -1,0 +1,40 @@
+@layer base {
+    :root {
+        --count-chart--1: rgba(
+            255,
+            255,
+            255,
+            1
+        ); /* Corresponds to bg-red-500 */
+        --count-chart-0: rgba(128, 128, 128, 1); /* Corresponds to bg-red-500 */
+        --count-chart-1: rgba(239, 68, 68, 1); /* Corresponds to bg-red-500 */
+        --count-chart-2: rgba(248, 113, 113, 1); /* Corresponds to bg-red-400 */
+        --count-chart-3: rgba(
+            251,
+            146,
+            60,
+            1
+        ); /* Corresponds to bg-orange-400 */
+        --count-chart-4: rgba(
+            246,
+            224,
+            94,
+            1
+        ); /* Corresponds to bg-yellow-400 */
+        --count-chart-5: rgba(
+            104,
+            211,
+            145,
+            1
+        ); /* Corresponds to bg-green-400 */
+        --count-chart-6: rgba(
+            72,
+            187,
+            120,
+            1
+        ); /* Corresponds to bg-green-500 */
+    }
+    .dark {
+        --count-chart--1: var(--card);
+    }
+}

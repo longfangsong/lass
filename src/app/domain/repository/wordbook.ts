@@ -11,8 +11,7 @@ export async function all(): Promise<Array<WordBookEntryWithDetails>> {
   const entries = await db.wordBookEntry
     .orderBy("update_time")
     .reverse()
-    // .offset(offset)
-    // .limit(limit)
+    .filter((it) => !it.deleted)
     .toArray();
   return await Promise.all(
     entries.map(async (entry) => {
