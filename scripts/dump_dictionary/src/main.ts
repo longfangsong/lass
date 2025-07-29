@@ -1,11 +1,11 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { open, Database } from 'sqlite';
-import sqlite3 from 'sqlite3';
+import fs from "fs/promises";
+import path from "path";
+import { open, Database } from "sqlite";
+import sqlite3 from "sqlite3";
 
-const TABLES = ['Word', 'WordIndex', 'Lexeme'];
-const CHUNK_SIZE = 1024 * 1024; // 1MB
-const PAGE_SIZE = 1000; // Number of rows per page
+const TABLES = ["Word", "WordIndex", "Lexeme"];
+const CHUNK_SIZE = 1024 * 1024;
+const PAGE_SIZE = 1000;
 
 async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
@@ -14,7 +14,10 @@ async function ensureDir(dir: string) {
 async function* fetchTableRows(db: Database, table: string) {
   let offset = 0;
   while (true) {
-    const rows: unknown[] = await db.all(`SELECT * FROM ${table} LIMIT ? OFFSET ?`, [PAGE_SIZE, offset]);
+    const rows: unknown[] = await db.all(
+      `SELECT * FROM ${table} LIMIT ? OFFSET ?`,
+      [PAGE_SIZE, offset],
+    );
     if (rows.length === 0) break;
     for (const row of rows) {
       yield row;
@@ -23,7 +26,11 @@ async function* fetchTableRows(db: Database, table: string) {
   }
 }
 
-async function dumpTable(db: Database, table: string, outDir: string): Promise<number> {
+async function dumpTable(
+  db: Database,
+  table: string,
+  outDir: string,
+): Promise<number> {
   await ensureDir(outDir);
   let chunk: unknown[] = [];
   let chunkSize = 0;
@@ -32,10 +39,10 @@ async function dumpTable(db: Database, table: string, outDir: string): Promise<n
   for await (const row of fetchTableRows(db, table)) {
     const rowStr = JSON.stringify(row);
     chunk.push(row);
-    chunkSize += Buffer.byteLength(rowStr, 'utf8');
+    chunkSize += Buffer.byteLength(rowStr, "utf8");
     if (chunkSize >= CHUNK_SIZE) {
       const filePath = path.join(outDir, `${fileIndex}.json`);
-      await fs.writeFile(filePath, JSON.stringify(chunk), 'utf8');
+      await fs.writeFile(filePath, JSON.stringify(chunk), "utf8");
       fileIndex++;
       chunk = [];
       chunkSize = 0;
@@ -43,7 +50,7 @@ async function dumpTable(db: Database, table: string, outDir: string): Promise<n
   }
   if (chunk.length > 0) {
     const filePath = path.join(outDir, `${fileIndex}.json`);
-    await fs.writeFile(filePath, JSON.stringify(chunk), 'utf8');
+    await fs.writeFile(filePath, JSON.stringify(chunk), "utf8");
     fileIndex++;
   }
   return fileIndex;
@@ -51,11 +58,11 @@ async function dumpTable(db: Database, table: string, outDir: string): Promise<n
 
 async function main() {
   const dbPath = process.argv[2];
-  if (!dbPath || !dbPath.endsWith('.sqlite')) {
-    console.error('Usage: node dist/dump_words_to_json.js /path/to/db.sqlite');
+  if (!dbPath || !dbPath.endsWith(".sqlite")) {
+    console.error("Usage: node dist/dump_words_to_json.js /path/to/db.sqlite");
     process.exit(1);
   }
-  const outRoot = path.resolve('dump');
+  const outRoot = path.resolve("dump");
   await ensureDir(outRoot);
   const db = await open({
     filename: dbPath,
@@ -70,11 +77,15 @@ async function main() {
   }
   await db.close();
   // Write meta.json
-  await fs.writeFile(path.join(outRoot, 'meta.json'), JSON.stringify(meta), 'utf8');
-  console.log('Done!');
+  await fs.writeFile(
+    path.join(outRoot, "meta.json"),
+    JSON.stringify(meta),
+    "utf8",
+  );
+  console.log("Done!");
 }
 
 main().catch((err) => {
   console.error(err);
   process.exit(1);
-}); 
+});

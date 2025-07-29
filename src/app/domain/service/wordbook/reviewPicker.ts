@@ -1,73 +1,55 @@
-import { db } from "@/app/infrastructure/db";
-import { AutoNewReviewPolicy, type WordBookEntry } from "@/types";
-import { zip } from "rambda";
+import type { Word } from "@/app/types";
+import { type WordBookEntry } from "@/types";
+import { sortBy, zip } from "remeda";
 
-async function randomPick(count: number): Promise<Array<WordBookEntry>> {
-  return db.transaction("r", db.wordBookEntry, async () => {
-    const notReviewed = db.wordBookEntry.where("passive_review_count").below(0);
-    const totalCount = await notReviewed.count();
-    if (totalCount <= count) {
-      // If we need more items than available, return everything
-      return await notReviewed.toArray();
-    }
-    const result = [];
-    const usedOffsets = new Set<number>();
-    for (let i = 0; i < count; ++i) {
-      let randomOffset = Math.floor(Math.random() * totalCount);
-      while (usedOffsets.has(randomOffset)) {
-        randomOffset = Math.floor(Math.random() * totalCount);
-      }
-      usedOffsets.add(randomOffset);
-      const randomEntry = await notReviewed
-        .clone()
-        .offset(randomOffset)
-        .first();
-      if (randomEntry) {
-        result.push(randomEntry);
-      }
-    }
-    return result;
-  });
-}
-
-async function mostFrequent(count: number): Promise<Array<WordBookEntry>> {
-  return db.transaction("r", db.wordBookEntry, db.word, async () => {
-    const notReviewed = await db.wordBookEntry
-      .where("passive_review_count")
-      .below(0)
-      .toArray();
-    const notReviewedIds = notReviewed.map((it) => it.word_id);
-    const correspondingWords = await db.word.bulkGet(notReviewedIds);
-    const sorted = zip(notReviewed)(correspondingWords).sort(
-      (a, b) => (b[1]!.frequency || 0) - (a[1]!.frequency || 0),
-    );
-    return sorted.slice(0, count).map((it) => it[0]);
-  });
-}
-
-async function firstCome(count: number): Promise<Array<WordBookEntry>> {
-  return db.transaction("r", db.wordBookEntry, async () => {
-    const all = await db.wordBookEntry
-      .where("passive_review_count")
-      .below(0)
-      .sortBy("update_time");
-    return all.slice(0, count);
-  });
-}
-
-export async function pickNewReview(
+export async function randomPick(
+  entries: Array<WordBookEntry>,
   count: number,
-  policy: AutoNewReviewPolicy,
 ): Promise<Array<WordBookEntry>> {
-  switch (policy) {
-    case AutoNewReviewPolicy.No:
-      return [];
-    case AutoNewReviewPolicy.Random:
-      return randomPick(count);
-    case AutoNewReviewPolicy.MostFrequent:
-      return mostFrequent(count);
-    case AutoNewReviewPolicy.FirstCome:
-      return firstCome(count);
+  if (entries.length <= count) {
+    // If we need more items than available, return everything
+    return entries;
   }
-  throw new Error("Unreachable");
+  const result = [];
+  const pickedIndexes = new Set<number>();
+  for (let i = 0; i < count; ++i) {
+    let randomOffset = Math.floor(Math.random() * entries.length);
+    while (pickedIndexes.has(randomOffset)) {
+      randomOffset = Math.floor(Math.random() * entries.length);
+    }
+    pickedIndexes.add(randomOffset);
+    const randomEntry = entries[randomOffset];
+    if (randomEntry) {
+      result.push(randomEntry);
+    }
+  }
+  return result;
+}
+
+async function mostFrequentUncurry(
+  bulkGetWord: (ids: Array<string>) => Promise<Array<Word | undefined>>,
+  entries: Array<WordBookEntry>,
+  count: number,
+): Promise<Array<WordBookEntry>> {
+  const notReviewedIds = entries.map((it) => it.word_id);
+  const correspondingWords = await bulkGetWord(notReviewedIds);
+  const sorted = zip(entries, correspondingWords).sort(
+    (a, b) => (b[1]!.frequency || 0) - (a[1]!.frequency || 0),
+  );
+  return sorted.slice(0, count).map((it) => it[0]);
+}
+
+export function mostFrequent(
+  bulkGetWord: (ids: Array<string>) => Promise<Array<Word | undefined>>,
+) {
+  return (entries: Array<WordBookEntry>, count: number) =>
+    mostFrequentUncurry(bulkGetWord, entries, count);
+}
+
+export async function firstCome(
+  entries: Array<WordBookEntry>,
+  count: number,
+): Promise<Array<WordBookEntry>> {
+  const sorted = sortBy(entries, (it) => it.update_time);
+  return sorted.slice(0, count);
 }

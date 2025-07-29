@@ -22,11 +22,11 @@ import WordDetail from "@app/presentation/components/word/wordDetail";
 import { useAtomValue } from "jotai";
 import { progress, tasks } from "@app/presentation/atoms/dictionary/init";
 import { CheckCheck, FileDown } from "lucide-react";
-import { searchWord } from "@/app/domain/service/dictionary/search";
 import SaveToWordBookButton from "../components/word/saveToWordBook";
 import PlayButton from "../components/playAudioButton";
-import { getWordById } from "@/app/domain/repository/dictionary";
 import { Badge } from "../components/ui/badge";
+import { searchWord } from "@/app/application/usecase/dictionary/search";
+import { repository } from "@/app/domain/repository/word";
 
 function WordDetailDialog({
   word,
@@ -129,7 +129,7 @@ export function Dictionary() {
     try {
       let word;
       if (initProgress === "Done") {
-        const localWord = await getWordById(wordId);
+        const localWord = await repository.get(wordId);
         word = localWord;
       } else {
         const response = await fetch(`/api/words/${wordId}`);

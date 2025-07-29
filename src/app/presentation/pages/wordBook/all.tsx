@@ -1,4 +1,3 @@
-import { ReviewIntervals } from "@/app/domain/service/wordbook/review";
 import { NotReviewed, type WordBookEntryWithDetails } from "@/types";
 import {
   flexRender,
@@ -19,13 +18,14 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { all } from "@/app/domain/repository/wordbook";
-import { startReviewProgress } from "@/app/application/usecase/wordbook/startReviewProgress";
 import PlayButton from "../../components/playAudioButton";
 import { formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useState } from "react";
 import { ArrowUpDown } from "lucide-react";
+import { repository } from "@/app/domain/repository/wordbookEntry";
+import { ReviewIntervals } from "@/app/domain/model/wordbookEntry";
+import { startReviewProgress } from "@/app/application/usecase/wordbook/startReview";
 
 const reviewCountColor = [
   "bg-red-500",
@@ -101,13 +101,6 @@ export default function All() {
           </Button>
         );
       },
-      // cell: ({ row }) => {
-      //   const frequencyRank = row.original.frequency_rank;
-
-      //   if (frequencyRank !== undefined) {
-      //     return frequencyRank.toString();
-      //   }
-      // },
     },
     {
       accessorKey: "passive_review_count",
@@ -149,7 +142,7 @@ export default function All() {
       cell: ({ row }) => <PlayButton voice={row.original} />,
     },
   ];
-  const data = useLiveQuery(() => all());
+  const data = useLiveQuery(() => repository.all());
   const table = useReactTable({
     columns,
     data: data || fallbackData,

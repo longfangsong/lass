@@ -14,8 +14,8 @@ import {
   ChartTooltipContent,
 } from "@app/presentation/components/ui/chart";
 import { useEffect, useState } from "react";
-import { aggregateEntryByReviewTimes } from "@/app/application/usecase/wordbook/aggregateEntryByReviewTimes";
 import { addDays, format } from "date-fns";
+import { aggregate } from "@/app/application/usecase/wordbook/aggregate/byTimes";
 
 const chartConfig = {
   word_count: {
@@ -30,7 +30,7 @@ export function ChartByDate() {
   );
   useEffect(() => {
     (async () => {
-      const rawData = await aggregateEntryByReviewTimes();
+      const rawData = await aggregate();
       const now = new Date();
       const newData = rawData.map((item, index) => {
         return {

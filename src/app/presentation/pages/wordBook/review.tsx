@@ -1,16 +1,20 @@
-import { needReviewNow } from "@/app/domain/repository/wordbook";
 import { useEffect, useState } from "react";
 import WordCard from "../../components/wordbook/wordCard";
-import type { WordBookEntryWithDetails } from "@/types";
+import type { WordBookEntryWithDetails } from "@app/types";
 import { ChartByCount } from "../../components/wordbook/chartByCount";
 import { ChartByDate } from "../../components/wordbook/chartByDate";
+import { repository } from "@/app/domain/repository/wordbookEntry";
+import { getWordBookEntryDetail } from "@/app/application/usecase/wordbook/getDetails";
 
 export default function Review() {
   const [toReview, setToReview] = useState<Array<WordBookEntryWithDetails>>([]);
   useEffect(() => {
     (async () => {
-      const entries = await needReviewNow();
-      setToReview(entries);
+      const entries = await repository.needReviewNow();
+      const withDetails = await Promise.all(
+        entries.map((entry) => getWordBookEntryDetail(entry)),
+      );
+      setToReview(withDetails);
     })();
   }, []);
   const [currentIndex, setCurrentIndex] = useState(0);

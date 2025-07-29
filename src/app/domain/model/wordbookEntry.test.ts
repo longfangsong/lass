@@ -1,28 +1,14 @@
 import { expect, test } from "vitest";
+import { addDays } from "date-fns";
 import {
   addToReview,
-  reviewFailed,
-  reviewSuccessfully,
-  reviewUnsure,
-} from "./review";
-import { addDays } from "date-fns";
-import { type WordBookEntry, NotReviewed } from "@/types";
-
-function newEntry(wordId: string): WordBookEntry {
-  return {
-    id: crypto.randomUUID(),
-    word_id: wordId,
-    passive_review_count: NotReviewed,
-    next_passive_review_time: NotReviewed,
-    active_review_count: NotReviewed,
-    next_active_review_time: NotReviewed,
-    deleted: false,
-    update_time: new Date().getTime(),
-  };
-}
+  createEntry,
+  review,
+  ReviewStatus,
+} from "./wordbookEntry";
 
 test("add to review", async () => {
-  const initial = newEntry("test");
+  const initial = createEntry("test");
   const result = addToReview(initial);
   expect(result.word_id).toBe(initial.word_id);
   expect(result.passive_review_count).toBe(0);
@@ -30,64 +16,81 @@ test("add to review", async () => {
   expect(() => addToReview(result)).toThrow();
 });
 
+test("Only can review when added", async () => {
+  const initial = createEntry("test");
+  expect(() => review(initial, ReviewStatus.StillRemember)).toThrow();
+});
+
 test("review successfully", () => {
-  const initial = newEntry("test");
+  const initial = createEntry("test");
   const justAdded = addToReview(initial);
-  const initLearned = reviewSuccessfully(justAdded);
+  const initLearned = review(justAdded, ReviewStatus.StillRemember);
   expect(initLearned.passive_review_count).toBe(1);
   expect(initLearned.next_passive_review_time).closeTo(
     addDays(Date.now(), 1).getTime(),
     1000,
   );
-  const reviewedFirstTime = reviewSuccessfully(initLearned);
+  const reviewedFirstTime = review(initLearned, ReviewStatus.StillRemember);
   expect(reviewedFirstTime.passive_review_count).toBe(2);
   expect(reviewedFirstTime.next_passive_review_time).closeTo(
     addDays(Date.now(), 2).getTime(),
     1000,
   );
-  const reviewedSecondTime = reviewSuccessfully(reviewedFirstTime);
+  const reviewedSecondTime = review(
+    reviewedFirstTime,
+    ReviewStatus.StillRemember,
+  );
   expect(reviewedSecondTime.passive_review_count).toBe(3);
   expect(reviewedSecondTime.next_passive_review_time).closeTo(
     addDays(Date.now(), 4).getTime(),
     1000,
   );
-  const reviewedThirdTime = reviewSuccessfully(reviewedSecondTime);
+  const reviewedThirdTime = review(
+    reviewedSecondTime,
+    ReviewStatus.StillRemember,
+  );
   expect(reviewedThirdTime.passive_review_count).toBe(4);
   expect(reviewedThirdTime.next_passive_review_time).closeTo(
     addDays(Date.now(), 8).getTime(),
     1000,
   );
-  const reviewedFourthTime = reviewSuccessfully(reviewedThirdTime);
+  const reviewedFourthTime = review(
+    reviewedThirdTime,
+    ReviewStatus.StillRemember,
+  );
   expect(reviewedFourthTime.passive_review_count).toBe(5);
   expect(reviewedFourthTime.next_passive_review_time).closeTo(
     addDays(Date.now(), 15).getTime(),
     1000,
   );
-  const reviewedFifthTime = reviewSuccessfully(reviewedFourthTime);
+  const reviewedFifthTime = review(
+    reviewedFourthTime,
+    ReviewStatus.StillRemember,
+  );
   expect(reviewedFifthTime.passive_review_count).toBe(6);
   expect(reviewedFifthTime.next_passive_review_time).toBe(
     Number.MAX_SAFE_INTEGER,
   );
-  expect(() => reviewSuccessfully(reviewedFifthTime)).toThrow();
+  expect(() => review(reviewedFifthTime, ReviewStatus.StillRemember)).toThrow();
 });
 
 test("review failed", () => {
-  const initial = newEntry("test");
+  const initial = createEntry("test");
   const justAdded = addToReview(initial);
-  expect(() => reviewFailed(justAdded)).toThrow();
-  const initLearned = reviewSuccessfully(justAdded);
+  expect(() => review(justAdded, ReviewStatus.Forgotten)).toThrow();
+  const initLearned = review(justAdded, ReviewStatus.StillRemember);
   expect(initLearned.passive_review_count).toBe(1);
   expect(initLearned.next_passive_review_time).closeTo(
     addDays(Date.now(), 1).getTime(),
     1000,
   );
-  const reviewedFirstTime = reviewSuccessfully(initLearned);
+  const reviewedFirstTime = review(initLearned, ReviewStatus.StillRemember);
   expect(reviewedFirstTime.passive_review_count).toBe(2);
   expect(reviewedFirstTime.next_passive_review_time).closeTo(
     addDays(Date.now(), 2).getTime(),
     1000,
   );
-  const reviewedSecondTime = reviewFailed(reviewedFirstTime);
+  const reviewedSecondTime = review(reviewedFirstTime, ReviewStatus.Forgotten);
   expect(reviewedSecondTime.passive_review_count).toBe(1);
   expect(reviewedSecondTime.next_passive_review_time).closeTo(
     addDays(Date.now(), 1).getTime(),
@@ -96,22 +99,22 @@ test("review failed", () => {
 });
 
 test("review unsure", () => {
-  const initial = newEntry("test");
+  const initial = createEntry("test");
   const justAdded = addToReview(initial);
-  expect(() => reviewUnsure(justAdded)).toThrow();
-  const initLearned = reviewSuccessfully(justAdded);
+  expect(() => review(justAdded, ReviewStatus.Unsure)).toThrow();
+  const initLearned = review(justAdded, ReviewStatus.StillRemember);
   expect(initLearned.passive_review_count).toBe(1);
   expect(initLearned.next_passive_review_time).closeTo(
     addDays(Date.now(), 1).getTime(),
     1000,
   );
-  const reviewedFirstTime = reviewSuccessfully(initLearned);
+  const reviewedFirstTime = review(initLearned, ReviewStatus.StillRemember);
   expect(reviewedFirstTime.passive_review_count).toBe(2);
   expect(reviewedFirstTime.next_passive_review_time).closeTo(
     addDays(Date.now(), 2).getTime(),
     1000,
   );
-  const reviewedSecondTime = reviewUnsure(reviewedFirstTime);
+  const reviewedSecondTime = review(reviewedFirstTime, ReviewStatus.Unsure);
   expect(reviewedSecondTime.passive_review_count).toBe(2);
   expect(reviewedSecondTime.next_passive_review_time).closeTo(
     addDays(Date.now(), 2).getTime(),

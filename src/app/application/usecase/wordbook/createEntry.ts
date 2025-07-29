@@ -1,9 +1,7 @@
-import { save } from "@/app/domain/repository/wordbook";
+import { repository } from "@/app/domain/repository/wordbookEntry";
 import { NotReviewed, type WordBookEntry } from "@/types";
 
-export async function createWordbookEntry(
-  wordId: string,
-): Promise<WordBookEntry> {
+export async function createEntry(wordId: string): Promise<WordBookEntry> {
   const entry = {
     id: crypto.randomUUID(),
     word_id: wordId,
@@ -14,6 +12,6 @@ export async function createWordbookEntry(
     deleted: false,
     update_time: Date.now(),
   };
-  await save(entry);
+  await repository.save(entry);
   return entry;
 }

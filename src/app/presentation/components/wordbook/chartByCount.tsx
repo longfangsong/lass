@@ -15,9 +15,9 @@ import {
 } from "@app/presentation/components/ui/chart";
 import "./chartByCount.css";
 import { useEffect, useState } from "react";
-import { aggregateEntryByReviewCount } from "@/app/application/usecase/wordbook/aggregateEntryByReviewCount";
-import { ReviewIntervals } from "@/app/domain/service/wordbook/review";
 import { NotReviewed } from "@/types";
+import { ReviewIntervals } from "@/app/domain/model/wordbookEntry";
+import { aggregate } from "@/app/application/usecase/wordbook/aggregate/byCount";
 
 export const description = "A simple pie chart";
 
@@ -65,7 +65,7 @@ export function ChartByCount() {
   >(undefined);
   useEffect(() => {
     (async () => {
-      const rawData = await aggregateEntryByReviewCount();
+      const rawData = await aggregate();
       const newData = [];
       for (
         let review_count = NotReviewed;

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
-import { createWordbookEntry } from "@/app/application/usecase/wordbook/createWordbookEntry";
 import { FilePlus2 } from "lucide-react";
+import { createEntry } from "@/app/application/usecase/wordbook/createEntry";
 
 export default function SaveToWordBookButton({
   word_id,
@@ -17,7 +17,7 @@ export default function SaveToWordBookButton({
       aria-label="Save to word book"
       className={cn("p-0 cursor-pointer", className)}
       onClick={async () => {
-        await createWordbookEntry(word_id);
+        await createEntry(word_id);
         setClicked(true);
       }}
       disabled={clicked}

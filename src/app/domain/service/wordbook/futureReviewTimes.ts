@@ -1,11 +1,13 @@
 import type { WordBookEntry } from "@/types";
 import { addDays, subDays } from "date-fns";
-import { ReviewIntervals } from "./review";
+import { ReviewIntervals } from "../../model/wordbookEntry";
+import { assert } from "@/utils";
 
 export function futureReviewTimes(entry: WordBookEntry): Array<Date> {
   // expect_review_times[i] === init_review_time +
   //   \sum_{i=0}^{i=passive_review_count}
   // todo: optimize
+  assert(entry.passive_review_count >= 0);
   const estimatedInitReviewTime = subDays(
     entry.next_passive_review_time,
     entry.passive_review_count,

@@ -1,6 +1,6 @@
 import type { Table } from "dexie";
 import type { Progress, Tasks } from "@app/presentation/atoms/dictionary/init";
-import { DB, db } from "@/app/infrastructure/db";
+import { DB, db } from "@app/infrastructure/db";
 
 async function dictionaryInited(): Promise<boolean> {
   const metas = await db.meta.bulkGet(["Word", "WordIndex", "Lexeme"]);
@@ -23,7 +23,7 @@ function createInitProgress(tableTasks: Array<[string, number]>) {
   return tableTasks.map(([key]): [string, number] => [key, 0]);
 }
 
-export async function initTable<T>(
+async function initTable<T>(
   table: Table<T, keyof T>,
   fileCount: number,
   version: number,

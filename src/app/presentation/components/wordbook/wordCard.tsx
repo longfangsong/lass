@@ -6,16 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import {
-  reviewFailed,
-  reviewSuccessfully,
-  reviewUnsure,
-} from "@/app/domain/service/wordbook/review";
-import { save } from "@/app/domain/repository/wordbook";
 import { Button } from "../ui/button";
 import ClickableBlurElement from "../clickableBlurElement";
 import { useEffect, useState } from "react";
 import OptionalTooltip from "../optionalTooltip";
+import { review, ReviewStatus } from "@/app/domain/model/wordbookEntry";
+import { repository } from "@/app/domain/repository/wordbookEntry";
 
 export default function WordCard({
   entry,
@@ -46,36 +42,10 @@ export default function WordCard({
     return () => clearTimeout(timeout);
   }, [entry]);
 
-  const doneClear = async () => {
+  const done = async (status: ReviewStatus) => {
     setRevealAll(true);
-    const newEntry = reviewSuccessfully(entry);
-    await save(newEntry);
-    setTimeout(
-      () => {
-        setRevealAll(false);
-        onDone();
-      },
-      entry.passive_review_count === 0 ? 0 : 2000,
-    );
-  };
-
-  const doneMaybe = async () => {
-    setRevealAll(true);
-    const newEntry = reviewUnsure(entry);
-    await save(newEntry);
-    setTimeout(
-      () => {
-        setRevealAll(false);
-        onDone();
-      },
-      entry.passive_review_count === 0 ? 0 : 2000,
-    );
-  };
-
-  const doneNo = async () => {
-    setRevealAll(true);
-    const newEntry = reviewFailed(entry);
-    await save(newEntry);
+    const newEntry = review(entry, status);
+    await repository.save(newEntry);
     setTimeout(
       () => {
         setRevealAll(false);
@@ -132,7 +102,7 @@ export default function WordCard({
           <Button
             className="bg-green-600 hover:bg-green-700 text-white"
             disabled={revealAll}
-            onClick={doneClear}
+            onClick={() => done(ReviewStatus.StillRemember)}
           >
             Klar
           </Button>
@@ -145,7 +115,7 @@ export default function WordCard({
                   <Button
                     disabled={revealAll || !thinkTimePassed}
                     className="bg-yellow-400 hover:bg-yellow-300 text-black"
-                    onClick={doneMaybe}
+                    onClick={() => done(ReviewStatus.Unsure)}
                   >
                     Kanske
                   </Button>
@@ -158,7 +128,7 @@ export default function WordCard({
                   <Button
                     disabled={revealAll || !thinkTimePassed}
                     variant="destructive"
-                    onClick={doneNo}
+                    onClick={() => done(ReviewStatus.Forgotten)}
                   >
                     Nej
                   </Button>

@@ -85,7 +85,7 @@ declare abstract class WorkerGlobalScope extends EventTarget<WorkerGlobalScopeEv
 }
 /* [MDN Reference](https://developer.mozilla.org/docs/Web/API/console) */
 interface Console {
-  "assert"(condition?: boolean, ...data: any[]): void;
+  "import { assert } from "@/utils";"(condition?: boolean, ...data: any[]): void;
   /* [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/clear_static) */
   clear(): void;
   /* [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/count_static) */

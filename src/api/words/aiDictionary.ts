@@ -2,13 +2,13 @@ import type { Word } from "@/types";
 import { GoogleGenAI, Type } from "@google/genai";
 
 export type PartOfSpeech =
-  | "adv." // adverb
-  | "pron." // pronoun
-  | "adj." // adjective
-  | "konj." // conjunction
-  | "subst." // substantive/noun
-  | "prep." // preposition
-  | "verb"; // verb
+  | "adv."
+  | "pron."
+  | "adj."
+  | "konj."
+  | "subst."
+  | "prep."
+  | "verb";
 
 interface AIResponse {
   spell: string;
