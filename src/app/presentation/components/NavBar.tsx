@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { CloudOff, Menu, X } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,10 +20,30 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "./ui/accordion";
+import { useAuth } from "../hooks/useAuth";
+import { useOnline } from "../hooks/useOnline";
+
+function SignInButton() {
+  return (
+    <Button asChild>
+      <Link to="/auth/login">Sign In</Link>
+    </Button>
+  );
+}
+
+function SignOutButton() {
+  return (
+    <Button asChild>
+      {/* Do not use `Link` here - won't redirect to backend */}
+      <a href="/api/auth/logout">Sign Out</a>
+    </Button>
+  );
+}
 
 export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const online = useOnline();
+  const { user, loading } = useAuth();
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -97,6 +117,9 @@ export default function NavBar() {
 
         {/* Right side controls */}
         <div className="flex items-center gap-2">
+          {online && user && <SignOutButton />}
+          {online && user === null && !loading && <SignInButton />}
+          {!online && <CloudOff className="mr-1" />}
           {/* Theme toggle - always visible */}
           <ModeToggle />
 
