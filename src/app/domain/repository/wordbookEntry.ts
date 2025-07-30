@@ -4,7 +4,15 @@ import type { WordBookEntryWithDetails } from "@app/types";
 
 export const repository = {
   async save(entry: WordBookEntry): Promise<void> {
-    await db.wordBookEntry.put(entry);
+    const existing = await db.wordBookEntry
+      .where("word_id")
+      .equals(entry.word_id)
+      .first();
+    if (existing && existing.id !== entry.id) {
+      throw new Error("WordBookEntry already exists");
+    } else {
+      await db.wordBookEntry.put(entry);
+    }
   },
 
   async all(): Promise<Array<WordBookEntryWithDetails>> {

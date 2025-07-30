@@ -15,7 +15,6 @@ export async function aggregate(): Promise<Array<Array<WordBookEntry>>> {
     const futureTimes = futureReviewTimes(entity);
     for (const futureTime of futureTimes) {
       const index = closestIndexTo(futureTime, days);
-      console.log(index);
       if (index) {
         result[index].push(entity);
       }

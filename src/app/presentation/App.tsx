@@ -6,14 +6,18 @@ import { useInitDictionaryIfNeeded } from "@/app/presentation/hooks/dictionary/i
 import All from "./pages/wordBook/all";
 import Review from "./pages/wordBook/review";
 import { ThemeProvider } from "./components/themeProvider";
+import Login from "./pages/auth/login";
+import Callback from "./pages/auth/callback";
 
-const serverSideRegex = /^(\/api\/|\/dictionary-init\/).*/;
+const serverSideRegex = /^(\/api\/|\/init\/).*/;
 const router = (
   <BrowserRouter>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <NavBar />
       <main className="p-2 sm:p-4 h-[calc(100vh-63px)] overflow-y-scroll">
         <Routes>
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/callback/:provider" element={<Callback />} />
           <Route path="/dictionary" element={<Dictionary />} />
           <Route path="/wordbook/all" element={<All />} />
           <Route path="/wordbook/review" element={<Review />} />
