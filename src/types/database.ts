@@ -41,6 +41,7 @@ export interface WordBookEntry {
   next_active_review_time: number;
   deleted: boolean;
   update_time: number;
+  sync_at: number | null;
 }
 
 export enum AutoNewReviewPolicy {

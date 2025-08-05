@@ -4,5 +4,5 @@ import type { WordBookEntry } from "@/types";
 
 export async function startReviewProgress(entry: WordBookEntry) {
   const result = addToReview(entry);
-  await repository.save(result);
+  await repository.insert(result);
 }

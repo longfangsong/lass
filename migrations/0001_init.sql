@@ -59,7 +59,8 @@ CREATE TABLE WordBookEntry (
     next_active_review_time INTEGER NOT NULL,
 
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    update_time INTEGER NOT NULL
+    update_time INTEGER NOT NULL,
+    sync_at INTEGER
 );
 CREATE INDEX idx_WordBookEntry_user_email ON WordBookEntry(user_email);
 CREATE INDEX idx_WordBookEntry_update_time ON WordBookEntry (update_time);

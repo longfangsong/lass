@@ -8,6 +8,7 @@ import Review from "./pages/wordBook/review";
 import { ThemeProvider } from "./components/themeProvider";
 import Login from "./pages/auth/login";
 import Callback from "./pages/auth/callback";
+import { useSyncWordbookInterval } from "./hooks/useSyncWordbook";
 
 const serverSideRegex = /^(\/api\/|\/init\/).*/;
 const router = (
@@ -30,6 +31,7 @@ const router = (
 
 function App() {
   useInitDictionaryIfNeeded();
+  useSyncWordbookInterval();
   return (
     <>
       {serverSideRegex.test(window.location.pathname) ? (

@@ -11,7 +11,8 @@ export async function createEntry(wordId: string): Promise<WordBookEntry> {
     next_active_review_time: NotReviewed,
     deleted: false,
     update_time: Date.now(),
+    sync_at: null,
   };
-  await repository.save(entry);
+  await repository.insert(entry);
   return entry;
 }

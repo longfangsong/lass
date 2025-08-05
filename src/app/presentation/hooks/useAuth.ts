@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useOnline } from "./useOnline";
 
 interface User {
   email: string;
@@ -11,27 +12,30 @@ function isSuccess(response: AuthResponse): response is User {
 }
 
 export function useAuth() {
+  const online = useOnline();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch("/api/auth/session");
-      const data: AuthResponse = await response.json();
-      if (isSuccess(data)) {
-        setUser(data);
-      } else {
+    (async () => {
+      try {
+        if (!online) {
+          setUser(null);
+        } else {
+          const response = await fetch("/api/auth/session");
+          const data: AuthResponse = await response.json();
+          if (isSuccess(data)) {
+            setUser(data);
+          } else {
+            setUser(null);
+          }
+        }
+      } catch {
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+  }, [online]);
 
   return {
     user,

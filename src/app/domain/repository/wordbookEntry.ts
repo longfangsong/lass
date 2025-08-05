@@ -3,7 +3,15 @@ import type { WordBookEntry } from "@/types";
 import type { WordBookEntryWithDetails } from "@app/types";
 
 export const repository = {
-  async save(entry: WordBookEntry): Promise<void> {
+  get version(): Promise<number | undefined> {
+    return db.meta.get("WordBookEntry").then((it) => it?.version);
+  },
+
+  async setVersion(version: number): Promise<void> {
+    await db.meta.put({ table_name: "WordBookEntry", version });
+  },
+
+  async insert(entry: WordBookEntry): Promise<void> {
     const existing = await db.wordBookEntry
       .where("word_id")
       .equals(entry.word_id)
@@ -11,6 +19,36 @@ export const repository = {
     if (existing && existing.id !== entry.id) {
       throw new Error("WordBookEntry already exists");
     } else {
+      await db.wordBookEntry.put(entry);
+    }
+  },
+
+  async update(entry: WordBookEntry) {
+    const existing = await db.wordBookEntry.get(entry.id);
+    if (!existing) {
+      throw Error(`Cannot find ${entry.id} in DB!`);
+    }
+    await db.wordBookEntry.put(entry);
+  },
+
+  async bulkUpdate(entries: Array<WordBookEntry>) {
+    // todo: check whether all entry in entries exists
+    await db.wordBookEntry.bulkPut(entries);
+  },
+
+  async upsert(entry: WordBookEntry) {
+    // fixme: handle deleted field
+    const existing = await db.wordBookEntry
+      .where("word_id")
+      .equals(entry.word_id)
+      .first();
+    if (existing && existing.update_time < entry.update_time) {
+      let deleteTask;
+      if (existing.id !== entry.id) {
+        deleteTask = await db.wordBookEntry.delete(existing.id);
+      }
+      await Promise.all([deleteTask, db.wordBookEntry.put(entry)]);
+    } else if (!existing) {
       await db.wordBookEntry.put(entry);
     }
   },
@@ -75,6 +113,20 @@ export const repository = {
       .where("passive_review_count")
       .aboveOrEqual(0)
       .filter((it) => !it.deleted)
+      .toArray();
+  },
+
+  async updatedBetween(
+    sync_at: number,
+    from: number,
+    to: number,
+    limit: number,
+  ): Promise<Array<WordBookEntry>> {
+    return await db.wordBookEntry
+      .where("update_time")
+      .between(from, to)
+      .filter((it) => it.sync_at !== sync_at && !it.deleted)
+      .limit(limit)
       .toArray();
   },
 };

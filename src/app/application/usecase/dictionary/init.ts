@@ -38,7 +38,7 @@ async function initTable<T>(
 }
 
 async function fillFrequencyRank() {
-  db.transaction("rw", db.word, async () => {
+  await db.transaction("rw", db.word, async () => {
     const allWords = await db.word
       .toCollection()
       .filter((it) => it.frequency !== null)

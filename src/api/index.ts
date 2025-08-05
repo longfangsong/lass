@@ -4,7 +4,8 @@ import { get as login } from "./auth/login";
 import { get as authCallback } from "./auth/callback";
 import { get as session } from "./auth/session";
 import { get as logout } from "./auth/logout";
-
+import { get as oneWaySync } from "./sync";
+import { post as twoWaySync } from "./sync";
 const router = new Router();
 
 router
@@ -14,6 +15,8 @@ router
   .get("/api/auth/:provider/callback", authCallback)
   .get("/api/words/:id", getWordById)
   .get("/api/words", search)
+  .get("/api/sync/:table", oneWaySync)
+  .post("/api/sync/:table", twoWaySync)
   .get("/api/ping", () => {
     return new Response("pong");
   });

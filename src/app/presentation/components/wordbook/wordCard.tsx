@@ -45,7 +45,7 @@ export default function WordCard({
   const done = async (status: ReviewStatus) => {
     setRevealAll(true);
     const newEntry = review(entry, status);
-    await repository.save(newEntry);
+    await repository.insert(newEntry);
     setTimeout(
       () => {
         setRevealAll(false);
