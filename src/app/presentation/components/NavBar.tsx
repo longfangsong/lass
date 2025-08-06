@@ -1,6 +1,13 @@
 import { Link } from "react-router";
 import { useState } from "react";
-import { CloudOff, Menu, X } from "lucide-react";
+import {
+  CalendarSync,
+  CircleCheckBig,
+  CloudOff,
+  Menu,
+  RefreshCcw,
+  X,
+} from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -10,7 +17,6 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/app/presentation/components/ui/navigation-menu";
-import { cn } from "@/app/presentation/lib/utils";
 import { ModeToggle } from "./modeToggle";
 import { Button } from "@/app/presentation/components/ui/button";
 import { Separator } from "./ui/separator";
@@ -22,6 +28,9 @@ import {
 } from "./ui/accordion";
 import { useAuth } from "../hooks/useAuth";
 import { useOnline } from "../hooks/useOnline";
+import { useAtom } from "jotai";
+import { isChecked, progress } from "../atoms/dictionary/sync";
+import { sync } from "@/app/application/usecase/wordbook/sync";
 
 function SignInButton() {
   return (
@@ -44,6 +53,7 @@ export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const online = useOnline();
   const { user, loading } = useAuth();
+  const [syncingProgress, setSyncingProgress] = useAtom(progress);
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -55,26 +65,15 @@ export default function NavBar() {
         {/* Logo - always visible */}
         <Link
           to="/"
-          className={cn(
-            "norse-bold text-2xl font-bold text-foreground hover:text-foreground/80",
-          )}
+          className="flex-1 norse-bold text-2xl font-bold text-foreground hover:text-foreground/80"
         >
           Läss
         </Link>
 
         {/* Desktop Navigation - hidden on small screens */}
-        <div className="hidden sm:flex">
+        <div className="flex-1 justify-center hidden sm:flex">
           <NavigationMenu viewport={false}>
             <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  asChild
-                  className={navigationMenuTriggerStyle()}
-                >
-                  <Link to="/articles">Articles</Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-
               <NavigationMenuItem>
                 <NavigationMenuLink
                   asChild
@@ -116,9 +115,19 @@ export default function NavBar() {
         </div>
 
         {/* Right side controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex-1 flex justify-end items-center gap-2">
           {online && user && <SignOutButton />}
           {online && user === null && !loading && <SignInButton />}
+
+          {online && user && syncingProgress === "NeedCheck" && (
+            <CalendarSync onClick={() => sync(setSyncingProgress)} />
+          )}
+          {online && user && syncingProgress === "InProgress" && (
+            <RefreshCcw className="animate-spin" />
+          )}
+          {online && user && isChecked(syncingProgress) && (
+            <CircleCheckBig onClick={() => sync(setSyncingProgress)} />
+          )}
           {!online && <CloudOff className="mr-1" />}
           {/* Theme toggle - always visible */}
           <ModeToggle />
@@ -145,13 +154,13 @@ export default function NavBar() {
         <div className="sm:hidden bg-background border-t">
           <nav className="container mx-auto">
             <div className="flex flex-col">
-              <Link
+              {/*<Link
                 to="/articles"
                 className="text-foreground hover:text-foreground/80 px-3 py-2 rounded-md hover:bg-accent transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Articles
-              </Link>
+              </Link>*/}
               <Separator />
               <Link
                 to="/dictionary"

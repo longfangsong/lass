@@ -4,43 +4,14 @@ import * as cookie from "cookie";
 import * as jose from "jose";
 import type { Lexeme, Word, WordIndex } from "@/types/database";
 
-const BATCH_SIZE = 2;
-
-// async function updateBatch(db: D1Database, entries: Array<WordBookEntry>) {
-//   for (const entry of entries) {
-//     const stmt = db.prepare(`
-//         UPDATE WordBookEntry SET
-//           passive_review_count = ?,
-//           next_passive_review_time = ?,
-//           active_review_count = ?,
-//           next_active_review_time = ?,
-//           deleted = ?,
-//           update_time = ?,
-//           sync_at = ?
-//         WHERE id = ?`);
-
-//     await stmt
-//       .bind(
-//         entry.passive_review_count,
-//         entry.next_passive_review_time,
-//         entry.active_review_count,
-//         entry.next_active_review_time,
-//         entry.deleted,
-//         entry.update_time,
-//         entry.sync_at,
-//         entry.id,
-//       )
-//       .run();
-//   }
-// }
-
 export async function saveWordBookEntries(
   db: D1Database,
   user_email: string,
   entries: Array<WordBookEntry>,
 ) {
-  for (let i = 0; i < entries.length; i += BATCH_SIZE) {
-    const batch = entries.slice(i, i + BATCH_SIZE);
+  const saveBatchSize = 4;
+  for (let i = 0; i < entries.length; i += saveBatchSize) {
+    const batch = entries.slice(i, i + saveBatchSize);
     const placeholders = batch
       .map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
       .join(", ");

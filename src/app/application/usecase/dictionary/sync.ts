@@ -2,7 +2,7 @@ import { repository } from "@/app/domain/repository/word";
 import type { DBWord, Lexeme, WordIndex } from "@/types";
 import { assert } from "@/utils";
 
-const BATCH_SIZE = 2;
+const BATCH_SIZE = 64;
 async function syncTable<T>(
   table: string,
   versionPromise: Promise<number | undefined>,

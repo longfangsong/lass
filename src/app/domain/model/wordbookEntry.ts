@@ -14,6 +14,7 @@ export function createEntry(wordId: string): WordBookEntry {
     next_active_review_time: NotReviewed,
     deleted: false,
     update_time: Date.now(),
+    sync_at: null,
   };
 }
 

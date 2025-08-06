@@ -23,6 +23,8 @@ async function getWordDefinitionFromAI(
   spell: string,
   apiToken: string,
 ): Promise<AIResponse | undefined> {
+  const accountId = "ba6c3ee6481f83e9ced0460cb55a4ade";
+  const gatewayName = "swedish-teacher";
   const model = "gemini-2.0-flash";
 
   const ai = new GoogleGenAI({ apiKey: apiToken });
@@ -68,6 +70,9 @@ async function getWordDefinitionFromAI(
     model,
     contents: spell,
     config: {
+      httpOptions: {
+        baseUrl: `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayName}/google-ai-studio`,
+      },
       responseMimeType: "application/json",
       responseSchema,
       systemInstruction,

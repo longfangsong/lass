@@ -30,7 +30,7 @@ export default function Index() {
             )}
           >
             <Button asChild className="w-[160px] mx-auto">
-              <Link to="/articles">Read Articles</Link>
+              <Link to="/">Index</Link>
             </Button>
             <Button asChild className="w-[160px] mx-auto">
               <Link to="/dictionary">Dictionary</Link>

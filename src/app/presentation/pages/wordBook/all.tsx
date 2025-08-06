@@ -19,13 +19,14 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import PlayButton from "../../components/playAudioButton";
-import { formatDistanceToNow } from "date-fns";
+import { endOfDay, formatDistanceToNow, isSameDay, subDays } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useState } from "react";
-import { ArrowUpDown } from "lucide-react";
+import { AlertCircleIcon, ArrowUpDown, CheckCircle2Icon } from "lucide-react";
 import { repository } from "@/app/domain/repository/wordbookEntry";
 import { ReviewIntervals } from "@/app/domain/model/wordbookEntry";
 import { startReviewProgress } from "@/app/application/usecase/wordbook/startReview";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 
 const reviewCountColor = [
   "bg-red-500",
@@ -76,9 +77,9 @@ export default function All() {
         );
         return (
           <>
-            {meanings.map((meaning) => (
+            {meanings.map((meaning, index) => (
               <p
-                key={meaning}
+                key={index}
                 className="max-w-sm wrap-break-word whitespace-normal mb-3 last:mb-0"
               >
                 {meaning}
@@ -143,6 +144,18 @@ export default function All() {
     },
   ];
   const data = useLiveQuery(() => repository.all());
+  const toReview = data?.filter(
+    (it) =>
+      it.passive_review_count === 0 ||
+      endOfDay(new Date()).getTime() <= it.next_passive_review_time,
+  );
+  const startToday = toReview?.filter((it) => {
+    const result =
+      it.passive_review_count === 0 ||
+      (it.passive_review_count === 1 &&
+        isSameDay(subDays(it.next_passive_review_time, 1), new Date()));
+    return result;
+  });
   const table = useReactTable({
     columns,
     data: data || fallbackData,
@@ -154,49 +167,103 @@ export default function All() {
     },
   });
   return (
-    <div className="overflow-hidden rounded-md border">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+    <div>
+      <Alert
+        variant={
+          (toReview?.length || 0) <= 200
+            ? "default"
+            : (toReview?.length || 0) <= 500
+              ? "warning"
+              : "destructive"
+        }
+        className="my-2 sticky top-1 z-10"
+      >
+        {(toReview?.length || 0) <= 200 ? (
+          <CheckCircle2Icon />
+        ) : (
+          <AlertCircleIcon />
+        )}
+        <AlertTitle>{toReview?.length} to review today</AlertTitle>
+        {(toReview?.length || 0) > 200 && (
+          <AlertDescription>
+            Be careful! Don't bite off more than you can chew!
+          </AlertDescription>
+        )}
+      </Alert>
+      <Alert
+        variant={
+          (startToday?.length || 0) <= 20
+            ? "default"
+            : (startToday?.length || 0) <= 50
+              ? "warning"
+              : "destructive"
+        }
+        className="my-2 sticky top-14 z-10"
+      >
+        {(startToday?.length || 0) <= 20 ? (
+          <CheckCircle2Icon />
+        ) : (
+          <AlertCircleIcon />
+        )}
+        <AlertTitle>
+          {startToday?.length} started or will start today
+        </AlertTitle>
+        {(toReview?.length || 0) > 20 && (
+          <AlertDescription>
+            Be careful! Don't bite off more than you can chew!
+          </AlertDescription>
+        )}
+      </Alert>
+      <div className="border rounded-sm">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

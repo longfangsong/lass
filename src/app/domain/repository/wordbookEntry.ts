@@ -1,6 +1,7 @@
 import { db } from "@/app/infrastructure/db";
 import type { WordBookEntry } from "@/types";
 import type { WordBookEntryWithDetails } from "@app/types";
+import { ReviewIntervals } from "../model/wordbookEntry";
 
 export const repository = {
   get version(): Promise<number | undefined> {
@@ -103,7 +104,11 @@ export const repository = {
     return await db.wordBookEntry
       .where("next_passive_review_time")
       .belowOrEqual(Date.now())
-      .and((it) => it.passive_review_count >= 0)
+      .and(
+        (it) =>
+          it.passive_review_count >= 0 &&
+          it.passive_review_count < ReviewIntervals.length,
+      )
       .filter((it) => !it.deleted)
       .toArray();
   },

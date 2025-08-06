@@ -2,7 +2,7 @@ import { repository } from "@/app/domain/repository/wordbookEntry";
 import type { Progress } from "@/app/presentation/atoms/dictionary/sync";
 import type { WordBookEntry } from "@/types";
 
-const BATCH_SIZE = 2;
+const BATCH_SIZE = 64;
 
 export async function sync(setProgress: (progress: Progress) => void) {
   setProgress("InProgress");
