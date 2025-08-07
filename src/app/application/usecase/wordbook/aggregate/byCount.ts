@@ -1,4 +1,4 @@
-import { repository } from "@/app/domain/repository/wordbookEntry";
+import { repository } from "@app/domain/repository/wordbookEntry";
 import type { WordBookEntry } from "@/types";
 import { groupByProp } from "remeda";
 

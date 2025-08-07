@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import WordCard from "../../components/wordbook/wordCard";
+import WordCard from "@app/presentation/components/wordbook/wordCard";
 import type { WordBookEntryWithDetails } from "@app/types";
-import { ChartByCount } from "../../components/wordbook/chartByCount";
-import { ChartByDate } from "../../components/wordbook/chartByDate";
-import { repository } from "@/app/domain/repository/wordbookEntry";
-import { getWordBookEntryDetail } from "@/app/application/usecase/wordbook/getDetails";
+import { ChartByCount } from "@app/presentation/components/wordbook/chartByCount";
+import { ChartByDate } from "@app/presentation/components/wordbook/chartByDate";
+import { repository } from "@app/domain/repository/wordbookEntry";
+import { getWordBookEntryDetail } from "@app/application/usecase/wordbook/getDetails";
 
 export default function Review() {
   const [toReview, setToReview] = useState<Array<WordBookEntryWithDetails>>([]);

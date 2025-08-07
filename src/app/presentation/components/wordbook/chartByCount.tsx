@@ -16,8 +16,10 @@ import {
 import "./chartByCount.css";
 import { useEffect, useState } from "react";
 import { NotReviewed } from "@/types";
-import { ReviewIntervals } from "@/app/domain/model/wordbookEntry";
-import { aggregate } from "@/app/application/usecase/wordbook/aggregate/byCount";
+import { ReviewIntervals } from "@app/domain/model/wordbookEntry";
+import { aggregate } from "@app/application/usecase/wordbook/aggregate/byCount";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 
 export const description = "A simple pie chart";
 
@@ -63,9 +65,17 @@ export function ChartByCount() {
   const [data, setData] = useState<
     Array<{ word_count: number; review_count: string }> | undefined
   >(undefined);
+  const [showNotStarted, setShowNotStarted] = useState(true);
+  const [showDone, setShowDone] = useState(true);
   useEffect(() => {
     (async () => {
       const rawData = await aggregate();
+      if (!showNotStarted && rawData[NotReviewed]) {
+        delete rawData[NotReviewed];
+      }
+      if (!showDone && rawData[ReviewIntervals.length]) {
+        delete rawData[ReviewIntervals.length];
+      }
       const newData = [];
       for (
         let review_count = NotReviewed;
@@ -81,20 +91,38 @@ export function ChartByCount() {
       }
       setData(newData);
     })();
-  }, []);
+  }, [showDone, showNotStarted]);
 
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Reviewed times distribution</CardTitle>
-        <CardDescription>
-          How many words have you reviewed for X times?
-        </CardDescription>
+        <div className="grid gap-1">
+          <CardTitle>Reviewed times distribution</CardTitle>
+          <CardDescription>
+            How many words have you reviewed for X times?
+          </CardDescription>
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="not-started"
+              checked={showNotStarted}
+              onCheckedChange={(state) => setShowNotStarted(state === true)}
+            />
+            <Label htmlFor="not-started">Show not started</Label>
+          </div>
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="done"
+              checked={showDone}
+              onCheckedChange={(state) => setShowDone(state === true)}
+            />
+            <Label htmlFor="done">Show done</Label>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="flex flex-1 justify-center pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px] min-h-[125px]"
+          className="mx-auto aspect-square w-full max-w-[300px]"
         >
           <PieChart>
             <ChartTooltip

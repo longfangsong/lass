@@ -1,4 +1,4 @@
-import { db } from "@/app/infrastructure/db";
+import { db } from "@app/infrastructure/db";
 import type { DBWord, Lexeme, WordIndex } from "@/types";
 import type { Word } from "@app/types";
 

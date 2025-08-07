@@ -1,4 +1,4 @@
-import { db } from "@/app/infrastructure/db";
+import { db } from "@app/infrastructure/db";
 import type { WordBookEntry } from "@/types";
 import type { WordBookEntryWithDetails } from "@app/types";
 

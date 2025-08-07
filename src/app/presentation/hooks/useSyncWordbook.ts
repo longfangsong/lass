@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
-import { progress } from "../atoms/dictionary/sync";
+import { progress } from "../atoms/wordbook/sync";
 import { useEffect } from "react";
-import { sync } from "@/app/application/usecase/wordbook/sync";
+import { sync } from "@app/application/usecase/wordbook/sync";
 import { minutesToMilliseconds } from "date-fns";
 import { useAuth } from "./useAuth";
 

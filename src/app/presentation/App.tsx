@@ -1,8 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router";
-import NavBar from "@/app/presentation/components/navBar";
-import Index from "@/app/presentation/pages/indexPage";
-import { Dictionary } from "@/app/presentation/pages/dictionary";
-import { useInitDictionaryIfNeeded } from "@/app/presentation/hooks/dictionary/init";
+import NavBar from "@app/presentation/components/navBar";
+import Index from "@app/presentation/pages/indexPage";
+import { Dictionary } from "@app/presentation/pages/dictionary";
+import { useInitDictionaryIfNeeded } from "@app/presentation/hooks/dictionary/init";
 import All from "./pages/wordBook/all";
 import Review from "./pages/wordBook/review";
 import { ThemeProvider } from "./components/themeProvider";

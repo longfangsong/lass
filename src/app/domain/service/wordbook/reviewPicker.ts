@@ -1,4 +1,4 @@
-import type { Word } from "@/app/types";
+import type { Word } from "@app/types";
 import { type WordBookEntry } from "@/types";
 import { sortBy, zip } from "remeda";
 

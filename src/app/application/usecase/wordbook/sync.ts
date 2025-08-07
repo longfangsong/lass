@@ -1,5 +1,5 @@
-import { repository } from "@/app/domain/repository/wordbookEntry";
-import type { Progress } from "@/app/presentation/atoms/dictionary/sync";
+import { repository } from "@app/domain/repository/wordbookEntry";
+import type { Progress } from "@app/presentation/atoms/wordbook/sync";
 import type { WordBookEntry } from "@/types";
 
 const BATCH_SIZE = 64;

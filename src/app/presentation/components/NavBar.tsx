@@ -16,9 +16,9 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "@/app/presentation/components/ui/navigation-menu";
+} from "@app/presentation/components/ui/navigation-menu";
 import { ModeToggle } from "./modeToggle";
-import { Button } from "@/app/presentation/components/ui/button";
+import { Button } from "@app/presentation/components/ui/button";
 import { Separator } from "./ui/separator";
 import {
   Accordion,
@@ -29,8 +29,8 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { useOnline } from "../hooks/useOnline";
 import { useAtom } from "jotai";
-import { isChecked, progress } from "../atoms/dictionary/sync";
-import { sync } from "@/app/application/usecase/wordbook/sync";
+import { isChecked, progress } from "../atoms/wordbook/sync";
+import { sync } from "@app/application/usecase/wordbook/sync";
 
 function SignInButton() {
   return (

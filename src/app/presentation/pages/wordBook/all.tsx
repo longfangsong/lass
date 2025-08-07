@@ -2,13 +2,16 @@ import { NotReviewed, type WordBookEntryWithDetails } from "@/types";
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type ColumnFiltersState,
   type SortingState,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import { cn } from "../../lib/utils";
-import { Button } from "../../components/ui/button";
+import { cn } from "@app/presentation/lib/utils";
+import { Button } from "@app/presentation/components/ui/button";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   Table,
@@ -17,16 +20,32 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui/table";
-import PlayButton from "../../components/playAudioButton";
+} from "@app/presentation/components/ui/table";
+import PlayButton from "@app/presentation/components/playAudioButton";
 import { endOfDay, formatDistanceToNow, isSameDay, subDays } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useState } from "react";
-import { AlertCircleIcon, ArrowUpDown, CheckCircle2Icon } from "lucide-react";
-import { repository } from "@/app/domain/repository/wordbookEntry";
-import { ReviewIntervals } from "@/app/domain/model/wordbookEntry";
-import { startReviewProgress } from "@/app/application/usecase/wordbook/startReview";
-import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
+import {
+  AlertCircleIcon,
+  ArrowUpDown,
+  CheckCircle2Icon,
+  ChevronDown,
+} from "lucide-react";
+import { repository } from "@app/domain/repository/wordbookEntry";
+import { ReviewIntervals } from "@app/domain/model/wordbookEntry";
+import { startReviewProgress } from "@app/application/usecase/wordbook/startReview";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@app/presentation/components/ui/alert";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@app/presentation/components/ui/dropdown-menu";
+import { Input } from "@app/presentation/components/ui/input";
 
 const reviewCountColor = [
   "bg-red-500",
@@ -43,6 +62,8 @@ const fallbackData: Array<
 
 export default function All() {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const columns: ColumnDef<
     WordBookEntryWithDetails & { frequency_rank?: number }
   >[] = [
@@ -52,7 +73,17 @@ export default function All() {
     },
     {
       accessorKey: "next_passive_review_time",
-      header: "Next Review",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Next Review
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
       cell: ({ row }) => {
         const time: number = row.getValue("next_passive_review_time");
         const passive_review_count: number = row.getValue(
@@ -66,6 +97,19 @@ export default function All() {
           return "Nu!";
         } else {
           return `I ${formatDistanceToNow(time, { locale: sv })}`;
+        }
+      },
+      sortingFn: (rowA, rowB) => {
+        const timeA: number = rowA.getValue("next_passive_review_time");
+        const timeB: number = rowB.getValue("next_passive_review_time");
+        if (timeA === NotReviewed && timeB === NotReviewed) {
+          return 0;
+        } else if (timeA === NotReviewed) {
+          return 1;
+        } else if (timeB === NotReviewed) {
+          return -1;
+        } else {
+          return timeA - timeB;
         }
       },
     },
@@ -144,47 +188,57 @@ export default function All() {
     },
   ];
   const data = useLiveQuery(() => repository.all());
-  const toReview = data?.filter(
+  const now = Date.now();
+  const endOfToday = endOfDay(now);
+  const remainToReview = data?.filter(
     (it) =>
       it.passive_review_count === 0 ||
-      endOfDay(new Date()).getTime() <= it.next_passive_review_time,
+      (0 <= it.next_passive_review_time &&
+        it.next_passive_review_time <= endOfToday.getTime()),
   );
-  const startToday = toReview?.filter((it) => {
-    const result =
+  const startToday = data?.filter(
+    (it) =>
       it.passive_review_count === 0 ||
       (it.passive_review_count === 1 &&
-        isSameDay(subDays(it.next_passive_review_time, 1), new Date()));
-    return result;
-  });
+        isSameDay(subDays(it.next_passive_review_time, 1), now)),
+  );
   const table = useReactTable({
     columns,
     data: data || fallbackData,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnFiltersChange: setColumnFilters,
     state: {
       sorting,
+      columnVisibility,
+      columnFilters,
     },
   });
   return (
     <div>
       <Alert
         variant={
-          (toReview?.length || 0) <= 200
+          // todo: magic numbers
+          (remainToReview?.length || 0) <= 200
             ? "default"
-            : (toReview?.length || 0) <= 500
+            : (remainToReview?.length || 0) <= 500
               ? "warning"
               : "destructive"
         }
         className="my-2 sticky top-1 z-10"
       >
-        {(toReview?.length || 0) <= 200 ? (
+        {(remainToReview?.length || 0) <= 200 ? (
           <CheckCircle2Icon />
         ) : (
           <AlertCircleIcon />
         )}
-        <AlertTitle>{toReview?.length} to review today</AlertTitle>
-        {(toReview?.length || 0) > 200 && (
+        <AlertTitle>
+          {remainToReview?.length} remaining to review today
+        </AlertTitle>
+        {(remainToReview?.length || 0) > 200 && (
           <AlertDescription>
             Be careful! Don't bite off more than you can chew!
           </AlertDescription>
@@ -208,12 +262,48 @@ export default function All() {
         <AlertTitle>
           {startToday?.length} started or will start today
         </AlertTitle>
-        {(toReview?.length || 0) > 20 && (
+        {(startToday?.length || 0) > 20 && (
           <AlertDescription>
             Be careful! Don't bite off more than you can chew!
           </AlertDescription>
         )}
       </Alert>
+      <div className="flex items-center py-4">
+        <Input
+          placeholder="Filter words..."
+          value={(table.getColumn("lemma")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("lemma")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto">
+              Columns <ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id.replaceAll("_", " ")}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <div className="border rounded-sm">
         <Table>
           <TableHeader>

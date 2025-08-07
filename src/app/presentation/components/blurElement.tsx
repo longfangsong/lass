@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "../lib/utils";
+import { cn } from "@app/presentation/lib/utils";
 import OptionalTooltip from "./optionalTooltip";
 
 interface BlurElementProps {

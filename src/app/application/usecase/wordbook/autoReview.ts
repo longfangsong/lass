@@ -2,8 +2,8 @@ import {
   firstCome,
   mostFrequent,
   randomPick,
-} from "@/app/domain/service/wordbook/reviewPicker";
-import type { Word } from "@/app/types";
+} from "@app/domain/service/wordbook/reviewPicker";
+import type { Word } from "@app/types";
 import { AutoNewReviewPolicy, type WordBookEntry } from "@/types";
 
 export function getPicker(

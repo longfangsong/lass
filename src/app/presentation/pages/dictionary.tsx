@@ -22,11 +22,11 @@ import WordDetail from "@app/presentation/components/word/wordDetail";
 import { useAtomValue } from "jotai";
 import { progress, tasks } from "@app/presentation/atoms/dictionary/init";
 import { CheckCheck, FileDown } from "lucide-react";
-import SaveToWordBookButton from "../components/word/saveToWordBook";
-import PlayButton from "../components/playAudioButton";
-import { Badge } from "../components/ui/badge";
-import { searchWord } from "@/app/application/usecase/dictionary/search";
-import { repository } from "@/app/domain/repository/word";
+import SaveToWordBookButton from "@app/presentation/components/word/saveToWordBook";
+import PlayButton from "@app/presentation/components/playAudioButton";
+import { Badge } from "@app/presentation/components/ui/badge";
+import { searchWord } from "@app/application/usecase/dictionary/search";
+import { repository } from "@app/domain/repository/word";
 
 function WordDetailDialog({
   word,

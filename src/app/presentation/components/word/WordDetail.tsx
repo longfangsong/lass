@@ -2,7 +2,7 @@ import type { Lexeme, Word } from "@/types";
 import React from "react";
 import { Separator } from "@app/presentation/components/ui/separator";
 import { Badge } from "@app/presentation/components/ui/badge";
-import { cn } from "@/app/presentation/lib/utils";
+import { cn } from "@app/presentation/lib/utils";
 
 function lexemePriority(lexeme: Lexeme) {
   const priority = {
@@ -44,7 +44,6 @@ export default function WordDetail({
         <div className="flex flex-row justify-between items-center">
           <p>[{word?.phonetic}]</p>
           <div className="w-fit flex flex-row gap-1 p-1 pr-2">
-            {/* {word ? <PlayButton voice={word} className="ml-3" /> : <></>} */}
             {buttons ? (
               buttons.map((component, index) => (
                 <React.Fragment key={index}>{component}</React.Fragment>

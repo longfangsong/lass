@@ -10,8 +10,8 @@ import { Button } from "../ui/button";
 import ClickableBlurElement from "../clickableBlurElement";
 import { useEffect, useState } from "react";
 import OptionalTooltip from "../optionalTooltip";
-import { review, ReviewStatus } from "@/app/domain/model/wordbookEntry";
-import { repository } from "@/app/domain/repository/wordbookEntry";
+import { review, ReviewStatus } from "@app/domain/model/wordbookEntry";
+import { repository } from "@app/domain/repository/wordbookEntry";
 
 export default function WordCard({
   entry,

@@ -1,4 +1,4 @@
-import { db } from "@/app/infrastructure/db";
+import { db } from "@app/infrastructure/db";
 import type { WordBookEntry } from "@/types";
 import type { WordBookEntryWithDetails } from "@app/types";
 import { ReviewIntervals } from "../model/wordbookEntry";
@@ -52,6 +52,10 @@ export const repository = {
     } else if (!existing) {
       await db.wordBookEntry.put(entry);
     }
+  },
+
+  async getByWordId(wordId: string): Promise<WordBookEntry | undefined> {
+    return await db.wordBookEntry.where("word_id").equals(wordId).first();
   },
 
   async all(): Promise<Array<WordBookEntryWithDetails>> {

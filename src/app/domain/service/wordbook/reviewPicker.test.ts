@@ -1,4 +1,4 @@
-import type { Word } from "@/app/types";
+import type { Word } from "@app/types";
 import { expect, test } from "vitest";
 import { mostFrequent } from "./reviewPicker";
 import { createEntry } from "../../model/wordbookEntry";

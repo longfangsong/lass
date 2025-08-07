@@ -1,4 +1,4 @@
-import { repository } from "@/app/domain/repository/word";
+import { repository } from "@app/domain/repository/word";
 import type { DBWord, Lexeme, WordIndex } from "@/types";
 import { assert } from "@/utils";
 

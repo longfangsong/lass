@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { cn } from "../../lib/utils";
+import { cn } from "@app/presentation/lib/utils";
 import { FilePlus2 } from "lucide-react";
-import { createEntry } from "@/app/application/usecase/wordbook/createEntry";
+import { createEntry } from "@app/application/usecase/wordbook/createEntry";
+import { repository } from "@app/domain/repository/wordbookEntry";
 
 export default function SaveToWordBookButton({
   word_id,
@@ -11,16 +12,24 @@ export default function SaveToWordBookButton({
   className?: string;
   word_id: string;
 }) {
-  const [clicked, setClicked] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const existing = await repository.getByWordId(word_id);
+      if (existing) {
+        setDisabled(true);
+      }
+    })();
+  }, [word_id]);
   return (
     <Button
       aria-label="Save to word book"
       className={cn("p-0 cursor-pointer", className)}
       onClick={async () => {
         await createEntry(word_id);
-        setClicked(true);
+        setDisabled(true);
       }}
-      disabled={clicked}
+      disabled={disabled}
     >
       <FilePlus2 className="h-4 w-4" />
     </Button>

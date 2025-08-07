@@ -15,7 +15,7 @@ import {
 } from "@app/presentation/components/ui/chart";
 import { useEffect, useState } from "react";
 import { addDays, format } from "date-fns";
-import { aggregate } from "@/app/application/usecase/wordbook/aggregate/byTimes";
+import { aggregate } from "@app/application/usecase/wordbook/aggregate/byTimes";
 
 const chartConfig = {
   word_count: {

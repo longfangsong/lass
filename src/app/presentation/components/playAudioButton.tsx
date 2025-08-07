@@ -1,5 +1,5 @@
 import { AudioLines } from "lucide-react";
-import { cn } from "../lib/utils";
+import { cn } from "@app/presentation/lib/utils";
 import { Button } from "./ui/button";
 import type { WithPhonetic } from "@/types";
 export default function PlayButton({
