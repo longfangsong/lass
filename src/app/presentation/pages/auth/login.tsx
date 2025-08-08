@@ -6,7 +6,7 @@ export default function Login() {
       <h1 className="text-2xl font-bold mb-4">Login With</h1>
       <Button
         variant="outline"
-        onClick={() => (window.location.href = "/api/auth/github/login")}
+        onClick={() => (window.location.href = "/api/auth/login/github")}
       >
         <svg
           className="h-5 w-5 dark:invert"
@@ -22,7 +22,7 @@ export default function Login() {
 
       <Button
         variant="outline"
-        onClick={() => (window.location.href = "/api/auth/google/login")}
+        onClick={() => (window.location.href = "/api/auth/login/google")}
       >
         <svg
           role="img"

@@ -64,7 +64,7 @@ async function init(
     const [key, count] = tasks.tables[tableId];
     await initTable(db.table(key), count, tasks.version, (done) => {
       initProgress[tableId][1] = done;
-      setProgress(initProgress);
+      setProgress(Array.from(initProgress));
     });
     if (key === "Word") {
       fillFrequencyTask = fillFrequencyRank();

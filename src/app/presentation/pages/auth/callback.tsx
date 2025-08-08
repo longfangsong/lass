@@ -5,7 +5,7 @@ export default function Callback() {
   const { provider } = useParams();
   useEffect(() => {
     console.log("Callback");
-    window.location.href = `/api/auth/${provider}/callback${window.location.search}`;
+    window.location.href = `/api/auth/callback/${provider}${window.location.search}`;
   }, [provider]);
   return (
     <div>

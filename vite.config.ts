@@ -16,6 +16,13 @@ export default defineConfig({
       base: "/",
       registerType: "autoUpdate",
       workbox: {
+        navigateFallbackDenylist: [/\/api\/.*/],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith("/api"),
+            handler: "NetworkOnly",
+          },
+        ],
         globPatterns: [
           "**/*.{js,css,html,ico,png,jpg,jpeg,svg,otf,eot,ttf,woff,woff2}",
         ],

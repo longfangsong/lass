@@ -21,11 +21,15 @@ export function useAuth() {
         if (!online) {
           setUser(null);
         } else {
-          const response = await fetch("/api/auth/session");
-          const data: AuthResponse = await response.json();
-          if (isSuccess(data)) {
-            setUser(data);
-          } else {
+          try {
+            const response = await fetch("/api/auth/session");
+            const data: AuthResponse = await response.json();
+            if (isSuccess(data)) {
+              setUser(data);
+            } else {
+              setUser(null);
+            }
+          } catch {
             setUser(null);
           }
         }

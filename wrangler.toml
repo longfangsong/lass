@@ -1,6 +1,9 @@
-name = "lass-next"
+name = "lassvenska"
 main = "src/api/index.ts"
 compatibility_date = "2025-07-12"
+
+[vars]
+CF_PAGES_URL = "https://lassvenska.longfangsong.workers.dev"
 
 [assets]
 not_found_handling = "single-page-application"

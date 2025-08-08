@@ -11,8 +11,8 @@ const router = new Router();
 router
   .get("/api/auth/logout", logout)
   .get("/api/auth/session", session)
-  .get("/api/auth/:provider/login", login)
-  .get("/api/auth/:provider/callback", authCallback)
+  .get("/api/auth/login/:provider", login)
+  .get("/api/auth/callback/:provider", authCallback)
   .get("/api/words/:id", getWordById)
   .get("/api/words", search)
   .get("/api/sync/:table", oneWaySync)
