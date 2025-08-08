@@ -1,4 +1,4 @@
-import { db } from "@app/infrastructure/db";
+import { db } from "@app/infrastructure/indexeddb";
 import type { WordSearchResult } from "@/types";
 
 export async function searchWord(

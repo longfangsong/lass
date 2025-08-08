@@ -1,4 +1,4 @@
-import { repository } from "@app/domain/repository/wordbookEntry";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 import { NotReviewed, type WordBookEntry } from "@/types";
 
 export async function createEntry(wordId: string): Promise<WordBookEntry> {

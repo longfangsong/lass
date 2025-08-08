@@ -31,9 +31,8 @@ import {
   CheckCircle2Icon,
   ChevronDown,
 } from "lucide-react";
-import { repository } from "@app/domain/repository/wordbookEntry";
 import { ReviewIntervals } from "@app/domain/model/wordbookEntry";
-import { startReviewProgress } from "@app/application/usecase/wordbook/startReview";
+import { startReviewProgress } from "@/app/application/service/wordbook/startReview";
 import {
   Alert,
   AlertDescription,
@@ -46,6 +45,7 @@ import {
   DropdownMenuTrigger,
 } from "@app/presentation/components/ui/dropdown-menu";
 import { Input } from "@app/presentation/components/ui/input";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 const reviewCountColor = [
   "bg-red-500",
@@ -187,7 +187,7 @@ export default function All() {
       cell: ({ row }) => <PlayButton voice={row.original} />,
     },
   ];
-  const data = useLiveQuery(() => repository.all());
+  const data = useLiveQuery(() => repository.all);
   const now = Date.now();
   const endOfToday = endOfDay(now);
   const remainToReview = data?.filter(

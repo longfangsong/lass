@@ -17,7 +17,7 @@ import "./chartByCount.css";
 import { useEffect, useState } from "react";
 import { NotReviewed } from "@/types";
 import { ReviewIntervals } from "@app/domain/model/wordbookEntry";
-import { aggregate } from "@app/application/usecase/wordbook/aggregate/byCount";
+import { aggregate } from "@/app/application/service/wordbook/aggregate/byCount";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 

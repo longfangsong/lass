@@ -1,4 +1,3 @@
-import { repository } from "@app/domain/repository/wordbookEntry";
 import { futureReviewTimes } from "@app/domain/service/wordbook/futureReviewTimes";
 import type { WordBookEntry } from "@/types";
 import {
@@ -8,6 +7,7 @@ import {
   eachDayOfInterval,
   startOfDay,
 } from "date-fns";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 export async function aggregate(): Promise<Array<Array<WordBookEntry>>> {
   // todo: consider daily auto new start

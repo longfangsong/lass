@@ -36,7 +36,7 @@ export default function Index() {
               <Link to="/dictionary">Dictionary</Link>
             </Button>
             <Button asChild className="w-[160px] mx-auto">
-              <Link to="/words/review">Review Words</Link>
+              <Link to="/wordbook/review">Review Words</Link>
             </Button>
           </div>
         </div>

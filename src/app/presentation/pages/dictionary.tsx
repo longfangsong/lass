@@ -25,8 +25,8 @@ import { CheckCheck, FileDown } from "lucide-react";
 import SaveToWordBookButton from "@app/presentation/components/word/saveToWordBook";
 import PlayButton from "@app/presentation/components/playAudioButton";
 import { Badge } from "@app/presentation/components/ui/badge";
-import { searchWord } from "@app/application/usecase/dictionary/search";
-import { repository } from "@app/domain/repository/word";
+import { searchWord } from "@app/application/service/dictionary/search";
+import { repository } from "@app/infrastructure/indexeddb/wordRepository";
 
 function WordDetailDialog({
   word,

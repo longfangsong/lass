@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { cn } from "@app/presentation/lib/utils";
 import { FilePlus2 } from "lucide-react";
-import { createEntry } from "@app/application/usecase/wordbook/createEntry";
-import { repository } from "@app/domain/repository/wordbookEntry";
+import { createEntry } from "@/app/application/service/wordbook/createEntry";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 export default function SaveToWordBookButton({
   word_id,

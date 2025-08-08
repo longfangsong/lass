@@ -1,12 +1,7 @@
 import type { Table } from "dexie";
 import type { Progress, Tasks } from "@app/presentation/atoms/dictionary/init";
-import { DB, db } from "@app/infrastructure/db";
-
-async function dictionaryInited(): Promise<boolean> {
-  const metas = await db.meta.bulkGet(["Word", "WordIndex", "Lexeme"]);
-  const versions = metas.map((meta) => meta?.version);
-  return versions.every((v) => v !== undefined);
-}
+import { DB, db } from "@app/infrastructure/indexeddb";
+import { inited } from "@/app/domain/service/dictionary";
 
 async function loadMeta(): Promise<Tasks> {
   const metaFile = await fetch(`/init/meta.json`);
@@ -78,7 +73,7 @@ export async function initIfNeeded(
   setTasks: (tasks: Tasks) => void,
   setProgress: (progress: Progress) => void,
 ) {
-  if (await dictionaryInited()) {
+  if (await inited()) {
     setProgress("Done");
   } else {
     await init(setTasks, setProgress);

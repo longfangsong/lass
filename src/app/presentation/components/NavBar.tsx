@@ -30,7 +30,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useOnline } from "../hooks/useOnline";
 import { useAtom } from "jotai";
 import { isChecked, progress } from "../atoms/wordbook/sync";
-import { sync } from "@app/application/usecase/wordbook/sync";
+import { sync } from "@/app/application/service/wordbook/sync";
 
 function SignInButton() {
   return (
@@ -178,14 +178,14 @@ export default function NavBar() {
                   <AccordionContent>
                     <div className="ml-4 space-y-2">
                       <Link
-                        to="/words/all"
+                        to="/wordbook/all"
                         className="block text-foreground/80 hover:text-foreground py-1 px-2 rounded-md hover:bg-accent transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         View All
                       </Link>
                       <Link
-                        to="/words/review"
+                        to="/wordbook/review"
                         className="block text-foreground/80 hover:text-foreground py-1 px-2 rounded-md hover:bg-accent transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >

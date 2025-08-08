@@ -1,6 +1,6 @@
-import { repository } from "@app/domain/repository/wordbookEntry";
 import type { Progress } from "@app/presentation/atoms/wordbook/sync";
 import type { WordBookEntry } from "@/types";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 const BATCH_SIZE = 64;
 

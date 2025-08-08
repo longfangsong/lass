@@ -1,4 +1,4 @@
-import { initIfNeeded } from "@app/application/usecase/dictionary/init";
+import { initIfNeeded } from "@app/application/service/dictionary/init";
 import { tasks, progress } from "@app/presentation/atoms/dictionary/init";
 import { useAtom, useSetAtom } from "jotai";
 import { useEffect } from "react";

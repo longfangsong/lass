@@ -35,12 +35,14 @@ export class DB extends Dexie {
     }
   }
 
-  clear() {
-    this.word.clear();
-    this.wordIndex.clear();
-    this.lexeme.clear();
-    this.meta.clear();
-    this.wordBookEntry.clear();
+  async clear() {
+    await Promise.all([
+      this.word.clear(),
+      this.wordIndex.clear(),
+      this.lexeme.clear(),
+      this.meta.clear(),
+      this.wordBookEntry.clear(),
+    ]);
   }
 }
 

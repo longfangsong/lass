@@ -3,8 +3,8 @@ import WordCard from "@app/presentation/components/wordbook/wordCard";
 import type { WordBookEntryWithDetails } from "@app/types";
 import { ChartByCount } from "@app/presentation/components/wordbook/chartByCount";
 import { ChartByDate } from "@app/presentation/components/wordbook/chartByDate";
-import { repository } from "@app/domain/repository/wordbookEntry";
-import { getWordBookEntryDetail } from "@app/application/usecase/wordbook/getDetails";
+import { getWordBookEntryDetail } from "@app/application/service/wordbook/getDetails";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 export default function Review() {
   const [toReview, setToReview] = useState<Array<WordBookEntryWithDetails>>([]);

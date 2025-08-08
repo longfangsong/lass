@@ -11,7 +11,7 @@ import ClickableBlurElement from "../clickableBlurElement";
 import { useEffect, useState } from "react";
 import OptionalTooltip from "../optionalTooltip";
 import { review, ReviewStatus } from "@app/domain/model/wordbookEntry";
-import { repository } from "@app/domain/repository/wordbookEntry";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 export default function WordCard({
   entry,
