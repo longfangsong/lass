@@ -1,15 +1,17 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import {
   addToReview,
   createEntry,
   review,
   ReviewIntervals,
   ReviewStatus,
-} from "../../model/wordbookEntry";
+} from "@app/domain/model/wordbookEntry";
 import { futureReviewTimes } from "./futureReviewTimes";
-import { addDays } from "date-fns";
+import { addDays, isSameDay } from "date-fns";
 
 test("futureReviewTimes", () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(2025, 0, 1));
   const newCreated = createEntry("test");
   expect(() => futureReviewTimes(newCreated)).toThrow();
   const started = addToReview(newCreated);
@@ -43,4 +45,10 @@ test("futureReviewTimes", () => {
   expect(done.passive_review_count).toBe(6);
   const reviewDoneResult = futureReviewTimes(done);
   expect(reviewDoneResult.length).toBe(0);
+
+  vi.setSystemTime(new Date(2025, 1, 0));
+  const sleepAMonthResult = futureReviewTimes(started);
+  expect(isSameDay(sleepAMonthResult[0], new Date(2025, 1, 0))).toBe(true);
+  expect(isSameDay(sleepAMonthResult[1], new Date(2025, 1, 1))).toBe(true);
+  vi.useRealTimers();
 });

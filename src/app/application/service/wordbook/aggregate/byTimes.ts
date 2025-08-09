@@ -7,23 +7,27 @@ import {
   eachDayOfInterval,
   startOfDay,
 } from "date-fns";
-import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
+import type { Repository } from "@/app/domain/repository/wordbookEntry";
 
-export async function aggregate(): Promise<Array<Array<WordBookEntry>>> {
+export async function aggregate(
+  repository: Repository,
+): Promise<Array<Array<WordBookEntry>>> {
   // todo: consider daily auto new start
   const result: Array<Array<WordBookEntry>> = [...Array(31)].map((_) => []);
   const now = new Date();
+  const rangeStart = startOfDay(now);
   const days = eachDayOfInterval({
     start: startOfDay(now),
     end: addDays(startOfDay(now), 30),
   }).map((it) => addHours(it, 12));
-  console.log(days);
   for (const entity of await repository.allInReview()) {
     const futureTimes = futureReviewTimes(entity);
     for (const futureTime of futureTimes) {
-      const index = closestIndexTo(futureTime, days);
-      if (index !== undefined) {
-        result[index].push(entity);
+      if (futureTime > rangeStart) {
+        const index = closestIndexTo(futureTime, days);
+        if (index !== undefined) {
+          result[index].push(entity);
+        }
       }
     }
   }

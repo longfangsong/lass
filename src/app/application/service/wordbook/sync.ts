@@ -1,10 +1,13 @@
 import type { Progress } from "@app/presentation/atoms/wordbook/sync";
 import type { WordBookEntry } from "@/types";
-import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
+import type { Repository } from "@/app/domain/repository/wordbookEntry";
 
 const BATCH_SIZE = 64;
 
-export async function sync(setProgress: (progress: Progress) => void) {
+export async function sync(
+  repository: Repository,
+  setProgress: (progress: Progress) => void,
+) {
   setProgress("InProgress");
   const version = await repository.version;
   // also use as "sync_id"
@@ -54,7 +57,7 @@ export async function sync(setProgress: (progress: Progress) => void) {
     downloadDone = data.length < BATCH_SIZE;
   }
 
-  // // Update version after successful sync
+  // Update version after successful sync
   await repository.setVersion(now);
   setProgress({ last_check: now });
 }

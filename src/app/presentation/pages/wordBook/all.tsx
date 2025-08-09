@@ -158,7 +158,7 @@ export default function All() {
             <div className="flex items-center">
               <Button
                 className="mx-auto"
-                onClick={() => startReviewProgress(row.original)}
+                onClick={() => startReviewProgress(repository, row.original)}
               >
                 Start
               </Button>

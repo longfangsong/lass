@@ -6,7 +6,6 @@ import type {
   UserSettings,
   WithPhonetic,
 } from "./database";
-
 import { AutoNewReviewPolicy, NotReviewed } from "./database";
 export type {
   DBWord,

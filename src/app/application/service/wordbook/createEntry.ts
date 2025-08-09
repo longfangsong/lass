@@ -1,7 +1,10 @@
-import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
+import type { Repository } from "@/app/domain/repository/wordbookEntry";
 import { NotReviewed, type WordBookEntry } from "@/types";
 
-export async function createEntry(wordId: string): Promise<WordBookEntry> {
+export async function createEntry(
+  repository: Repository,
+  wordId: string,
+): Promise<WordBookEntry> {
   const entry = {
     id: crypto.randomUUID(),
     word_id: wordId,

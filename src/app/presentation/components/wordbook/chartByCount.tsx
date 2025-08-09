@@ -20,6 +20,7 @@ import { ReviewIntervals } from "@app/domain/model/wordbookEntry";
 import { aggregate } from "@/app/application/service/wordbook/aggregate/byCount";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 export const description = "A simple pie chart";
 
@@ -69,7 +70,7 @@ export function ChartByCount() {
   const [showDone, setShowDone] = useState(true);
   useEffect(() => {
     (async () => {
-      const rawData = await aggregate();
+      const rawData = await aggregate(repository);
       if (!showNotStarted && rawData[NotReviewed]) {
         delete rawData[NotReviewed];
       }

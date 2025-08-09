@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { sync } from "@/app/application/service/wordbook/sync";
 import { minutesToMilliseconds } from "date-fns";
 import { useAuth } from "./useAuth";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 export function useSyncWordbookInterval() {
   const { user } = useAuth();
@@ -12,7 +13,7 @@ export function useSyncWordbookInterval() {
     if (user) {
       const interval = setInterval(() => {
         if (currentProgress !== "InProgress") {
-          sync(setProgress);
+          sync(repository, setProgress);
         }
       }, minutesToMilliseconds(1));
       return () => clearInterval(interval);

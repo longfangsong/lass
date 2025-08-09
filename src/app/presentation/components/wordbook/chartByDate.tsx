@@ -15,6 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import { addDays, format } from "date-fns";
 import { aggregate } from "@/app/application/service/wordbook/aggregate/byTimes";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 const chartConfig = {
   word_count: {
@@ -29,7 +30,7 @@ export function ChartByDate() {
   );
   useEffect(() => {
     (async () => {
-      const rawData = await aggregate();
+      const rawData = await aggregate(repository);
       const now = new Date();
       const newData = rawData.map((item, index) => {
         return {

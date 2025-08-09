@@ -31,6 +31,7 @@ import { useOnline } from "../hooks/useOnline";
 import { useAtom } from "jotai";
 import { isChecked, progress } from "../atoms/wordbook/sync";
 import { sync } from "@/app/application/service/wordbook/sync";
+import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
 
 function SignInButton() {
   return (
@@ -120,13 +121,17 @@ export default function NavBar() {
           {online && user === null && !loading && <SignInButton />}
 
           {online && user && syncingProgress === "NeedCheck" && (
-            <CalendarSync onClick={() => sync(setSyncingProgress)} />
+            <CalendarSync
+              onClick={() => sync(repository, setSyncingProgress)}
+            />
           )}
           {online && user && syncingProgress === "InProgress" && (
             <RefreshCcw className="animate-spin" />
           )}
           {online && user && isChecked(syncingProgress) && (
-            <CircleCheckBig onClick={() => sync(setSyncingProgress)} />
+            <CircleCheckBig
+              onClick={() => sync(repository, setSyncingProgress)}
+            />
           )}
           {!online && <CloudOff className="mr-1" />}
           {/* Theme toggle - always visible */}

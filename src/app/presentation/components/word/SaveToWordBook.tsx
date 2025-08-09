@@ -26,7 +26,7 @@ export default function SaveToWordBookButton({
       aria-label="Save to word book"
       className={cn("p-0 cursor-pointer", className)}
       onClick={async () => {
-        await createEntry(word_id);
+        await createEntry(repository, word_id);
         setDisabled(true);
       }}
       disabled={disabled}
