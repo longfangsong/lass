@@ -27,3 +27,4 @@ dev-dist
 # wrangler files
 .wrangler
 .dev.vars*
+stats.html
