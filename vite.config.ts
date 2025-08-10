@@ -1,9 +1,9 @@
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import { VitePWA } from "vite-plugin-pwa";
-
+import { visualizer } from "rollup-plugin-visualizer";
 import { cloudflare } from "@cloudflare/vite-plugin";
 
 // https://vite.dev/config/
@@ -67,12 +67,23 @@ export default defineConfig({
         enabled: false,
       },
     }),
+    visualizer({ open: true }) as unknown as PluginOption,
   ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "@api": path.resolve(__dirname, "./src/api"),
       "@app": path.resolve(__dirname, "./src/app"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          utils: ["dexie", "date-fns", "remeda"],
+          dataDisplay: ["recharts", "@tanstack/react-table"],
+        },
+      },
     },
   },
 });
