@@ -126,9 +126,6 @@ importers:
       globals:
         specifier: ^16.3.0
         version: 16.3.0
-      resolve:
-        specifier: ^1.22.10
-        version: 1.22.10
       rollup-plugin-visualizer:
         specifier: ^6.0.3
         version: 6.0.3(rollup@2.79.2)

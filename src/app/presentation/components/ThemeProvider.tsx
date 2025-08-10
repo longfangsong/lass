@@ -20,6 +20,14 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+function setThemeColor(theme: Theme) {
+  const themeColor = theme === "dark" ? "#0c0a09" : "#ffffff";
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (metaThemeColor) {
+    metaThemeColor.setAttribute("content", themeColor);
+  }
+}
+
 export function ThemeProvider({
   children,
   defaultTheme = "system",
@@ -42,10 +50,12 @@ export function ThemeProvider({
         : "light";
 
       root.classList.add(systemTheme);
+      setThemeColor(systemTheme);
       return;
+    } else {
+      root.classList.add(theme);
+      setThemeColor(theme);
     }
-
-    root.classList.add(theme);
   }, [theme]);
 
   const value = {

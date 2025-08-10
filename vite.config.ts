@@ -31,7 +31,7 @@ export default defineConfig({
         name: "Läss",
         short_name: "Läss",
         description: "A platform for learning Svenska",
-        theme_color: "#e5e7eb",
+        theme_color: "#ffffff",
         orientation: "any",
         display: "standalone",
         icons: [
