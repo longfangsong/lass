@@ -66,8 +66,8 @@ export function ChartByCount() {
   const [data, setData] = useState<
     Array<{ word_count: number; review_count: string }> | undefined
   >(undefined);
-  const [showNotStarted, setShowNotStarted] = useState(true);
-  const [showDone, setShowDone] = useState(true);
+  const [showNotStarted, setShowNotStarted] = useState(false);
+  const [showDone, setShowDone] = useState(false);
   useEffect(() => {
     (async () => {
       const rawData = await aggregate(repository);

@@ -10,7 +10,7 @@ export function futureReviewTimes(entry: WordBookEntry): Array<Date> {
   assert(entry.passive_review_count >= 0);
   const estimatedInitReviewTime = subDays(
     Math.max(entry.next_passive_review_time, Date.now()),
-    entry.passive_review_count,
+    ReviewIntervals[entry.passive_review_count],
   );
   const allEstimatedReviewTimes = ReviewIntervals.map((interval) =>
     addDays(estimatedInitReviewTime, interval),

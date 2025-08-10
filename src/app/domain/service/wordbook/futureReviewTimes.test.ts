@@ -9,7 +9,7 @@ import {
 import { futureReviewTimes } from "./futureReviewTimes";
 import { addDays, isSameDay } from "date-fns";
 
-test("futureReviewTimes", () => {
+test("case 1", () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date(2025, 0, 1));
   const newCreated = createEntry("test");
@@ -50,5 +50,16 @@ test("futureReviewTimes", () => {
   const sleepAMonthResult = futureReviewTimes(started);
   expect(isSameDay(sleepAMonthResult[0], new Date(2025, 1, 0))).toBe(true);
   expect(isSameDay(sleepAMonthResult[1], new Date(2025, 1, 1))).toBe(true);
+  vi.useRealTimers();
+});
+
+test("case 2", () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(2025, 7, 10, 19));
+  const entry = createEntry("test");
+  entry.passive_review_count = 2;
+  entry.next_passive_review_time = new Date(2025, 7, 10, 10).getTime();
+  const result = futureReviewTimes(entry);
+  expect(isSameDay(result[0], new Date())).toBe(true);
   vi.useRealTimers();
 });
