@@ -16,4 +16,5 @@ export interface Repository {
   setLexemeVersion(version: number): Promise<void>;
 
   get(id: string): Promise<Word | undefined>;
+  put(word: Word): Promise<void>;
 }

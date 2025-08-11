@@ -86,7 +86,7 @@ export function Dictionary() {
   const search = async (spell: string, useAI: boolean = false) => {
     if (!spell.trim()) {
       setResults([]);
-      return;
+      return [];
     }
     setIsLoading(true);
     try {
@@ -103,16 +103,29 @@ export function Dictionary() {
         searchResults = await searchWord(spell);
       }
       setResults(searchResults);
+      return searchResults;
     } catch (error) {
       console.error("Search failed:", error);
       setResults([]);
+      return [];
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleAISearch = () => {
-    search(query, true);
+    search(query, true).then(async (result) => {
+      await Promise.all([
+        result.map(async (it) => {
+          const wordInfo = await fetch(`/api/words/${it.id}`);
+          if (!wordInfo.ok) {
+            throw new Error("Failed to fetch word details");
+          }
+          const word: Word = await wordInfo.json();
+          await repository.put(word);
+        }),
+      ]);
+    });
   };
 
   const handleKeyUp = () => {

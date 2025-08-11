@@ -1,4 +1,5 @@
-import { repository } from "@/app/infrastructure/indexeddb/wordRepository";
+import type { Repository } from "@/app/domain/repository/word";
+import type { Progress } from "@/app/presentation/atoms/dictionary/sync";
 import type { DBWord, Lexeme, WordIndex } from "@/types";
 import { assert } from "@/utils";
 
@@ -15,7 +16,7 @@ async function syncTable<T>(
   let offset = 0;
   while (true) {
     const params = new URLSearchParams({
-      from: versionPromise!.toString(),
+      from: version!.toString(),
       to: now.toString(),
       offset: offset.toString(),
       limit: BATCH_SIZE.toString(),
@@ -31,7 +32,11 @@ async function syncTable<T>(
   await setVersion(now);
 }
 
-export async function sync() {
+export async function sync(
+  repository: Repository,
+  setProgress: (progress: Progress) => void,
+) {
+  setProgress("InProgress");
   const now = Date.now();
   const basicInfoTask = syncTable<DBWord>(
     "Word",
@@ -55,4 +60,5 @@ export async function sync() {
     now,
   );
   await Promise.all([basicInfoTask, indexesTask, lexemeTask]);
+  setProgress({ last_check: now });
 }

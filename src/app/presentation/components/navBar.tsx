@@ -6,6 +6,7 @@ import {
   CloudOff,
   Menu,
   RefreshCcw,
+  CloudDownload,
   X,
 } from "lucide-react";
 import {
@@ -28,10 +29,10 @@ import {
 } from "./ui/accordion";
 import { useAuth } from "../hooks/useAuth";
 import { useOnline } from "../hooks/useOnline";
-import { useAtom } from "jotai";
-import { isChecked, progress } from "../atoms/wordbook/sync";
-import { sync } from "@/app/application/service/wordbook/sync";
-import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
+import { useAtomValue } from "jotai";
+import { useSyncDictionary } from "../hooks/dictionary/sync";
+import { useSyncWordbook } from "../hooks/wordbook/sync";
+import { progress } from "../atoms/sync";
 
 function SignInButton() {
   return (
@@ -54,7 +55,9 @@ export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const online = useOnline();
   const { user, loading } = useAuth();
-  const [syncingProgress, setSyncingProgress] = useAtom(progress);
+  const syncProgress = useAtomValue(progress);
+  const syncDictionary = useSyncDictionary();
+  const syncWordbook = useSyncWordbook();
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -120,17 +123,26 @@ export default function NavBar() {
           {online && user && <SignOutButton />}
           {online && user === null && !loading && <SignInButton />}
 
-          {online && user && syncingProgress === "NeedCheck" && (
+          {online && user && syncProgress === "NeedCheck" && (
             <CalendarSync
-              onClick={() => sync(repository, setSyncingProgress)}
+              onClick={() => {
+                syncDictionary();
+                syncWordbook();
+              }}
             />
           )}
-          {online && user && syncingProgress === "InProgress" && (
+          {online && user && syncProgress === "InProgress" && (
             <RefreshCcw className="animate-spin" />
           )}
-          {online && user && isChecked(syncingProgress) && (
+          {online && user && syncProgress === "Initing" && (
+            <CloudDownload className="animate-bounce" />
+          )}
+          {online && user && syncProgress === "Done" && (
             <CircleCheckBig
-              onClick={() => sync(repository, setSyncingProgress)}
+              onClick={() => {
+                syncDictionary();
+                syncWordbook();
+              }}
             />
           )}
           {!online && <CloudOff className="mr-1" />}
@@ -159,13 +171,6 @@ export default function NavBar() {
         <div className="sm:hidden bg-background border-t">
           <nav className="container mx-auto">
             <div className="flex flex-col">
-              {/*<Link
-                to="/articles"
-                className="text-foreground hover:text-foreground/80 px-3 py-2 rounded-md hover:bg-accent transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Articles
-              </Link>*/}
               <Separator />
               <Link
                 to="/dictionary"
@@ -180,23 +185,21 @@ export default function NavBar() {
                   <AccordionTrigger className="px-3 py-2 text-md font-normal">
                     Words
                   </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="ml-4 space-y-2">
-                      <Link
-                        to="/wordbook/all"
-                        className="block text-foreground/80 hover:text-foreground py-1 px-2 rounded-md hover:bg-accent transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        View All
-                      </Link>
-                      <Link
-                        to="/wordbook/review"
-                        className="block text-foreground/80 hover:text-foreground py-1 px-2 rounded-md hover:bg-accent transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Do Review
-                      </Link>
-                    </div>
+                  <AccordionContent className="ml-4 space-y-2">
+                    <Link
+                      to="/wordbook/all"
+                      className="block text-foreground/80 hover:text-foreground py-1 px-2 rounded-md hover:bg-accent transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      View All
+                    </Link>
+                    <Link
+                      to="/wordbook/review"
+                      className="block text-foreground/80 hover:text-foreground py-1 px-2 rounded-md hover:bg-accent transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Do Review
+                    </Link>
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

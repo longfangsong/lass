@@ -45,4 +45,19 @@ export const repository = {
       lexemes,
     };
   },
+  put: async (word: Word): Promise<void> => {
+    const saveBasicInfoTask = db.word.put({
+      id: word.id,
+      lemma: word.lemma,
+      part_of_speech: word.part_of_speech,
+      phonetic: word.phonetic,
+      update_time: Date.now(),
+      frequency: word.frequency,
+      phonetic_voice: word.phonetic_voice,
+      phonetic_url: word.phonetic_url,
+    });
+    const saveIndexesTask = db.wordIndex.bulkPut(word.indexes);
+    const saveLexemesTask = db.lexeme.bulkPut(word.lexemes);
+    await Promise.all([saveBasicInfoTask, saveIndexesTask, saveLexemesTask]);
+  },
 } satisfies Repository;
