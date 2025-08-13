@@ -1,0 +1,17 @@
+# For more details on how to configure Wrangler, refer to:
+# https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "crawl-radioswedenpalattsvenska"
+main = "src/index.ts"
+compatibility_date = "2025-08-13"
+
+[observability]
+enabled = true
+
+[triggers]
+crons = ["0 */3 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lass-next"
+database_id = "8a0a025f-77e8-4321-bcc2-ea8d65d2d56b"
