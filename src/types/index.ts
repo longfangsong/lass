@@ -5,6 +5,7 @@ import type {
   WordBookEntry,
   UserSettings,
   WithPhonetic,
+  Article,
 } from "./database";
 import { AutoNewReviewPolicy, NotReviewed } from "./database";
 export type {
@@ -14,6 +15,7 @@ export type {
   WordBookEntry,
   UserSettings,
   WithPhonetic,
+  Article,
 };
 
 export { AutoNewReviewPolicy, NotReviewed };

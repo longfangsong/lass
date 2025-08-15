@@ -1,3 +1,12 @@
+export interface Article {
+  id: string;
+  title: string | null;
+  content: string | null;
+  update_time: number;
+  url: string | null;
+  voice_url: string | null;
+}
+
 export interface WithPhonetic {
   phonetic_voice: Array<number> | null;
   phonetic_url: string | null;

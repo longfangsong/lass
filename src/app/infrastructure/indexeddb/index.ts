@@ -1,4 +1,10 @@
-import type { DBWord, WordIndex, Lexeme, WordBookEntry } from "@/types";
+import type {
+  DBWord,
+  WordIndex,
+  Lexeme,
+  WordBookEntry,
+  Article,
+} from "@/types";
 import Dexie, { type EntityTable } from "dexie";
 
 export class DB extends Dexie {
@@ -9,6 +15,8 @@ export class DB extends Dexie {
     },
     "table_name"
   >;
+
+  readonly article: EntityTable<Article, "id">;
   readonly word: EntityTable<DBWord & { frequency_rank?: number }, "id">;
   readonly wordIndex: EntityTable<WordIndex, "id">;
   readonly lexeme: EntityTable<Lexeme, "id">;
@@ -18,6 +26,7 @@ export class DB extends Dexie {
     super("lass");
     super.version(1).stores({
       meta: "table_name",
+      Article: "id, update_time",
       Word: "id, lemma, update_time",
       WordIndex: "id, word_id, spell, update_time",
       Lexeme: "id, word_id, update_time",
@@ -25,6 +34,7 @@ export class DB extends Dexie {
         "id, word_id, update_time, passive_review_count, active_review_count, next_passive_review_time, next_active_review_time",
     });
     this.meta = this.table("meta");
+    this.article = this.table("Article");
     this.word = this.table("Word");
     this.wordIndex = this.table("WordIndex");
     this.lexeme = this.table("Lexeme");

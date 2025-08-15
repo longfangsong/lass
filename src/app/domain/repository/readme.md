@@ -1,3 +1,3 @@
 # Repository
 
-Interface of repository of `Word` and `WordBookEntry`.
+Interface of repository for `Article` ,`Word` and `WordBookEntry`.

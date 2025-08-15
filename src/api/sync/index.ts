@@ -2,7 +2,7 @@ import type { WordBookEntry } from "@/types";
 import type { RouterContext } from "../router";
 import * as cookie from "cookie";
 import * as jose from "jose";
-import type { Lexeme, Word, WordIndex } from "@/types/database";
+import type { Article, Lexeme, Word, WordIndex } from "@/types/database";
 
 export async function saveWordBookEntries(
   db: D1Database,
@@ -137,6 +137,22 @@ export async function getLexemes(
   }));
 }
 
+export async function getArticles(
+  db: D1Database,
+  from: number,
+  limit: number,
+  offset: number,
+): Promise<Array<Article>> {
+  const articles = await db
+    .prepare(
+      `SELECT * FROM Article WHERE update_time > ? ORDER BY update_time DESC LIMIT ? OFFSET ?`,
+    )
+    .bind(from, limit, offset)
+    .all<Article>();
+
+  return articles.results;
+}
+
 export async function post({ params, env, request, query }: RouterContext) {
   const { table } = params;
   const limit = Number(query.get("limit"));
@@ -204,6 +220,8 @@ export async function get({ params, env, query, request }: RouterContext) {
       return Response.json(await getWordIndexes(env.DB, from, limit, offset));
     case "Lexeme":
       return Response.json(await getLexemes(env.DB, from, limit, offset));
+    case "Article":
+      return Response.json(await getArticles(env.DB, from, limit, offset));
     default:
       return new Response(`Unsupported table ${table}`, { status: 422 });
   }

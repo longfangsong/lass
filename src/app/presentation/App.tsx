@@ -10,6 +10,7 @@ import Login from "./pages/auth/login";
 import Callback from "./pages/auth/callback";
 import { useSyncDictionary } from "./hooks/dictionary/sync";
 import { useSyncWordbook } from "./hooks/wordbook/sync";
+import { useSyncArticle } from "./hooks/article/sync";
 
 const serverSideRegex = /^(\/api\/|\/init\/).*/;
 const router = (
@@ -34,6 +35,7 @@ function App() {
   useInitDictionaryIfNeeded();
   useSyncDictionary();
   useSyncWordbook();
+  useSyncArticle();
   return (
     <>
       {serverSideRegex.test(window.location.pathname) ? (
