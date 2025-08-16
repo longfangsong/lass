@@ -33,6 +33,7 @@ import { useAtomValue } from "jotai";
 import { useSyncDictionary } from "../hooks/dictionary/sync";
 import { useSyncWordbook } from "../hooks/wordbook/sync";
 import { progress } from "../atoms/sync";
+import { useSyncArticle } from "../hooks/article/sync";
 
 function SignInButton() {
   return (
@@ -58,6 +59,7 @@ export default function NavBar() {
   const syncProgress = useAtomValue(progress);
   const syncDictionary = useSyncDictionary();
   const syncWordbook = useSyncWordbook();
+  const syncArticle = useSyncArticle();
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -78,6 +80,15 @@ export default function NavBar() {
         <div className="flex-1 justify-center hidden sm:flex">
           <NavigationMenu viewport={false}>
             <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  asChild
+                  className={navigationMenuTriggerStyle()}
+                >
+                  <Link to="/articles">Articles</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
               <NavigationMenuItem>
                 <NavigationMenuLink
                   asChild
@@ -128,6 +139,7 @@ export default function NavBar() {
               onClick={() => {
                 syncDictionary();
                 syncWordbook();
+                syncArticle();
               }}
             />
           )}
@@ -142,6 +154,7 @@ export default function NavBar() {
               onClick={() => {
                 syncDictionary();
                 syncWordbook();
+                syncArticle();
               }}
             />
           )}
@@ -171,10 +184,17 @@ export default function NavBar() {
         <div className="sm:hidden bg-background border-t">
           <nav className="container mx-auto">
             <div className="flex flex-col">
+              <Link
+                to="/articles"
+                className="text-foreground hover:text-foreground/80 px-3 py-2 hover:bg-accent transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Articles
+              </Link>
               <Separator />
               <Link
                 to="/dictionary"
-                className="text-foreground hover:text-foreground/80 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                className="text-foreground hover:text-foreground/80 px-3 py-2 hover:bg-accent transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Dictionary
@@ -188,7 +208,7 @@ export default function NavBar() {
                   <AccordionContent className="ml-4 space-y-2">
                     <Link
                       to="/wordbook/all"
-                      className="block text-foreground/80 hover:text-foreground py-1 px-2 rounded-md hover:bg-accent transition-colors"
+                      className="block text-foreground/80 hover:text-foreground py-1 px-2 hover:bg-accent transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       View All

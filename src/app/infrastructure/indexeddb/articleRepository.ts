@@ -17,10 +17,10 @@ export const repository = {
   },
   async mostRecent(limit: number, offset: number): Promise<Article[]> {
     return await db.article
-      .orderBy("updated_at")
+      .orderBy("update_time")
       .reverse()
-      .limit(limit)
       .offset(offset)
+      .limit(limit)
       .toArray();
   },
 } satisfies Repository;

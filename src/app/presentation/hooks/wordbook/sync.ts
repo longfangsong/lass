@@ -13,6 +13,14 @@ function startSyncInterval(
   currentProgress: Progress,
   setProgress: (args_0: Progress | ((prev: Progress) => Progress)) => void,
 ): ReturnType<typeof setInterval> | null {
+  repository.version.then((version) => {
+    const now = Date.now();
+    if (now - (version || 0) > autoSyncInterval) {
+      if (currentProgress !== "InProgress") {
+        sync(repository, setProgress);
+      }
+    }
+  });
   return setInterval(() => {
     if (currentProgress !== "InProgress") {
       sync(repository, setProgress);

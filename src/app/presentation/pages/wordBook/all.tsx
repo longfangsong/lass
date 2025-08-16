@@ -60,7 +60,7 @@ const fallbackData: Array<
   WordBookEntryWithDetails & { frequency_rank?: number }
 > = [];
 
-export default function All() {
+export function All() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
