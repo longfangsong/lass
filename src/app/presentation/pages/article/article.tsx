@@ -19,6 +19,7 @@ import type { Article, WordSearchResult } from "@/types";
 import { repository } from "@/app/infrastructure/indexeddb/articleRepository";
 import { cn } from "../../lib/utils";
 import PlayButton from "../../components/playAudioButton";
+import { Player } from "../../components/player";
 
 export function WordPopoverContent({ spell }: { spell: string }) {
   const [words, setWords] = useState<Array<Word> | null>(null);
@@ -107,7 +108,9 @@ export function WordPopoverContent({ spell }: { spell: string }) {
 export function Word({ children }: { children: string }) {
   return (
     <Popover>
-      <PopoverTrigger className="cursor-pointer">{children}</PopoverTrigger>
+      <PopoverTrigger className="cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900">
+        {children}
+      </PopoverTrigger>
       <PopoverContent className="p-0">
         <WordPopoverContent spell={children} />
       </PopoverContent>
@@ -176,7 +179,7 @@ export default function Article() {
           On origin site
         </a>
       </Button>
-      {/*<Player url={article.voice_url} />*/}
+      {article.voice_url && <Player url={article.voice_url} />}
       {sentences.map((sentence, i) => (
         <Sentence key={i} content={sentence} />
       ))}
