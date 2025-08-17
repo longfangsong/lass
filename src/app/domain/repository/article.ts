@@ -6,5 +6,6 @@ export interface Repository {
 
   count(): Promise<number>;
   bulkPut(articles: Article[]): Promise<void>;
+  get(id: string): Promise<Article | undefined>;
   mostRecent(limit: number, offset: number): Promise<Article[]>;
 }

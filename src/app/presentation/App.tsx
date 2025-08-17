@@ -12,6 +12,7 @@ import { useSyncDictionary } from "./hooks/dictionary/sync";
 import { useSyncWordbook } from "./hooks/wordbook/sync";
 import { useSyncArticle } from "./hooks/article/sync";
 import { All as AllArticles } from "./pages/article/all";
+import Article from "./pages/article/article";
 
 const serverSideRegex = /^(\/api\/|\/init\/).*/;
 const router = (
@@ -25,6 +26,7 @@ const router = (
           <Route path="/dictionary" element={<Dictionary />} />
           <Route path="/wordbook/all" element={<AllInWordbook />} />
           <Route path="/wordbook/review" element={<Review />} />
+          <Route path="/article/:id" element={<Article />} />
           <Route path="/articles" element={<AllArticles />} />
           <Route path="/" element={<Index />} />
         </Routes>

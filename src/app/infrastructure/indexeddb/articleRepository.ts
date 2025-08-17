@@ -15,6 +15,9 @@ export const repository = {
   async bulkPut(articles: Article[]): Promise<void> {
     await db.article.bulkPut(articles);
   },
+  async get(id: string): Promise<Article | undefined> {
+    return await db.article.get(id);
+  },
   async mostRecent(limit: number, offset: number): Promise<Article[]> {
     return await db.article
       .orderBy("update_time")

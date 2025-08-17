@@ -17,4 +17,5 @@ export interface Repository {
 
   get(id: string): Promise<Word | undefined>;
   put(word: Word): Promise<void>;
+  getWordsByIndexSpell(spell: string): Promise<Word[]>;
 }
