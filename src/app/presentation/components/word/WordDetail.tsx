@@ -78,10 +78,13 @@ export default function WordDetail({
         ) : word?.part_of_speech === "verb" ? (
           verbTable(word)
         ) : word?.part_of_speech === "adj." ? (
-          adjectivePronTable(word)
+          <>
+            {adjectivePronCountTable(word)}
+            {adjectiveKomparativSuperlativTable(word)}
+          </>
         ) : word?.part_of_speech === "pron." &&
           word?.indexes.find((it) => it.form === "nform") !== undefined ? (
-          adjectivePronTable(word)
+          adjectivePronCountTable(word)
         ) : (
           <></>
         )}
@@ -242,7 +245,7 @@ function verbTable(word: Word) {
   );
 }
 
-function adjectivePronTable(word: Word) {
+function adjectivePronCountTable(word: Word) {
   const relevantForms = ["nform", "tform", "aform"];
   const anyRelevantForms = relevantForms.some((form) =>
     word?.indexes.find((it) => it.form === form),
@@ -270,6 +273,38 @@ function adjectivePronTable(word: Word) {
             </td>
             <td className="py-1 px-2 border border-sky-500">
               {word?.indexes.find((it) => it.form === "aform")?.spell}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function adjectiveKomparativSuperlativTable(word: Word) {
+  const relevantForms = ["komparativ", "superlativ"];
+  const anyRelevantForms = relevantForms.some((form) =>
+    word?.indexes.find((it) => it.form === form),
+  );
+  if (!anyRelevantForms) {
+    return <></>;
+  }
+  return (
+    <div className="max-w-full overflow-scroll">
+      <table className="py-1 px-2 border border-sky-500 max-w-72 overflow-scroll">
+        <thead>
+          <tr>
+            <th className="py-1 px-2 border border-sky-500">komparativ</th>
+            <th className="py-1 px-2 border border-sky-500">superlativ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "komparativ")?.spell}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              {word?.indexes.find((it) => it.form === "superlativ")?.spell}
             </td>
           </tr>
         </tbody>

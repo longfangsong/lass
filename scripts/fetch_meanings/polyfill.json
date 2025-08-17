@@ -1,0 +1,15 @@
+{
+  "pron_inflection": [
+    { "nform": "all", "tform": "allt", "aform": "alla" },
+    { "nform": "annan", "tform": "annat", "aform": "andra" },
+    { "nform": "denna", "tform": "detta", "aform": "dessa" },
+    { "nform": "din", "tform": "ditt", "aform": "dina" },
+    { "nform": "er", "tform": "ert", "aform": "era" },
+    { "nform": "ingen", "tform": "inget", "aform": "inga" },
+    { "nform": "min", "tform": "mitt", "aform": "mina" },
+    { "nform": "någon", "tform": "något", "aform": "några" },
+    { "nform": "sicken", "tform": "sicket", "aform": "sickna" },
+    { "nform": "sin", "tform": "sitt", "aform": "sina" },
+    { "nform": "vår", "tform": "vårt", "aform": "våra" }
+  ]
+}
