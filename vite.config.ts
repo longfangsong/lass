@@ -80,7 +80,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          utils: ["dexie", "date-fns", "remeda"],
+          utils: [
+            "dexie",
+            "date-fns",
+            "remeda",
+            "wavesurfer.js",
+            "wavesurfer-react",
+          ],
           dataDisplay: ["recharts", "@tanstack/react-table"],
         },
       },

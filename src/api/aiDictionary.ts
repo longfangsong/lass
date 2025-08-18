@@ -1,4 +1,4 @@
-import type { Word } from "@/types";
+import type { Lexeme, Word } from "@/types";
 import { GoogleGenAI, Type } from "@google/genai";
 
 export type PartOfSpeech =
@@ -165,4 +165,22 @@ export async function createWordWithAI(
     dbWord.phonetic_voice = Array.from(new Uint8Array(phonetic_voice));
   }
   return dbWord;
+}
+
+export async function getLexemeWithAI(
+  wordId: string,
+  spell: string,
+  apiToken: string,
+): Promise<Lexeme | undefined> {
+  const aiResponse = await getWordDefinitionFromAI(spell, apiToken);
+  if (!aiResponse) return undefined;
+  return {
+    id: crypto.randomUUID(),
+    word_id: wordId,
+    definition: aiResponse.meaning,
+    example: aiResponse.example_sentence || null,
+    example_meaning: aiResponse.example_sentence_meaning || null,
+    source: "gemini",
+    update_time: new Date().getTime(),
+  };
 }

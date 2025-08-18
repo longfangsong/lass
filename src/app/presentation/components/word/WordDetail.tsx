@@ -1,8 +1,10 @@
 import type { Lexeme, Word } from "@/types";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { Separator } from "@app/presentation/components/ui/separator";
 import { Badge } from "@app/presentation/components/ui/badge";
 import { cn } from "@app/presentation/lib/utils";
+import { Button } from "../ui/button";
+import { repository } from "@/app/infrastructure/indexeddb/wordRepository";
 
 function lexemePriority(lexeme: Lexeme) {
   const priority = {
@@ -33,6 +35,30 @@ export default function WordDetail({
   buttons?: Array<React.ReactNode>;
   className?: string;
 }) {
+  const [currentWord, setCurrentWord] = useState(word);
+  const getMeaningWithAI = useCallback(async () => {
+    try {
+      if (currentWord) {
+        const query = new URLSearchParams({
+          spell: currentWord.lemma,
+        });
+        const response = await fetch(
+          `/api/lexemes/${currentWord.id}?${query.toString()}`,
+        );
+        const data: Array<Lexeme> = await response.json();
+        if (data) {
+          await repository.bulkPutLexeme(data);
+          setCurrentWord({
+            ...currentWord,
+            lexemes: [...currentWord.lexemes, ...data],
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching meaning from AI:", error);
+    }
+  }, [currentWord]);
+
   return (
     <>
       <div
@@ -42,7 +68,7 @@ export default function WordDetail({
         )}
       >
         <div className="flex flex-row justify-between items-center">
-          <p>[{word?.phonetic}]</p>
+          <p>[{currentWord?.phonetic}]</p>
           <div className="w-fit flex flex-row gap-1 p-1 pr-2">
             {buttons ? (
               buttons.map((component, index) => (
@@ -53,44 +79,45 @@ export default function WordDetail({
             )}
           </div>
         </div>
-        <p>{word?.part_of_speech}</p>
-        {word?.part_of_speech === "subst." ? (
+        <p>{currentWord?.part_of_speech}</p>
+        {currentWord?.part_of_speech === "subst." ? (
           <>
-            {word?.indexes
+            {currentWord?.indexes
               .find((it) => it.form === "best.f.sing.")
               ?.spell.endsWith("t") ? (
               <p>
-                &quot;{word.lemma}&quot; är ett{" "}
+                &quot;{currentWord.lemma}&quot; är ett{" "}
                 <b className="text-red-500">ett</b>-ord
               </p>
-            ) : word?.indexes
+            ) : currentWord?.indexes
                 .find((it) => it.form === "best.f.sing.")
                 ?.spell.endsWith("n") ? (
               <p>
-                &quot;{word.lemma}&quot; är ett{" "}
+                &quot;{currentWord?.lemma}&quot; är ett{" "}
                 <b className="text-green-500">en</b>-ord
               </p>
             ) : (
               <></>
             )}
-            {substantiveTable(word)}
+            {substantiveTable(currentWord)}
           </>
-        ) : word?.part_of_speech === "verb" ? (
-          verbTable(word)
-        ) : word?.part_of_speech === "adj." ? (
+        ) : currentWord?.part_of_speech === "verb" ? (
+          verbTable(currentWord)
+        ) : currentWord?.part_of_speech === "adj." ? (
           <>
-            {adjectivePronCountTable(word)}
-            {adjectiveKomparativSuperlativTable(word)}
+            {adjectivePronCountTable(currentWord)}
+            {adjectiveKomparativSuperlativTable(currentWord)}
           </>
-        ) : word?.part_of_speech === "pron." &&
-          word?.indexes.find((it) => it.form === "nform") !== undefined ? (
-          adjectivePronCountTable(word)
+        ) : currentWord?.part_of_speech === "pron." &&
+          currentWord?.indexes.find((it) => it.form === "nform") !==
+            undefined ? (
+          adjectivePronCountTable(currentWord)
         ) : (
           <></>
         )}
       </div>
       <Separator className="my-3 border" />
-      {word?.lexemes
+      {currentWord?.lexemes
         .toSorted(
           (a: Lexeme, b: Lexeme) => lexemePriority(a) - lexemePriority(b),
         )
@@ -110,13 +137,22 @@ export default function WordDetail({
                 {lexeme.example_meaning || ""}
               </span>
             </div>
-            {index !== word?.lexemes.length - 1 ? (
+            {index !== currentWord?.lexemes.length - 1 ? (
               <Separator className="m-1 border-t" />
             ) : (
               <></>
             )}
           </React.Fragment>
         ))}
+      {currentWord &&
+        (currentWord.lexemes.length === 0 ||
+          currentWord.lexemes.every(
+            (lexeme) => lexeme.source === "lexin-swe",
+          )) && (
+          <Button onClick={getMeaningWithAI} variant="outline" size="sm">
+            Get meaning with AI
+          </Button>
+        )}
     </>
   );
 }

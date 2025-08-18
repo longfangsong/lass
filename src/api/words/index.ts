@@ -1,7 +1,7 @@
 import type { RouterContext } from "@api/router";
 import type { Word as DBWord, Lexeme, Word, WordIndex } from "@/types";
 import { searchInDatabase } from "./search";
-import { createWordWithAI } from "./aiDictionary";
+import { createWordWithAI } from "../aiDictionary";
 import { saveWord } from "./databaseOperations";
 import { unescapeObject } from "../utils";
 
