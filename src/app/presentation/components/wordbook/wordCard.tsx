@@ -81,7 +81,7 @@ export default function WordCard({
               )}
               <div className="grid grid-cols-2 gap-1">
                 <p className="text-sm text-green-500">{lexeme.example}</p>
-                {entry.passive_review_count === 0 || revealAll ? (
+                {entry.passive_review_count <= 3 || revealAll ? (
                   <p className="text-sm text-blue-500">
                     {lexeme.example_meaning}
                   </p>

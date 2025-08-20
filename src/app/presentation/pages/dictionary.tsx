@@ -18,11 +18,11 @@ import {
   DialogTitle,
 } from "@app/presentation/components/ui/dialog";
 import type { WordSearchResult, Word } from "@/types";
-import WordDetail from "@app/presentation/components/word/wordDetail";
+import WordDetail from "@app/presentation/components/word/WordDetail";
 import { useAtomValue } from "jotai";
 import { progress, tasks } from "@app/presentation/atoms/dictionary/init";
 import { CheckCheck, FileDown } from "lucide-react";
-import SaveToWordBookButton from "@app/presentation/components/word/saveToWordBook";
+import SaveToWordBookButton from "@app/presentation/components/word/SaveToWordBook";
 import PlayButton from "@app/presentation/components/playAudioButton";
 import { Badge } from "@app/presentation/components/ui/badge";
 import { searchWord } from "@app/application/service/dictionary/search";
