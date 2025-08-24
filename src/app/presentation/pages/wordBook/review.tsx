@@ -5,8 +5,10 @@ import { ChartByCount } from "@app/presentation/components/wordbook/chartByCount
 import { ChartByDate } from "@app/presentation/components/wordbook/chartByDate";
 import { getWordBookEntryDetail } from "@app/application/service/wordbook/getDetails";
 import { repository } from "@/app/infrastructure/indexeddb/wordbookEntryRepository";
+import { useSyncWordbook } from "@app/presentation/hooks/wordbook/sync";
 
 export default function Review() {
+  const syncWordbook = useSyncWordbook();
   const [toReview, setToReview] = useState<Array<WordBookEntryWithDetails>>([]);
   useEffect(() => {
     (async () => {
@@ -17,6 +19,12 @@ export default function Review() {
       setToReview(withDetails);
     })();
   }, []);
+  
+  // Sync wordbook when component unmounts
+  useEffect(() => {
+    return syncWordbook;
+  }, [syncWordbook]);
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   if (toReview.length > 0 && currentIndex < toReview.length) {
     return (
