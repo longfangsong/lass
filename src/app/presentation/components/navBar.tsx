@@ -18,7 +18,6 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@app/presentation/components/ui/navigation-menu";
-import { ModeToggle } from "./modeToggle";
 import { Button } from "@app/presentation/components/ui/button";
 import { Separator } from "./ui/separator";
 import {
@@ -34,6 +33,7 @@ import { useSyncDictionary } from "../hooks/dictionary/sync";
 import { useSyncWordbook } from "../hooks/wordbook/sync";
 import { progress } from "../atoms/sync";
 import { useSyncArticle } from "../hooks/article/sync";
+import { ModeToggle } from "./modeToggle";
 
 function SignInButton() {
   return (
