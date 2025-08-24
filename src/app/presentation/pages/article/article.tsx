@@ -5,8 +5,8 @@ import {
   PopoverTrigger,
 } from "../../components/ui/popover";
 import React from "react";
-import WordDetail from "../../components/word/wordDetail";
-import SaveToWordBookButton from "../../components/word/saveToWordBook";
+import WordDetail from "../../components/word/WordDetail";
+import SaveToWordBookButton from "../../components/word/SaveToWordBook";
 import { Separator } from "../../components/ui/separator";
 import { useAuth } from "../../hooks/useAuth";
 import { LoaderCircle } from "lucide-react";
