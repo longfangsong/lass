@@ -1,14 +1,14 @@
 import { expect, test } from "vitest";
 import { addDays } from "date-fns";
-import { addToReview, createEntry, review, ReviewStatus } from "./model";
+import { addToPassiveReview, createEntry, review, ReviewStatus } from "./model";
 
 test("add to review", async () => {
   const initial = createEntry("test");
-  const result = addToReview(initial);
+  const result = addToPassiveReview(initial);
   expect(result.word_id).toBe(initial.word_id);
   expect(result.passive_review_count).toBe(0);
   expect(result.next_passive_review_time).lessThanOrEqual(Date.now());
-  expect(() => addToReview(result)).toThrow();
+  expect(() => addToPassiveReview(result)).toThrow();
 });
 
 test("Only can review when added", async () => {
@@ -18,7 +18,7 @@ test("Only can review when added", async () => {
 
 test("review successfully", () => {
   const initial = createEntry("test");
-  const justAdded = addToReview(initial);
+  const justAdded = addToPassiveReview(initial);
   const initLearned = review(justAdded, ReviewStatus.StillRemember);
   expect(initLearned.passive_review_count).toBe(1);
   expect(initLearned.next_passive_review_time).closeTo(
@@ -71,7 +71,7 @@ test("review successfully", () => {
 
 test("review failed", () => {
   const initial = createEntry("test");
-  const justAdded = addToReview(initial);
+  const justAdded = addToPassiveReview(initial);
   expect(() => review(justAdded, ReviewStatus.Forgotten)).toThrow();
   const initLearned = review(justAdded, ReviewStatus.StillRemember);
   expect(initLearned.passive_review_count).toBe(1);
@@ -95,7 +95,7 @@ test("review failed", () => {
 
 test("review unsure", () => {
   const initial = createEntry("test");
-  const justAdded = addToReview(initial);
+  const justAdded = addToPassiveReview(initial);
   expect(() => review(justAdded, ReviewStatus.Unsure)).toThrow();
   const initLearned = review(justAdded, ReviewStatus.StillRemember);
   expect(initLearned.passive_review_count).toBe(1);

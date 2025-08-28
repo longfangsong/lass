@@ -179,8 +179,6 @@ export async function post({ params, env, request, query }: RouterContext) {
       from,
       to,
     );
-    // updatedEntries.forEach((it) => (it.sync_at = sync_at));
-    // await updateBatch(env.DB, updatedEntries);
     return Response.json(updatedEntries);
   } else {
     return new Response(`Unsupported table ${table}`, { status: 422 });

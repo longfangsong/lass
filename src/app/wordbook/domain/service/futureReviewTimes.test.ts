@@ -3,7 +3,7 @@ import { futureReviewTimes } from "./futureReviewTimes";
 import { addDays, isSameDay } from "date-fns";
 import {
   createEntry,
-  addToReview,
+  addToPassiveReview,
   ReviewIntervals,
   review,
   ReviewStatus,
@@ -14,7 +14,7 @@ test("case 1", () => {
   vi.setSystemTime(new Date(2025, 0, 1));
   const newCreated = createEntry("test");
   expect(() => futureReviewTimes(newCreated)).toThrow();
-  const started = addToReview(newCreated);
+  const started = addToPassiveReview(newCreated);
   const now = new Date();
 
   const startedResult = futureReviewTimes(started);

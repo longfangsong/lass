@@ -18,7 +18,7 @@ export function createEntry(wordId: string): WordBookEntry {
   };
 }
 
-export function addToReview(entry: WordBookEntry): WordBookEntry {
+export function addToPassiveReview(entry: WordBookEntry): WordBookEntry {
   const currentReviewCount = entry.passive_review_count;
   assert(currentReviewCount === NotReviewed);
   const now = Date.now();
@@ -26,6 +26,22 @@ export function addToReview(entry: WordBookEntry): WordBookEntry {
     ...entry,
     passive_review_count: 0,
     next_passive_review_time: now,
+    update_time: now,
+  };
+}
+
+export function addToActiveReview(entry: WordBookEntry): WordBookEntry {
+  assert(
+    entry.passive_review_count > 3,
+    "Must complete passive review more than 3 times before starting active review.",
+  );
+  const currentReviewCount = entry.active_review_count;
+  assert(currentReviewCount === NotReviewed);
+  const now = Date.now();
+  return {
+    ...entry,
+    active_review_count: 0,
+    next_active_review_time: now,
     update_time: now,
   };
 }

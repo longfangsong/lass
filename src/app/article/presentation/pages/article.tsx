@@ -1,4 +1,4 @@
-import { toWordsAndPunctuations } from "@/app/shared/domain/functions";
+import { toWordsAndPunctuations } from "@/app/article/domain/functions";
 import PlayButton from "@/app/shared/presentation/components/playAudioButton";
 import { Button } from "@/app/shared/presentation/components/ui/button";
 import SaveToWordBookButton from "@/app/shared/presentation/components/word/saveToWordBook";

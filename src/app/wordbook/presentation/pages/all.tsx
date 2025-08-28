@@ -38,7 +38,10 @@ import {
 } from "@/app/shared/presentation/components/ui/table";
 import { cn } from "@/app/shared/presentation/lib/utils";
 
-import { startReviewProgress } from "../../application/startReview";
+import {
+  startActiveReviewProgress,
+  startPassiveReviewProgress,
+} from "../../application/startReview";
 import { ReviewIntervals } from "../../domain/model";
 import { repository } from "../../infrastructure/repository";
 import {
@@ -80,7 +83,7 @@ export function All() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Next Review
+            Next Passive Review
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -103,6 +106,46 @@ export function All() {
       sortingFn: (rowA, rowB) => {
         const timeA: number = rowA.getValue("next_passive_review_time");
         const timeB: number = rowB.getValue("next_passive_review_time");
+        if (timeA === NotReviewed && timeB === NotReviewed) {
+          return 0;
+        } else if (timeA === NotReviewed) {
+          return 1;
+        } else if (timeB === NotReviewed) {
+          return -1;
+        } else {
+          return timeA - timeB;
+        }
+      },
+    },
+    {
+      accessorKey: "next_active_review_time",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Next Active Review
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const time: number = row.getValue("next_active_review_time");
+        const active_review_count: number = row.getValue("active_review_count");
+        if (active_review_count === NotReviewed) {
+          return <></>;
+        } else if (active_review_count >= ReviewIntervals.length) {
+          return "Klart!";
+        } else if (time <= Date.now()) {
+          return "Nu!";
+        } else {
+          return `I ${formatDistanceToNow(time, { locale: sv })}`;
+        }
+      },
+      sortingFn: (rowA, rowB) => {
+        const timeA: number = rowA.getValue("next_active_review_time");
+        const timeB: number = rowB.getValue("next_active_review_time");
         if (timeA === NotReviewed && timeB === NotReviewed) {
           return 0;
         } else if (timeA === NotReviewed) {
@@ -150,7 +193,7 @@ export function All() {
     },
     {
       accessorKey: "passive_review_count",
-      header: () => <div className="text-center">Review</div>,
+      header: () => <div className="text-center">Passive Review</div>,
       cell: ({ row }) => {
         const count: number = row.getValue("passive_review_count");
 
@@ -159,7 +202,54 @@ export function All() {
             <div className="flex items-center">
               <Button
                 className="mx-auto"
-                onClick={() => startReviewProgress(repository, row.original)}
+                onClick={() =>
+                  startPassiveReviewProgress(repository, row.original)
+                }
+              >
+                Start
+              </Button>
+            </div>
+          );
+        }
+
+        return (
+          <div className="flex flex-col-reverse items-center">
+            {ReviewIntervals.map((_, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "w-3.5 h-0.5 rounded-sm m-px",
+                  index < count ? reviewCountColor[index] : "bg-gray-300",
+                )}
+              ></div>
+            ))}
+            <span>{count}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "active_review_count",
+      header: () => <div className="text-center">Active Review</div>,
+      cell: ({ row }) => {
+        const count: number = row.getValue("active_review_count");
+        const passiveCount: number = row.getValue("passive_review_count");
+
+        if (count === NotReviewed) {
+          const canStartActive = passiveCount > 3;
+          return (
+            <div className="flex items-center">
+              <Button
+                className="mx-auto"
+                onClick={() =>
+                  startActiveReviewProgress(repository, row.original)
+                }
+                disabled={!canStartActive}
+                title={
+                  canStartActive
+                    ? "Start active review"
+                    : "Complete passive review more than 3 times to start"
+                }
               >
                 Start
               </Button>
