@@ -129,3 +129,81 @@ export function review(
       throw new Error(`Invalid review status: ${status}`);
   }
 }
+
+function reviewActiveStillRemember(entry: WordBookEntry): WordBookEntry {
+  const currentReviewCount = entry.active_review_count;
+  assert(currentReviewCount < ReviewIntervals.length, "Invalid review count");
+  const nextReviewCount = currentReviewCount + 1;
+  const now = Date.now();
+  if (nextReviewCount < ReviewIntervals.length) {
+    const nextReview = addDays(
+      now,
+      ReviewIntervals[nextReviewCount] - ReviewIntervals[currentReviewCount],
+    );
+    return {
+      ...entry,
+      active_review_count: nextReviewCount,
+      next_active_review_time: nextReview.getTime(),
+      update_time: now,
+    };
+  } else {
+    return {
+      ...entry,
+      active_review_count: nextReviewCount,
+      next_active_review_time: Number.MAX_SAFE_INTEGER,
+      update_time: now,
+    };
+  }
+}
+
+function reviewActiveForgotten(entry: WordBookEntry): WordBookEntry {
+  const currentReviewCount = entry.active_review_count;
+  assert(
+    currentReviewCount !== 0 && currentReviewCount < ReviewIntervals.length,
+    "Invalid review count",
+  );
+  const now = Date.now();
+  const nextReview = addDays(now, 1);
+  return {
+    ...entry,
+    active_review_count: 1,
+    next_active_review_time: nextReview.getTime(),
+    update_time: now,
+  };
+}
+
+function reviewActiveUnsure(entry: WordBookEntry): WordBookEntry {
+  const currentReviewCount = entry.active_review_count;
+  assert(
+    currentReviewCount !== 0 && currentReviewCount < ReviewIntervals.length,
+    "Invalid review count",
+  );
+  const now = Date.now();
+  const nextReview = addDays(
+    now,
+    ReviewIntervals[currentReviewCount] -
+      ReviewIntervals[currentReviewCount - 1],
+  );
+  return {
+    ...entry,
+    next_active_review_time: nextReview.getTime(),
+    update_time: now,
+  };
+}
+
+export function reviewActive(
+  entry: WordBookEntry,
+  status: ReviewStatus,
+): WordBookEntry {
+  assert(entry.active_review_count >= 0);
+  switch (status) {
+    case ReviewStatus.StillRemember:
+      return reviewActiveStillRemember(entry);
+    case ReviewStatus.Forgotten:
+      return reviewActiveForgotten(entry);
+    case ReviewStatus.Unsure:
+      return reviewActiveUnsure(entry);
+    default:
+      throw new Error(`Invalid review status: ${status}`);
+  }
+}

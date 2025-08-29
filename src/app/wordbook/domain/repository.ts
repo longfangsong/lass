@@ -18,7 +18,8 @@ export interface Repository {
     includeUpper: boolean,
   ): Promise<Array<WordBookEntry>>;
   reviewNotStarted(): Promise<Array<WordBookEntry>>;
-  needReviewNow(): Promise<Array<WordBookEntry>>;
+  needPassiveReviewNow(): Promise<Array<WordBookEntry>>;
+  needActiveReviewNow(): Promise<Array<WordBookEntry>>;
   allInReview(): Promise<Array<WordBookEntry>>;
   updatedBetween(
     sync_at: number,

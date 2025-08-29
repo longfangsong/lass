@@ -1,48 +1,18 @@
-import { useAtom } from "jotai";
-import { useEffect } from "react";
-import { millisecondsInMinute } from "date-fns/constants";
-import { progress, type Progress } from "../atoms/sync";
-import { useAuth } from "@/app/shared/presentation/hooks/useAuth";
+import { useSetAtom } from "jotai";
+import { progress } from "../atoms/sync";
 import { sync } from "../../application/sync";
 import { repository } from "../../infrastructure/repository";
 
-const autoSyncInterval = millisecondsInMinute;
-let timer: ReturnType<typeof setInterval> | null = null;
-
-function startSyncInterval(
-  currentProgress: Progress,
-  setProgress: (args_0: Progress | ((prev: Progress) => Progress)) => void,
-): ReturnType<typeof setInterval> | null {
-  repository.version.then((version) => {
-    const now = Date.now();
-    if (now - (version || 0) > autoSyncInterval) {
-      if (currentProgress !== "InProgress") {
-        sync(repository, setProgress);
-      }
-    }
-  });
-  return setInterval(() => {
-    if (currentProgress !== "InProgress") {
-      sync(repository, setProgress);
-    }
-  }, autoSyncInterval);
-}
-
+/**
+ * Provides a function to trigger a wordbook sync.
+ * This is intended to be used for event-driven syncs, like on component unmount.
+ * The continuous background sync is handled by the SyncManager component.
+ */
 export function useSyncWordbook() {
-  const [currentProgress, setProgress] = useAtom(progress);
-  const { user } = useAuth();
-  useEffect(() => {
-    if (user && timer === null) {
-      timer = startSyncInterval(currentProgress, setProgress);
-    } else if (!user && timer !== null) {
-      clearInterval(timer!);
-    }
-  }, [currentProgress, setProgress, user]);
+  const setProgress = useSetAtom(progress);
+
   return () => {
-    if (timer !== null) {
-      clearInterval(timer);
-    }
-    timer = startSyncInterval(currentProgress, setProgress);
+    // Trigger a sync without affecting the global timer.
     sync(repository, setProgress);
   };
 }

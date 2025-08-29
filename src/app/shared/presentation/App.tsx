@@ -9,12 +9,12 @@ import { ThemeProvider } from "./components/themeProvider";
 import Login from "./pages/auth/login";
 import Callback from "./pages/auth/callback";
 import { useSyncDictionary } from "../../dictionary/presentation/hooks/sync";
-import { useSyncWordbook } from "../../wordbook/presentation/hooks/sync";
 import { useSyncArticle } from "../../article/presentation/hooks/sync";
 import Article from "@/app/article/presentation/pages/article";
 import { All as AllArticles } from "../../article/presentation/pages/all";
 import "./index.css";
 import "./norse-bold.css";
+import { SyncManager } from "@/app/wordbook/presentation/components/SyncManager";
 
 const serverSideRegex = /^(\/api\/|\/init\/).*/;
 const router = (
@@ -40,8 +40,8 @@ const router = (
 function App() {
   useInitDictionaryIfNeeded();
   useSyncDictionary();
-  useSyncWordbook();
   useSyncArticle();
+  <SyncManager />;
   return (
     <>
       {serverSideRegex.test(window.location.pathname) ? (

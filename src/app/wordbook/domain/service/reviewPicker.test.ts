@@ -1,7 +1,7 @@
-import type { Word } from "@app/types";
 import { expect, test } from "vitest";
 import { mostFrequent } from "./reviewPicker";
-import { createEntry } from "../../model/wordbookEntry";
+import { createEntry } from "../model";
+import type { Word } from "@app/types";
 
 test("Most frequent Policy", async () => {
   const entries = await Promise.all([

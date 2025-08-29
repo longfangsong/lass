@@ -1,22 +1,48 @@
 import type { WordBookEntryWithDetails } from "@/types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getWordBookEntryDetail } from "../../application/getDetails";
 import { repository } from "../../infrastructure/repository";
 import { ChartByCount } from "../components/chartByCount";
 import { ChartByDate } from "../components/chartByDate";
+import SentenceConstructionCard from "../components/SentenceConstructionCard";
 import WordCard from "../components/wordCard";
 import { useSyncWordbook } from "../hooks/sync";
 
 export default function Review() {
   const syncWordbook = useSyncWordbook();
-  const [toReview, setToReview] = useState<Array<WordBookEntryWithDetails>>([]);
+  const [toReviewPassive, setToReviewPassive] = useState<
+    Array<WordBookEntryWithDetails>
+  >([]);
+  const [toReviewActive, setToReviewActive] = useState<
+    Array<WordBookEntryWithDetails>
+  >([]);
+  const [reviewMode, setReviewMode] = useState<
+    "loading" | "passive" | "active" | "done"
+  >("loading");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   useEffect(() => {
     (async () => {
-      const entries = await repository.needReviewNow();
-      const withDetails = await Promise.all(
-        entries.map((entry) => getWordBookEntryDetail(entry)),
+      const passiveEntries = await repository.needPassiveReviewNow();
+      const passiveDetails = await Promise.all(
+        passiveEntries.map((entry) => getWordBookEntryDetail(entry)),
       );
-      setToReview(withDetails);
+      setToReviewPassive(passiveDetails);
+
+      const activeEntries = await repository.needActiveReviewNow();
+      const activeDetails = await Promise.all(
+        activeEntries.map((entry) => getWordBookEntryDetail(entry)),
+      );
+      setToReviewActive(activeDetails);
+
+      if (passiveDetails.length > 0) {
+        setReviewMode("passive");
+      } else if (activeDetails.length > 0) {
+        setReviewMode("active");
+      } else {
+        console.log("Done");
+        setReviewMode("done");
+      }
     })();
   }, []);
 
@@ -25,30 +51,57 @@ export default function Review() {
     return syncWordbook;
   }, [syncWordbook]);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  if (toReview.length > 0 && currentIndex < toReview.length) {
+  const handleDone = useCallback(() => {
+    const nextIndex = currentIndex + 1;
+    if (reviewMode === "passive") {
+      if (nextIndex < toReviewPassive.length) {
+        setCurrentIndex(nextIndex);
+      } else {
+        setCurrentIndex(0);
+        setReviewMode(toReviewActive.length > 0 ? "active" : "done");
+      }
+    } else if (reviewMode === "active") {
+      if (nextIndex < toReviewActive.length) {
+        setCurrentIndex(nextIndex);
+      } else {
+        setReviewMode("done");
+      }
+    }
+  }, [currentIndex, reviewMode, toReviewActive, toReviewPassive]);
+
+  if (reviewMode === "loading") {
+    return <div>Loading reviews...</div>; // Or a spinner component
+  }
+
+  if (reviewMode === "passive" && currentIndex < toReviewPassive.length) {
     return (
       <div className="w-full">
-        <WordCard
-          entry={toReview[currentIndex]}
-          onDone={() => {
-            setCurrentIndex(currentIndex + 1);
-          }}
+        <WordCard entry={toReviewPassive[currentIndex]} onDone={handleDone} />
+      </div>
+    );
+  }
+
+  if (reviewMode === "active" && currentIndex < toReviewActive.length) {
+    return (
+      <div className="w-full">
+        <SentenceConstructionCard
+          entry={toReviewActive[currentIndex]}
+          onDone={handleDone}
         />
       </div>
     );
-  } else {
-    return (
-      <>
-        <h1 className="scroll-m-20 text-center text-4xl font-bold tracking-tight text-balance">
-          No words to review now!
-        </h1>
-        <p className="text-center">Relax and check your progress here.</p>
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ChartByCount />
-          <ChartByDate />
-        </div>
-      </>
-    );
   }
+
+  return (
+    <>
+      <h1 className="scroll-m-20 text-center text-4xl font-bold tracking-tight text-balance">
+        No words to review now!
+      </h1>
+      <p className="text-center">Relax and check your progress here.</p>
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ChartByCount />
+        <ChartByDate />
+      </div>
+    </>
+  );
 }

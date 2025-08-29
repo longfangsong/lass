@@ -114,7 +114,7 @@ export const repository = {
       .toArray();
   },
 
-  async needReviewNow(): Promise<Array<WordBookEntry>> {
+  async needPassiveReviewNow(): Promise<Array<WordBookEntry>> {
     return await wordBookEntryTable
       .where("next_passive_review_time")
       .belowOrEqual(Date.now())
@@ -122,6 +122,19 @@ export const repository = {
         (it) =>
           it.passive_review_count >= 0 &&
           it.passive_review_count < ReviewIntervals.length,
+      )
+      .filter((it) => !it.deleted)
+      .toArray();
+  },
+
+  async needActiveReviewNow(): Promise<Array<WordBookEntry>> {
+    return await wordBookEntryTable
+      .where("next_active_review_time")
+      .belowOrEqual(Date.now())
+      .and(
+        (it) =>
+          it.active_review_count >= 0 &&
+          it.active_review_count < ReviewIntervals.length,
       )
       .filter((it) => !it.deleted)
       .toArray();

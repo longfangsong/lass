@@ -1,4 +1,4 @@
-import type { Progress } from "@/app/application/service/article/sync";
 import { atom } from "jotai";
+import type { Progress } from "../../application/sync";
 
 export const progress = atom<Progress>("NeedCheck");
