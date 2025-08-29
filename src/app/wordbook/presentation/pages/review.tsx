@@ -1,7 +1,10 @@
 import type { WordBookEntryWithDetails } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 import { getWordBookEntryDetail } from "../../application/getDetails";
-import { repository } from "../../infrastructure/repository";
+import { repository, wordTable } from "../../infrastructure/repository";
+import { startPassiveReviewProgress } from "../../application/startReview";
+import { getPicker } from "../../application/autoReview";
+import { AutoNewReviewPolicy } from "@/types";
 import { ChartByCount } from "../components/chartByCount";
 import { ChartByDate } from "../components/chartByDate";
 import SentenceConstructionCard from "../components/SentenceConstructionCard";
@@ -24,15 +27,47 @@ export default function Review() {
   useEffect(() => {
     (async () => {
       const passiveEntries = await repository.needPassiveReviewNow();
-      const passiveDetails = await Promise.all(
+      let passiveDetails = await Promise.all(
         passiveEntries.map((entry) => getWordBookEntryDetail(entry)),
       );
-      setToReviewPassive(passiveDetails);
 
       const activeEntries = await repository.needActiveReviewNow();
       const activeDetails = await Promise.all(
         activeEntries.map((entry) => getWordBookEntryDetail(entry)),
       );
+
+      // Auto-start new passive reviews if needed (K=20)
+      const K = 20;
+      const currentTotalReviews = passiveDetails.length + activeDetails.length;
+      
+      if (currentTotalReviews < K) {
+        const needToStart = K - currentTotalReviews;
+        const notStartedEntries = await repository.reviewNotStarted();
+        
+        if (notStartedEntries.length > 0) {
+          // Create bulk word getter for mostFrequent picker
+          const bulkGetWord = async (ids: Array<string>) => {
+            return await wordTable.bulkGet(ids);
+          };
+          
+          // Use mostFrequent policy to pick new entries to start
+          const picker = getPicker(bulkGetWord)(AutoNewReviewPolicy.MostFrequent);
+          const toStart = await picker(notStartedEntries, needToStart);
+          
+          // Start passive review for selected entries
+          await Promise.all(
+            toStart.map(entry => startPassiveReviewProgress(repository, entry))
+          );
+          
+          // Get details for newly started reviews and add to passive list
+          const newDetails = await Promise.all(
+            toStart.map((entry) => getWordBookEntryDetail(entry)),
+          );
+          passiveDetails = [...passiveDetails, ...newDetails];
+        }
+      }
+
+      setToReviewPassive(passiveDetails);
       setToReviewActive(activeDetails);
 
       if (passiveDetails.length > 0) {
