@@ -80,7 +80,17 @@ export default function WordCard({
                 </ClickableBlurElement>
               )}
               <div className="grid grid-cols-2 gap-1">
-                <p className="text-sm text-green-500">{lexeme.example}</p>
+                {entry.passive_review_count <= 3 || revealAll ? (
+                  <p className="text-sm text-green-500">{lexeme.example}</p>
+                ) : (
+                  <ClickableBlurElement
+                    className="text-sm text-green-500"
+                    disabled={!thinkTimePassed}
+                    tooltip={tryThinkHarderTooltip}
+                  >
+                    {lexeme.example}
+                  </ClickableBlurElement>
+                )}
                 {entry.passive_review_count === 0 || revealAll ? (
                   <p className="text-sm text-blue-500">
                     {lexeme.example_meaning}
