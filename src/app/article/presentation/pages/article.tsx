@@ -6,12 +6,6 @@ import WordDetail from "@/app/shared/presentation/components/word/wordDetail";
 import { useAuth } from "@/app/shared/presentation/hooks/useAuth";
 import { cn } from "@/app/shared/presentation/lib/utils";
 import type { WordSearchResult } from "@/types";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@radix-ui/react-popover";
-import { Separator } from "@radix-ui/react-separator";
 import { LoaderCircle } from "lucide-react";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -21,6 +15,12 @@ import { repository } from "../../infrastructure/repository";
 import { repository as wordRepository } from "@app/dictionary/infrastructure/repository";
 import type { Word } from "@app/types";
 import type { Article } from "@/types";
+import { Separator } from "@/app/shared/presentation/components/ui/separator";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/shared/presentation/components/ui/popover";
 
 export function WordPopoverContent({ spell }: { spell: string }) {
   const [words, setWords] = useState<Array<Word> | null>(null);

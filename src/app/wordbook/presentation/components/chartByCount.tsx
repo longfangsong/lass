@@ -16,11 +16,11 @@ import {
 import "./chartByCount.css";
 import { useEffect, useState } from "react";
 import { NotReviewed } from "@/types";
-import { Checkbox } from "@radix-ui/react-checkbox";
 import { aggregate } from "../../application/aggregate/byCount";
 import { ReviewIntervals } from "../../domain/model";
 import { repository } from "../../infrastructure/repository";
 import { Label } from "@/app/shared/presentation/components/ui/label";
+import { Checkbox } from "@/app/shared/presentation/components/ui/checkbox";
 
 export const description = "A simple pie chart";
 

@@ -3,8 +3,14 @@ import { shuffle } from "remeda";
 
 export function createSentenceProblem(
   word: Word,
-): { sentence: string; scrambledWords: string[] } | null {
-  const lexemesWithExamples = word.lexemes.filter((l) => l.example);
+): { sentence: string; scrambledWords: string[]; meaning: string } | null {
+  let lexemesWithExamples = word.lexemes.filter(
+    (lexeme) => lexeme.example && lexeme.example_meaning,
+  );
+
+  if (lexemesWithExamples.length === 0) {
+    lexemesWithExamples = word.lexemes.filter((lexeme) => lexeme.example);
+  }
 
   if (lexemesWithExamples.length === 0) {
     return null;
@@ -15,6 +21,8 @@ export function createSentenceProblem(
 
   // We've filtered for examples, so it's safe to assert non-null.
   const sentence = randomLexeme.example!;
+  // todo: polyfill example_meaning
+  const meaning = randomLexeme.example_meaning || sentence;
 
   // Split the sentence into words. This regex handles multiple spaces and filters empty strings.
   const words = sentence.split(/\s+/).filter((word) => word.length > 0);
@@ -29,5 +37,6 @@ export function createSentenceProblem(
   return {
     sentence,
     scrambledWords,
+    meaning,
   };
 }

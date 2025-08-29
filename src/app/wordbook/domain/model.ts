@@ -158,10 +158,7 @@ function reviewActiveStillRemember(entry: WordBookEntry): WordBookEntry {
 
 function reviewActiveForgotten(entry: WordBookEntry): WordBookEntry {
   const currentReviewCount = entry.active_review_count;
-  assert(
-    currentReviewCount !== 0 && currentReviewCount < ReviewIntervals.length,
-    "Invalid review count",
-  );
+  assert(currentReviewCount < ReviewIntervals.length, "Invalid review count");
   const now = Date.now();
   const nextReview = addDays(now, 1);
   return {

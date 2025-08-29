@@ -8,9 +8,9 @@ import {
 } from "@/app/shared/presentation/components/ui/card";
 import type { WordBookEntryWithDetails } from "@/types";
 import { useEffect, useState } from "react";
-import { createSentenceProblem } from "../../application/problemService";
 import { reviewActive, ReviewStatus } from "../../domain/model";
 import { repository } from "../../infrastructure/repository";
+import { createSentenceProblem } from "../../application/createSentenceProblem";
 
 interface SentenceConstructionCardProps {
   entry: WordBookEntryWithDetails;
@@ -23,6 +23,7 @@ export default function SentenceConstructionCard({
 }: SentenceConstructionCardProps) {
   const [problem, setProblem] = useState<{
     sentence: string;
+    meaning: string;
     scrambledWords: string[];
   } | null>(null);
   const [userAnswer, setUserAnswer] = useState<string[]>([]);
@@ -41,7 +42,7 @@ export default function SentenceConstructionCard({
     setUserAnswer([]);
     setSubmitted(false);
     setIsCorrect(false);
-  }, [entry]);
+  }, [entry, onDone]);
 
   const handleWordBankClick = (word: string, index: number) => {
     setUserAnswer([...userAnswer, word]);
@@ -78,10 +79,7 @@ export default function SentenceConstructionCard({
           Construct the sentence for:
         </CardTitle>
         <CardContent className="text-center text-lg py-4">
-          <p>
-            "{entry.lexemes[0]?.example_meaning || entry.lexemes[0]?.definition}
-            "
-          </p>
+          <p>{problem.meaning}</p>
         </CardContent>
       </CardHeader>
       <CardContent>
