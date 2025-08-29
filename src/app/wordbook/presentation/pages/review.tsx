@@ -10,6 +10,54 @@ import { ChartByDate } from "../components/chartByDate";
 import SentenceConstructionCard from "../components/SentenceConstructionCard";
 import WordCard from "../components/wordCard";
 import { useSyncWordbook } from "../hooks/sync";
+import { isSameDay, subDays } from "date-fns";
+
+// Helper function to count passive reviews started today
+const countPassiveReviewsStartedToday = async (): Promise<number> => {
+  const allEntries = await repository.allInReview();
+  const now = Date.now();
+  const startedToday = allEntries.filter(
+    (it) =>
+      it.passive_review_count === 0 ||
+      (it.passive_review_count === 1 &&
+        isSameDay(subDays(it.next_passive_review_time, 1), now)),
+  );
+  return startedToday.length;
+};
+
+// Helper function to auto-replenish passive reviews up to K=20
+const autoReplenishPassiveReviews = async (currentReviewing: number): Promise<Array<WordBookEntryWithDetails>> => {
+  const K = 20;
+  const currentStartedToday = await countPassiveReviewsStartedToday();
+  
+  if (currentStartedToday + currentReviewing < K) {
+    const needToStart = K - currentStartedToday - currentReviewing;
+    const notStartedEntries = await repository.reviewNotStarted();
+    
+    if (notStartedEntries.length > 0) {
+      // Create bulk word getter for mostFrequent picker
+      const bulkGetWord = async (ids: Array<string>) => {
+        return await wordTable.bulkGet(ids);
+      };
+      
+      // Use mostFrequent policy to pick new entries to start
+      const picker = getPicker(bulkGetWord)(AutoNewReviewPolicy.MostFrequent);
+      const toStart = await picker(notStartedEntries, needToStart);
+      
+      // Start passive review for selected entries
+      await Promise.all(
+        toStart.map(entry => startPassiveReviewProgress(repository, entry))
+      );
+      
+      // Get details for newly started reviews
+      const newDetails = await Promise.all(
+        toStart.map((entry) => getWordBookEntryDetail(entry)),
+      );
+      return newDetails;
+    }
+  }
+  return [];
+};
 
 export default function Review() {
   const syncWordbook = useSyncWordbook();
@@ -27,7 +75,7 @@ export default function Review() {
   useEffect(() => {
     (async () => {
       const passiveEntries = await repository.needPassiveReviewNow();
-      let passiveDetails = await Promise.all(
+      const passiveDetails = await Promise.all(
         passiveEntries.map((entry) => getWordBookEntryDetail(entry)),
       );
 
@@ -35,37 +83,6 @@ export default function Review() {
       const activeDetails = await Promise.all(
         activeEntries.map((entry) => getWordBookEntryDetail(entry)),
       );
-
-      // Auto-start new passive reviews if needed (K=20)
-      const K = 20;
-      const currentTotalReviews = passiveDetails.length + activeDetails.length;
-      
-      if (currentTotalReviews < K) {
-        const needToStart = K - currentTotalReviews;
-        const notStartedEntries = await repository.reviewNotStarted();
-        
-        if (notStartedEntries.length > 0) {
-          // Create bulk word getter for mostFrequent picker
-          const bulkGetWord = async (ids: Array<string>) => {
-            return await wordTable.bulkGet(ids);
-          };
-          
-          // Use mostFrequent policy to pick new entries to start
-          const picker = getPicker(bulkGetWord)(AutoNewReviewPolicy.MostFrequent);
-          const toStart = await picker(notStartedEntries, needToStart);
-          
-          // Start passive review for selected entries
-          await Promise.all(
-            toStart.map(entry => startPassiveReviewProgress(repository, entry))
-          );
-          
-          // Get details for newly started reviews and add to passive list
-          const newDetails = await Promise.all(
-            toStart.map((entry) => getWordBookEntryDetail(entry)),
-          );
-          passiveDetails = [...passiveDetails, ...newDetails];
-        }
-      }
 
       setToReviewPassive(passiveDetails);
       setToReviewActive(activeDetails);
@@ -75,8 +92,15 @@ export default function Review() {
       } else if (activeDetails.length > 0) {
         setReviewMode("active");
       } else {
-        console.log("Done");
-        setReviewMode("done");
+        // No reviews available - try to auto-replenish before going to "done"
+        const newPassiveReviews = await autoReplenishPassiveReviews(0);
+        if (newPassiveReviews.length > 0) {
+          setToReviewPassive(newPassiveReviews);
+          setReviewMode("passive");
+        } else {
+          console.log("Done");
+          setReviewMode("done");
+        }
       }
     })();
   }, []);
@@ -86,20 +110,39 @@ export default function Review() {
     return syncWordbook;
   }, [syncWordbook]);
 
-  const handleDone = useCallback(() => {
+  const handleDone = useCallback(async () => {
     const nextIndex = currentIndex + 1;
     if (reviewMode === "passive") {
       if (nextIndex < toReviewPassive.length) {
         setCurrentIndex(nextIndex);
       } else {
         setCurrentIndex(0);
-        setReviewMode(toReviewActive.length > 0 ? "active" : "done");
+        if (toReviewActive.length > 0) {
+          setReviewMode("active");
+        } else {
+          // Before going to "done", try to replenish passive reviews
+          const newPassiveReviews = await autoReplenishPassiveReviews(0);
+          if (newPassiveReviews.length > 0) {
+            setToReviewPassive(newPassiveReviews);
+            setReviewMode("passive");
+          } else {
+            setReviewMode("done");
+          }
+        }
       }
     } else if (reviewMode === "active") {
       if (nextIndex < toReviewActive.length) {
         setCurrentIndex(nextIndex);
       } else {
-        setReviewMode("done");
+        // Before going to "done", try to replenish passive reviews
+        const newPassiveReviews = await autoReplenishPassiveReviews(0);
+        if (newPassiveReviews.length > 0) {
+          setToReviewPassive(newPassiveReviews);
+          setCurrentIndex(0);
+          setReviewMode("passive");
+        } else {
+          setReviewMode("done");
+        }
       }
     }
   }, [currentIndex, reviewMode, toReviewActive, toReviewPassive]);
