@@ -57,32 +57,118 @@ export function All() {
               size={undefined}
             />
           </PaginationItem>
+          
+          {/* Calculate total pages, minimum 1 to show current page */}
+          {(() => {
+            const totalPages = Math.max(1, Math.ceil(articlesCount / PAGE_SIZE));
+            
+            // Always show page 1 if not current page and there are multiple pages
+            if (page > 1 && totalPages > 1) {
+              return (
+                <PaginationItem>
+                  <PaginationLink href={`/articles?page=1`} size={undefined}>
+                    1
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            }
+            
+            return null;
+          })()}
+          
+          {/* Show ellipsis if current page is far from page 1 */}
+          {(() => {
+            const totalPages = Math.max(1, Math.ceil(articlesCount / PAGE_SIZE));
+            if (page > 3 && totalPages > 3) {
+              return (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              );
+            }
+            return null;
+          })()}
+          
+          {/* Show current page - 1 if it exists and isn't page 1 */}
+          {(() => {
+            const totalPages = Math.max(1, Math.ceil(articlesCount / PAGE_SIZE));
+            if (page > 2 && totalPages > 1) {
+              return (
+                <PaginationItem>
+                  <PaginationLink href={`/articles?page=${page - 1}`} size={undefined}>
+                    {page - 1}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            }
+            return null;
+          })()}
+          
+          {/* Always show current page and mark it as active */}
           <PaginationItem>
-            <PaginationLink href={`/articles?page=1`} size={undefined}>
-              1
-            </PaginationLink>
-          </PaginationItem>
-          {Math.ceil(articlesCount / PAGE_SIZE) > 2 && (
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-          )}
-          <PaginationItem>
-            <PaginationLink
-              href={`/articles?page=${Math.ceil(articlesCount / PAGE_SIZE)}`}
+            <PaginationLink 
+              href={`/articles?page=${page}`} 
               size={undefined}
+              isActive={true}
             >
-              {Math.ceil(articlesCount / PAGE_SIZE)}
+              {page}
             </PaginationLink>
           </PaginationItem>
+          
+          {/* Show current page + 1 if it exists and isn't the last page */}
+          {(() => {
+            const totalPages = Math.max(1, Math.ceil(articlesCount / PAGE_SIZE));
+            if (page < totalPages - 1 && totalPages > 1) {
+              return (
+                <PaginationItem>
+                  <PaginationLink href={`/articles?page=${page + 1}`} size={undefined}>
+                    {page + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            }
+            return null;
+          })()}
+          
+          {/* Show ellipsis if current page is far from last page */}
+          {(() => {
+            const totalPages = Math.max(1, Math.ceil(articlesCount / PAGE_SIZE));
+            if (page < totalPages - 2 && totalPages > 3) {
+              return (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              );
+            }
+            return null;
+          })()}
+          
+          {/* Always show last page if not current page and there are multiple pages */}
+          {(() => {
+            const totalPages = Math.max(1, Math.ceil(articlesCount / PAGE_SIZE));
+            if (page < totalPages && totalPages > 1) {
+              return (
+                <PaginationItem>
+                  <PaginationLink
+                    href={`/articles?page=${totalPages}`}
+                    size={undefined}
+                  >
+                    {totalPages}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            }
+            return null;
+          })()}
+          
           <PaginationItem>
             <PaginationNext
               className={cn({
                 "text-gray-300 hover:text-gray-300 dark:text-gray-600 dark:hover:text-gray-600 hover:bg-white dark:hover:bg-inherit cursor-not-allowed":
-                  page >= Math.ceil(articlesCount / PAGE_SIZE),
+                  page >= Math.ceil(articlesCount / PAGE_SIZE) || articlesCount === 0,
               })}
               href={
-                page >= Math.ceil(articlesCount / PAGE_SIZE)
+                page >= Math.ceil(articlesCount / PAGE_SIZE) || articlesCount === 0
                   ? "#"
                   : `/articles?page=${page + 1}`
               }
