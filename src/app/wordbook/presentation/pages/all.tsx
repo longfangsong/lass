@@ -11,7 +11,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { useLiveQuery } from "dexie-react-hooks";
-import { endOfDay, formatDistanceToNow, isSameDay, subDays } from "date-fns";
+import { endOfDay, formatDistanceToNow } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useState } from "react";
 import {
@@ -42,6 +42,7 @@ import {
   startActiveReviewProgress,
   startPassiveReviewProgress,
 } from "../../application/startReview";
+import { passiveReviewsStartedOrWillStartToday } from "../../application/reviewStats";
 import { ReviewIntervals } from "../../domain/model";
 import { repository } from "../../infrastructure/repository";
 import {
@@ -287,12 +288,7 @@ export function All() {
       (0 <= it.next_passive_review_time &&
         it.next_passive_review_time <= endOfToday.getTime()),
   );
-  const startToday = data?.filter(
-    (it) =>
-      it.passive_review_count === 0 ||
-      (it.passive_review_count === 1 &&
-        isSameDay(subDays(it.next_passive_review_time, 1), now)),
-  );
+  const startToday = data ? passiveReviewsStartedOrWillStartToday(data) : [];
   const table = useReactTable({
     columns,
     data: data || fallbackData,

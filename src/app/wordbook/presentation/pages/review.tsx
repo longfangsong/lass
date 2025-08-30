@@ -1,12 +1,55 @@
 import type { WordBookEntryWithDetails } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 import { getWordBookEntryDetail } from "../../application/getDetails";
-import { repository } from "../../infrastructure/repository";
+import { repository, wordTable } from "../../infrastructure/repository";
+import { startPassiveReviewProgress } from "../../application/startReview";
+import { getPicker } from "../../application/autoReview";
+import { AutoNewReviewPolicy } from "@/types";
 import { ChartByCount } from "../components/chartByCount";
 import { ChartByDate } from "../components/chartByDate";
 import SentenceConstructionCard from "../components/SentenceConstructionCard";
 import WordCard from "../components/wordCard";
 import { useSyncWordbook } from "../hooks/sync";
+import {
+  passiveReviewsStartedOrWillStartToday,
+  remainingNeedPassiveReviewToday,
+} from "../../application/reviewStats";
+
+// Helper function to auto-replenish passive reviews up to K=20
+async function autoReplenishPassiveReviews(): Promise<
+  Array<WordBookEntryWithDetails>
+> {
+  const K = 20;
+  const allEntries = await repository.all;
+  const currentStartedToday = passiveReviewsStartedOrWillStartToday(allEntries);
+  const waitingForReview = remainingNeedPassiveReviewToday(allEntries);
+  if (currentStartedToday.length + waitingForReview.length < K) {
+    const needToStart =
+      K - currentStartedToday.length - waitingForReview.length;
+    const notStartedEntries = await repository.reviewNotStarted();
+
+    if (notStartedEntries.length > 0) {
+      // Use mostFrequent policy to pick new entries to start
+      const picker = getPicker(wordTable.bulkGet.bind(wordTable))(
+        AutoNewReviewPolicy.MostFrequent,
+      );
+      const toStart = await picker(notStartedEntries, needToStart);
+
+      // Start passive review for selected entries
+      await Promise.all(
+        toStart.map((entry) => startPassiveReviewProgress(repository, entry)),
+      );
+
+      const newToStart = await repository.needPassiveReviewNow();
+      // Get details for newly started reviews
+      const newDetails = await Promise.all(
+        newToStart.map((entry) => getWordBookEntryDetail(entry)),
+      );
+      return newDetails;
+    }
+  }
+  return [];
+}
 
 export default function Review() {
   const syncWordbook = useSyncWordbook();
@@ -27,12 +70,13 @@ export default function Review() {
       const passiveDetails = await Promise.all(
         passiveEntries.map((entry) => getWordBookEntryDetail(entry)),
       );
-      setToReviewPassive(passiveDetails);
 
       const activeEntries = await repository.needActiveReviewNow();
       const activeDetails = await Promise.all(
         activeEntries.map((entry) => getWordBookEntryDetail(entry)),
       );
+
+      setToReviewPassive(passiveDetails);
       setToReviewActive(activeDetails);
 
       if (passiveDetails.length > 0) {
@@ -40,8 +84,14 @@ export default function Review() {
       } else if (activeDetails.length > 0) {
         setReviewMode("active");
       } else {
-        console.log("Done");
-        setReviewMode("done");
+        // No reviews available - try to auto-replenish before going to "done"
+        const newPassiveReviews = await autoReplenishPassiveReviews();
+        if (newPassiveReviews.length > 0) {
+          setToReviewPassive(newPassiveReviews);
+          setReviewMode("passive");
+        } else {
+          setReviewMode("done");
+        }
       }
     })();
   }, []);
@@ -51,20 +101,39 @@ export default function Review() {
     return syncWordbook;
   }, [syncWordbook]);
 
-  const handleDone = useCallback(() => {
+  const handleDone = useCallback(async () => {
     const nextIndex = currentIndex + 1;
     if (reviewMode === "passive") {
       if (nextIndex < toReviewPassive.length) {
         setCurrentIndex(nextIndex);
       } else {
         setCurrentIndex(0);
-        setReviewMode(toReviewActive.length > 0 ? "active" : "done");
+        if (toReviewActive.length > 0) {
+          setReviewMode("active");
+        } else {
+          // Before going to "done", try to replenish passive reviews
+          const newPassiveReviews = await autoReplenishPassiveReviews();
+          if (newPassiveReviews.length > 0) {
+            setToReviewPassive(newPassiveReviews);
+            setReviewMode("passive");
+          } else {
+            setReviewMode("done");
+          }
+        }
       }
     } else if (reviewMode === "active") {
       if (nextIndex < toReviewActive.length) {
         setCurrentIndex(nextIndex);
       } else {
-        setReviewMode("done");
+        // Before going to "done", try to replenish passive reviews
+        const newPassiveReviews = await autoReplenishPassiveReviews();
+        if (newPassiveReviews.length > 0) {
+          setToReviewPassive(newPassiveReviews);
+          setCurrentIndex(0);
+          setReviewMode("passive");
+        } else {
+          setReviewMode("done");
+        }
       }
     }
   }, [currentIndex, reviewMode, toReviewActive, toReviewPassive]);
