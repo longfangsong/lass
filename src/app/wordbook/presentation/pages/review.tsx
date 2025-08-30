@@ -4,42 +4,52 @@ import { getWordBookEntryDetail } from "../../application/getDetails";
 import { repository, wordTable } from "../../infrastructure/repository";
 import { startPassiveReviewProgress } from "../../application/startReview";
 import { getPicker } from "../../application/autoReview";
-import { countPassiveReviewsStartedToday } from "../../application/reviewStats";
 import { AutoNewReviewPolicy } from "@/types";
 import { ChartByCount } from "../components/chartByCount";
 import { ChartByDate } from "../components/chartByDate";
 import SentenceConstructionCard from "../components/SentenceConstructionCard";
 import WordCard from "../components/wordCard";
 import { useSyncWordbook } from "../hooks/sync";
+import {
+  passiveReviewsStartedOrWillStartToday,
+  remainingNeedPassiveReviewToday,
+} from "../../application/reviewStats";
 
 // Helper function to auto-replenish passive reviews up to K=20
-const autoReplenishPassiveReviews = async (currentReviewing: number): Promise<Array<WordBookEntryWithDetails>> => {
+async function autoReplenishPassiveReviews(): Promise<
+  Array<WordBookEntryWithDetails>
+> {
   const K = 20;
-  const currentStartedToday = await countPassiveReviewsStartedToday(repository);
-  
-  if (currentStartedToday + currentReviewing < K) {
-    const needToStart = K - currentStartedToday - currentReviewing;
+  const allEntries = await repository.all;
+  const currentStartedToday = passiveReviewsStartedOrWillStartToday(allEntries);
+  const waitingForReview = remainingNeedPassiveReviewToday(allEntries);
+  if (currentStartedToday.length + waitingForReview.length < K) {
+    const needToStart =
+      K - currentStartedToday.length - waitingForReview.length;
     const notStartedEntries = await repository.reviewNotStarted();
-    
+
     if (notStartedEntries.length > 0) {
       // Use mostFrequent policy to pick new entries to start
-      const picker = getPicker(wordTable.bulkGet.bind(wordTable))(AutoNewReviewPolicy.MostFrequent);
+      const picker = getPicker(wordTable.bulkGet.bind(wordTable))(
+        AutoNewReviewPolicy.MostFrequent,
+      );
       const toStart = await picker(notStartedEntries, needToStart);
-      
+
       // Start passive review for selected entries
       await Promise.all(
-        toStart.map(entry => startPassiveReviewProgress(repository, entry))
+        toStart.map((entry) => startPassiveReviewProgress(repository, entry)),
       );
-      
+
+      const newToStart = await repository.needPassiveReviewNow();
       // Get details for newly started reviews
       const newDetails = await Promise.all(
-        toStart.map((entry) => getWordBookEntryDetail(entry)),
+        newToStart.map((entry) => getWordBookEntryDetail(entry)),
       );
       return newDetails;
     }
   }
   return [];
-};
+}
 
 export default function Review() {
   const syncWordbook = useSyncWordbook();
@@ -75,12 +85,11 @@ export default function Review() {
         setReviewMode("active");
       } else {
         // No reviews available - try to auto-replenish before going to "done"
-        const newPassiveReviews = await autoReplenishPassiveReviews(0);
+        const newPassiveReviews = await autoReplenishPassiveReviews();
         if (newPassiveReviews.length > 0) {
           setToReviewPassive(newPassiveReviews);
           setReviewMode("passive");
         } else {
-          console.log("Done");
           setReviewMode("done");
         }
       }
@@ -103,7 +112,7 @@ export default function Review() {
           setReviewMode("active");
         } else {
           // Before going to "done", try to replenish passive reviews
-          const newPassiveReviews = await autoReplenishPassiveReviews(0);
+          const newPassiveReviews = await autoReplenishPassiveReviews();
           if (newPassiveReviews.length > 0) {
             setToReviewPassive(newPassiveReviews);
             setReviewMode("passive");
@@ -117,7 +126,7 @@ export default function Review() {
         setCurrentIndex(nextIndex);
       } else {
         // Before going to "done", try to replenish passive reviews
-        const newPassiveReviews = await autoReplenishPassiveReviews(0);
+        const newPassiveReviews = await autoReplenishPassiveReviews();
         if (newPassiveReviews.length > 0) {
           setToReviewPassive(newPassiveReviews);
           setCurrentIndex(0);

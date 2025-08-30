@@ -178,6 +178,7 @@ export class Router {
   private errorHandler: (error: Error, ctx: RouterContext) => Response = (
     error,
   ) => {
+    console.log(error);
     const message = import.meta.env.DEV
       ? `Internal Server Error, ${error.message}`
       : "Internal Server Error";

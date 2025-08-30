@@ -117,7 +117,7 @@ export function review(
   entry: WordBookEntry,
   status: ReviewStatus,
 ): WordBookEntry {
-  assert(entry.passive_review_count >= 0);
+  assert(entry.passive_review_count >= 0, `Invalid passive review count`);
   switch (status) {
     case ReviewStatus.StillRemember:
       return reviewStillRemember(entry);
