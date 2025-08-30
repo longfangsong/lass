@@ -3,7 +3,6 @@ import PlayButton from "@/app/shared/presentation/components/playAudioButton";
 import { Button } from "@/app/shared/presentation/components/ui/button";
 import SaveToWordBookButton from "@/app/shared/presentation/components/word/saveToWordBook";
 import WordDetail from "@/app/shared/presentation/components/word/wordDetail";
-import { useAuth } from "@/app/shared/presentation/hooks/useAuth";
 import { cn } from "@/app/shared/presentation/lib/utils";
 import type { WordSearchResult } from "@/types";
 import { LoaderCircle } from "lucide-react";
@@ -30,7 +29,7 @@ export function WordPopoverContent({ spell }: { spell: string }) {
       setWords(queryResult);
     })();
   }, [spell]);
-  const { user } = useAuth();
+
   const searchWithAI = async () => {
     setWords(null);
     const response = await fetch(
@@ -84,18 +83,14 @@ export function WordPopoverContent({ spell }: { spell: string }) {
               <WordDetail
                 className="max-w-96 overflow-scroll"
                 word={word}
-                buttons={
-                  user
-                    ? [
-                        <SaveToWordBookButton
-                          key={`save-${word.id}`}
-                          word_id={word.id}
-                          className="ml-3"
-                        />,
-                        <PlayButton voice={word} />,
-                      ]
-                    : []
-                }
+                buttons={[
+                  <SaveToWordBookButton
+                    key={`save-${word.id}`}
+                    word_id={word.id}
+                    className="ml-3"
+                  />,
+                  <PlayButton voice={word} />,
+                ]}
               />
             </div>
             {index < words.length - 1 && <Separator />}
