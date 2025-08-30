@@ -4,44 +4,26 @@ import { getWordBookEntryDetail } from "../../application/getDetails";
 import { repository, wordTable } from "../../infrastructure/repository";
 import { startPassiveReviewProgress } from "../../application/startReview";
 import { getPicker } from "../../application/autoReview";
+import { countPassiveReviewsStartedToday } from "../../application/reviewStats";
 import { AutoNewReviewPolicy } from "@/types";
 import { ChartByCount } from "../components/chartByCount";
 import { ChartByDate } from "../components/chartByDate";
 import SentenceConstructionCard from "../components/SentenceConstructionCard";
 import WordCard from "../components/wordCard";
 import { useSyncWordbook } from "../hooks/sync";
-import { isSameDay, subDays } from "date-fns";
-
-// Helper function to count passive reviews started today
-const countPassiveReviewsStartedToday = async (): Promise<number> => {
-  const allEntries = await repository.allInReview();
-  const now = Date.now();
-  const startedToday = allEntries.filter(
-    (it) =>
-      it.passive_review_count === 0 ||
-      (it.passive_review_count === 1 &&
-        isSameDay(subDays(it.next_passive_review_time, 1), now)),
-  );
-  return startedToday.length;
-};
 
 // Helper function to auto-replenish passive reviews up to K=20
 const autoReplenishPassiveReviews = async (currentReviewing: number): Promise<Array<WordBookEntryWithDetails>> => {
   const K = 20;
-  const currentStartedToday = await countPassiveReviewsStartedToday();
+  const currentStartedToday = await countPassiveReviewsStartedToday(repository);
   
   if (currentStartedToday + currentReviewing < K) {
     const needToStart = K - currentStartedToday - currentReviewing;
     const notStartedEntries = await repository.reviewNotStarted();
     
     if (notStartedEntries.length > 0) {
-      // Create bulk word getter for mostFrequent picker
-      const bulkGetWord = async (ids: Array<string>) => {
-        return await wordTable.bulkGet(ids);
-      };
-      
       // Use mostFrequent policy to pick new entries to start
-      const picker = getPicker(bulkGetWord)(AutoNewReviewPolicy.MostFrequent);
+      const picker = getPicker(wordTable.bulkGet.bind(wordTable))(AutoNewReviewPolicy.MostFrequent);
       const toStart = await picker(notStartedEntries, needToStart);
       
       // Start passive review for selected entries
