@@ -61,7 +61,8 @@ function PaginationLink({
           variant: isActive ? "default" : "ghost",
           size,
         }),
-        isActive && "bg-primary text-primary-foreground font-semibold shadow-md",
+        isActive &&
+          "bg-primary text-primary-foreground font-semibold shadow-md",
         !isActive && "hover:bg-accent/50 hover:text-accent-foreground",
         "transition-all duration-200",
         className,
@@ -83,7 +84,6 @@ function PaginationPrevious({
       {...props}
     >
       <ChevronLeftIcon className="size-4" />
-      <span className="hidden sm:block">Previous</span>
     </PaginationLink>
   );
 }
@@ -99,7 +99,6 @@ function PaginationNext({
       className={cn("gap-1.5 px-3 py-2", className)}
       {...props}
     >
-      <span className="hidden sm:block">Next</span>
       <ChevronRightIcon className="size-4" />
     </PaginationLink>
   );
