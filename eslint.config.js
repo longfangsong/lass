@@ -9,7 +9,10 @@ export default tseslint.config([
   globalIgnores(["dist"]),
   {
     files: ["**/*.{ts,tsx}"],
-    ignores: ["src/app/presentation/components/ui/**/*.tsx", "**/*.d.ts"],
+    ignores: [
+      "src/app/shared/presentation/components/ui/**/*.tsx",
+      "**/*.d.ts",
+    ],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
