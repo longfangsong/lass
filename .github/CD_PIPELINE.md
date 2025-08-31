@@ -14,7 +14,6 @@ The pipeline consists of two jobs:
 
 2. **Deploy Job** - Runs only on pushes to `main` branch:
    - Builds the application
-   - Applies database migrations to Cloudflare D1
    - Deploys to Cloudflare Pages/Workers
 
 ## Required Secrets
@@ -27,7 +26,7 @@ You need to create a Cloudflare API token with the following permissions:
 2. Click "Create Token"
 3. Use "Edit zone DNS" template or create custom token with these permissions:
    - **Zone:Zone:Read** (for the zone containing your domain)
-   - **Zone:Page Rules:Edit** (if using page rules)  
+   - **Zone:Page Rules:Edit** (if using page rules)
    - **Account:Cloudflare Pages:Edit** (for Pages deployment)
    - **Account:D1:Edit** (for database operations)
    - **User:User Details:Read** (for account info)
@@ -75,14 +74,14 @@ The pipeline uses the existing `wrangler.toml` configuration file for deployment
 - Any required environment variables
 - Correct assets configuration
 
-## Database Migrations
+<!--## Database Migrations
 
 The pipeline automatically applies database migrations before deployment using:
 ```bash
 npx wrangler d1 migrations apply DB --remote
 ```
 
-This ensures your database schema is always up-to-date with your deployment.
+This ensures your database schema is always up-to-date with your deployment.-->
 
 ## Manual Deployment
 
@@ -92,25 +91,6 @@ pnpm run deploy
 ```
 
 Make sure you have the `CLOUDFLARE_API_TOKEN` environment variable set locally.
-
-## Setup Checklist
-
-Before the CD pipeline can work successfully:
-
-1. ✅ Set up `CLOUDFLARE_API_TOKEN` in GitHub repository secrets
-2. ⚠️ Configure required environment variables in Cloudflare dashboard:
-   - `GEMINI_API_KEY`
-   - `AUTH_GITHUB_ID` & `AUTH_GITHUB_SECRET`
-   - `AUTH_GOOGLE_ID` & `AUTH_GOOGLE_SECRET`
-   - `AUTH_SECRET`
-   - `APP_URL`
-3. ✅ Database and basic configuration already set up in wrangler.toml
-
-## Monitoring
-
-- Check the "Actions" tab in your GitHub repository to monitor deployment status
-- Failed deployments will be visible in the workflow runs
-- You can re-run failed deployments from the GitHub Actions interface
 
 ## Troubleshooting
 
@@ -124,13 +104,3 @@ Before the CD pipeline can work successfully:
 - Check that `pnpm run build` works locally
 - Verify all dependencies are properly declared in package.json
 - Note: There may be some existing ESLint issues in UI components (react-refresh/only-export-components), but these don't prevent deployment
-
-### Database Migration Issues
-- Ensure your migrations are compatible with Cloudflare D1
-- Check that the database binding in wrangler.toml matches your migration commands
-- Review migration logs in the workflow output
-
-### Runtime Issues
-- Verify all required environment variables are set in Cloudflare dashboard
-- Check OAuth app configurations if authentication fails
-- Review Cloudflare Workers logs for runtime errors

@@ -87,19 +87,31 @@ npx wrangler d1 migrations apply DB --remote
 
 ## Architecture
 
-The application follows a layered architecture:
+The project is structured into a `src` directory containing both the frontend and backend code, organized by features.
 
 ```
 src/
-├── api/                    # Cloudflare Workers API routes
-├── app/
-│   ├── domain/            # Business logic and models
-│   ├── application/       # Application services
-│   ├── infrastructure/    # Database and external services
-│   └── presentation/      # React components and pages
-└── types.ts               # TypeScript type definitions
+├── api/                  # Backend: Cloudflare Workers API (Hono)
+│   ├── auth/             # Authentication routes (login, callback, session)
+│   ├── lexemes/          # API endpoints for lexemes
+│   ├── sync/             # Handles data synchronization with the client
+│   ├── words/            # API endpoints for words and dictionary search
+│   ├── router.ts         # Main backend API router
+│   └── ...
+├── app/                  # Frontend: React application (Vite)
+│   ├── article/          # Feature: Article reading and interaction
+│   ├── dictionary/       # Feature: Dictionary search and display
+│   ├── wordbook/         # Feature: User's personal wordbook/flashcards
+│   ├── shared/           # Shared components, hooks, and utilities for the frontend
+│   ├── main.tsx          # Main React application entry point
+│   └── ...
+├── types/                # Shared TypeScript type definitions for the project
+└── utils.ts              # General utility functions, shared across front/backend
 ```
 
-## License
+Each feature module (e.g., `article`, `dictionary`) is further divided into layers:
 
-This project is licensed under the MIT License.
+- **application/**: Use cases and application-specific logic.
+- **domain/**: Core business logic, models, and interfaces.
+- **infrastructure/**: Implementation of external services (e.g., data fetching, local storage).
+- **presentation/**: React components, pages, and hooks for the UI.
