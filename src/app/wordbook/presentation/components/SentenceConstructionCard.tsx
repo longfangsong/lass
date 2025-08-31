@@ -7,11 +7,10 @@ import {
   CardFooter,
 } from "@/app/shared/presentation/components/ui/card";
 import type { WordBookEntryWithDetails } from "@/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { reviewActive, ReviewStatus } from "../../domain/model";
 import { repository } from "../../infrastructure/repository";
 import { createSentenceProblem } from "../../application/createSentenceProblem";
-import { GripVertical, X } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -23,38 +22,49 @@ import {
   useDroppable,
   type DragEndEvent,
   type DragStartEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   SortableContext,
   horizontalListSortingStrategy,
   useSortable,
-} from '@dnd-kit/sortable';
-import {
-  CSS,
-} from '@dnd-kit/utilities';
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface SentenceConstructionCardProps {
   entry: WordBookEntryWithDetails;
   onDone: () => void;
 }
 
+type SelectedWord = {
+  id: string;
+  word: string;
+};
+
 // Draggable word from word bank
-function DraggableWordBankWord({ word, index, onClick, disabled }: { 
-  word: string; 
-  index: number; 
+function DraggableWordBankWord({
+  word,
+  index,
+  onClick,
+  disabled,
+}: {
+  word: string;
+  index: number;
   onClick: () => void;
   disabled: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: `bank-${index}`,
-    disabled,
-    data: { word, index, type: 'bank' },
-  });
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: `bank-${index}`,
+      disabled,
+      data: { word, index, type: "bank" },
+    });
 
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    opacity: isDragging ? 0.5 : 1,
-  } : undefined;
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.5 : 1,
+      }
+    : undefined;
 
   return (
     <Button
@@ -73,11 +83,16 @@ function DraggableWordBankWord({ word, index, onClick, disabled }: {
 }
 
 // Sortable Word component for selected words with drag and drop
-function SortableSelectedWord({ word, index, onRemove, disabled }: { 
-  word: string; 
-  index: number; 
-  onRemove: (word: string, index: number) => void;
+function SortableSelectedWord({
+  word,
+  id,
+  disabled,
+  onClick,
+}: {
+  word: string;
+  id: string;
   disabled: boolean;
+  onClick: () => void;
 }) {
   const {
     attributes,
@@ -86,10 +101,10 @@ function SortableSelectedWord({ word, index, onRemove, disabled }: {
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
-    id: `selected-${index}`, 
+  } = useSortable({
+    id: id,
     disabled,
-    data: { word, index, type: 'selected' },
+    data: { word, id, type: "selected" },
   });
 
   const style = {
@@ -102,41 +117,43 @@ function SortableSelectedWord({ word, index, onRemove, disabled }: {
     <div
       ref={setNodeRef}
       style={style}
+      onClick={!disabled ? onClick : undefined}
       className={`flex items-center bg-blue-100 dark:bg-blue-900 rounded-md p-2 ${
-        isDragging ? 'z-50 shadow-lg' : ''
-      } ${disabled ? 'opacity-50' : ''}`}
+        isDragging ? "z-50 shadow-lg" : ""
+      } ${
+        disabled
+          ? "opacity-50"
+          : "cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800"
+      } cursor-grab active:cursor-grabbing`}
+      title={
+        disabled
+          ? ""
+          : "Click to remove, or drag to reorder / drag back to word bank to remove"
+      }
+      {...attributes}
+      {...listeners}
     >
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 hover:bg-blue-200 dark:hover:bg-blue-800 rounded mr-2"
-        title="Drag to reorder or drag back to word bank to remove"
-      >
-        <GripVertical className="w-4 h-4" />
-      </div>
       <span className="text-lg px-2">{word}</span>
-      <button
-        onClick={() => onRemove(word, index)}
-        disabled={disabled}
-        className="p-1 hover:bg-red-200 dark:hover:bg-red-800 rounded disabled:opacity-50 disabled:cursor-not-allowed ml-2"
-        title="Remove word"
-      >
-        <X className="w-3 h-3" />
-      </button>
     </div>
   );
 }
 
 // Droppable area for sentence construction
-function SentenceDropArea({ children, className }: { children: React.ReactNode; className?: string }) {
+function SentenceDropArea({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { setNodeRef, isOver } = useDroppable({
-    id: 'sentence-area',
+    id: "sentence-area",
   });
 
   return (
     <div
       ref={setNodeRef}
-      className={`${className} ${isOver ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700' : ''} transition-colors`}
+      className={`${className} ${isOver ? "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700" : ""} transition-colors`}
     >
       {children}
     </div>
@@ -144,15 +161,21 @@ function SentenceDropArea({ children, className }: { children: React.ReactNode; 
 }
 
 // Droppable area for word bank
-function WordBankDropArea({ children, className }: { children: React.ReactNode; className?: string }) {
+function WordBankDropArea({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { setNodeRef, isOver } = useDroppable({
-    id: 'word-bank',
+    id: "word-bank",
   });
 
   return (
     <div
       ref={setNodeRef}
-      className={`${className} ${isOver ? 'bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700' : ''} transition-colors`}
+      className={`${className} ${isOver ? "bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700" : ""} transition-colors`}
     >
       {children}
     </div>
@@ -168,17 +191,18 @@ export default function SentenceConstructionCard({
     meaning: string;
     scrambledWords: string[];
   } | null>(null);
-  const [userAnswer, setUserAnswer] = useState<string[]>([]);
+  const [userAnswer, setUserAnswer] = useState<SelectedWord[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const idCounter = useRef(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
       },
-    })
+    }),
   );
 
   useEffect(() => {
@@ -196,23 +220,27 @@ export default function SentenceConstructionCard({
   }, [entry, onDone]);
 
   const handleWordBankClick = (word: string, index: number) => {
-    setUserAnswer([...userAnswer, word]);
+    const newId = `word-${idCounter.current++}`;
+    setUserAnswer([...userAnswer, { id: newId, word }]);
     // Remove word from bank
     const newScrambled = [...(problem?.scrambledWords || [])];
     newScrambled.splice(index, 1);
     setProblem(problem ? { ...problem, scrambledWords: newScrambled } : null);
   };
 
-  const handleSelectedWordClick = (wordToRemove: string, index: number) => {
-    // Remove word from selected answer
-    const newUserAnswer = [...userAnswer];
-    newUserAnswer.splice(index, 1);
-    setUserAnswer(newUserAnswer);
-    
-    // Add word back to bank
-    const newScrambled = [...(problem?.scrambledWords || [])];
-    newScrambled.push(wordToRemove);
-    setProblem(problem ? { ...problem, scrambledWords: newScrambled } : null);
+  const handleSelectedWordClick = (wordId: string) => {
+    if (submitted) return;
+
+    const wordToRemove = userAnswer.find((w) => w.id === wordId);
+    if (wordToRemove) {
+      setUserAnswer(userAnswer.filter((w) => w.id !== wordId));
+
+      const newScrambled = [
+        ...(problem?.scrambledWords || []),
+        wordToRemove.word,
+      ];
+      setProblem(problem ? { ...problem, scrambledWords: newScrambled } : null);
+    }
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -227,48 +255,73 @@ export default function SentenceConstructionCard({
 
     const activeId = active.id as string;
     const overId = over.id as string;
+    const activeType = active.data.current?.type;
+    const overType = over.data.current?.type;
 
     // Handle reordering within selected words
-    if (activeId.startsWith('selected-') && overId.startsWith('selected-')) {
-      const activeIndex = parseInt(activeId.replace('selected-', ''));
-      const overIndex = parseInt(overId.replace('selected-', ''));
+    if (activeType === "selected" && overType === "selected") {
+      if (activeId !== overId) {
+        setUserAnswer((items) => {
+          const oldIndex = items.findIndex((item) => item.id === activeId);
+          const newIndex = items.findIndex((item) => item.id === overId);
+          if (oldIndex === -1 || newIndex === -1) return items;
 
-      if (activeIndex !== overIndex) {
-        const newUserAnswer = [...userAnswer];
-        const [movedWord] = newUserAnswer.splice(activeIndex, 1);
-        newUserAnswer.splice(overIndex, 0, movedWord);
-        setUserAnswer(newUserAnswer);
+          const newItems = Array.from(items);
+          const [removed] = newItems.splice(oldIndex, 1);
+          newItems.splice(newIndex, 0, removed);
+          return newItems;
+        });
       }
       return;
     }
 
     // Handle dragging from word bank to sentence area
-    if (activeId.startsWith('bank-') && overId === 'sentence-area') {
-      const wordIndex = parseInt(activeId.replace('bank-', ''));
+    if (
+      activeType === "bank" &&
+      (overId === "sentence-area" || overType === "selected")
+    ) {
+      const wordIndex = active.data.current?.index as number;
       const word = problem?.scrambledWords[wordIndex];
-      
-      if (word) {
-        setUserAnswer([...userAnswer, word]);
+
+      if (word !== undefined) {
+        const newId = `word-${idCounter.current++}`;
+
+        const newUserAnswer = [...userAnswer];
+        let dropIndex = -1;
+        if (overType === "selected") {
+          dropIndex = userAnswer.findIndex((w) => w.id === over.id);
+        }
+
+        if (dropIndex !== -1) {
+          newUserAnswer.splice(dropIndex, 0, { id: newId, word });
+        } else {
+          newUserAnswer.push({ id: newId, word });
+        }
+        setUserAnswer(newUserAnswer);
+
+        // Remove from scrambledWords
         const newScrambled = [...(problem?.scrambledWords || [])];
         newScrambled.splice(wordIndex, 1);
-        setProblem(problem ? { ...problem, scrambledWords: newScrambled } : null);
+        setProblem(
+          problem ? { ...problem, scrambledWords: newScrambled } : null,
+        );
       }
       return;
     }
 
     // Handle dragging from sentence area back to word bank
-    if (activeId.startsWith('selected-') && overId === 'word-bank') {
-      const wordIndex = parseInt(activeId.replace('selected-', ''));
-      const word = userAnswer[wordIndex];
-      
-      if (word) {
-        const newUserAnswer = [...userAnswer];
-        newUserAnswer.splice(wordIndex, 1);
-        setUserAnswer(newUserAnswer);
-        
-        const newScrambled = [...(problem?.scrambledWords || [])];
-        newScrambled.push(word);
-        setProblem(problem ? { ...problem, scrambledWords: newScrambled } : null);
+    if (activeType === "selected" && overId === "word-bank") {
+      const wordToRemove = userAnswer.find((w) => w.id === activeId);
+      if (wordToRemove) {
+        setUserAnswer(userAnswer.filter((w) => w.id !== activeId));
+
+        const newScrambled = [
+          ...(problem?.scrambledWords || []),
+          wordToRemove.word,
+        ];
+        setProblem(
+          problem ? { ...problem, scrambledWords: newScrambled } : null,
+        );
       }
       return;
     }
@@ -284,7 +337,8 @@ export default function SentenceConstructionCard({
 
   const handleCheckAnswer = () => {
     if (!problem) return;
-    const correct = userAnswer.join(" ") === problem.sentence;
+    const correct =
+      userAnswer.map((w) => w.word).join(" ") === problem.sentence;
     setIsCorrect(correct);
     setSubmitted(true);
     done(correct ? ReviewStatus.StillRemember : ReviewStatus.Forgotten);
@@ -295,13 +349,14 @@ export default function SentenceConstructionCard({
   }
 
   // Get the word being dragged for the overlay
-  const activeWord = activeId 
-    ? activeId.startsWith('selected-') 
-      ? userAnswer[parseInt(activeId.replace('selected-', ''))]
-      : activeId.startsWith('bank-')
-      ? problem.scrambledWords[parseInt(activeId.replace('bank-', ''))]
-      : ''
-    : '';
+  // Get the word being dragged for the overlay
+  const activeWord = activeId
+    ? activeId.startsWith("selected-")
+      ? userAnswer.find((w) => w.id === activeId)?.word || ""
+      : activeId.startsWith("bank-")
+        ? problem?.scrambledWords[parseInt(activeId.replace("bank-", ""))] || ""
+        : ""
+    : "";
 
   return (
     <Card className="max-w-172 mx-auto">
@@ -323,18 +378,18 @@ export default function SentenceConstructionCard({
           {/* Selected words area with drag-and-drop */}
           <SentenceDropArea className="border rounded-md bg-muted min-h-24 p-4 mb-4 relative">
             {userAnswer.length > 0 ? (
-              <SortableContext 
-                items={userAnswer.map((_, index) => `selected-${index}`)} 
+              <SortableContext
+                items={userAnswer.map((w) => w.id)}
                 strategy={horizontalListSortingStrategy}
               >
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {userAnswer.map((word, index) => (
+                  {userAnswer.map((wordObj) => (
                     <SortableSelectedWord
-                      key={`selected-${index}`}
-                      word={word}
-                      index={index}
-                      onRemove={handleSelectedWordClick}
+                      key={wordObj.id}
+                      word={wordObj.word}
+                      id={wordObj.id}
                       disabled={submitted}
+                      onClick={() => handleSelectedWordClick(wordObj.id)}
                     />
                   ))}
                 </div>
@@ -342,7 +397,9 @@ export default function SentenceConstructionCard({
             ) : (
               <div className="text-center text-xl">
                 <span className="text-muted-foreground">
-                  {submitted ? "" : "Drag words here or click words below to construct the sentence..."}
+                  {submitted
+                    ? ""
+                    : "Drag words here or click words below to construct the sentence..."}
                 </span>
               </div>
             )}
@@ -363,11 +420,13 @@ export default function SentenceConstructionCard({
                   disabled={submitted}
                 />
               ))}
-            {!submitted && problem.scrambledWords.length === 0 && userAnswer.length > 0 && (
-              <div className="text-center text-sm text-muted-foreground italic py-4">
-                Drag words back here to remove them from your sentence
-              </div>
-            )}
+            {!submitted &&
+              problem.scrambledWords.length === 0 &&
+              userAnswer.length > 0 && (
+                <div className="text-center text-sm text-muted-foreground italic py-4">
+                  Drag words back here to remove them from your sentence
+                </div>
+              )}
           </WordBankDropArea>
 
           {/* Drag overlay for better visual feedback */}
