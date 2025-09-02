@@ -19,13 +19,16 @@ import {
 async function autoReplenishPassiveReviews(): Promise<
   Array<WordBookEntryWithDetails>
 > {
-  const K = 20;
+  const MAX_REVIEW_PER_DAY = 20;
   const allEntries = await repository.all;
   const currentStartedToday = passiveReviewsStartedOrWillStartToday(allEntries);
   const waitingForReview = remainingNeedPassiveReviewToday(allEntries);
-  if (currentStartedToday.length + waitingForReview.length < K) {
+  if (
+    currentStartedToday.length + waitingForReview.length <
+    MAX_REVIEW_PER_DAY
+  ) {
     const needToStart =
-      K - currentStartedToday.length - waitingForReview.length;
+      MAX_REVIEW_PER_DAY - currentStartedToday.length - waitingForReview.length;
     const notStartedEntries = await repository.reviewNotStarted();
 
     if (notStartedEntries.length > 0) {
@@ -65,6 +68,7 @@ export default function Review() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    // fill initial reviews
     (async () => {
       const passiveEntries = await repository.needPassiveReviewNow();
       const passiveDetails = await Promise.all(
@@ -125,6 +129,7 @@ export default function Review() {
       if (nextIndex < toReviewActive.length) {
         setCurrentIndex(nextIndex);
       } else {
+        setToReviewActive([]);
         // Before going to "done", try to replenish passive reviews
         const newPassiveReviews = await autoReplenishPassiveReviews();
         if (newPassiveReviews.length > 0) {
