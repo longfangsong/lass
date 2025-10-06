@@ -2,19 +2,16 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import NavBar from "@/app/shared/presentation/components/navBar";
 import Index from "@/app/shared/presentation/pages/indexPage";
 import { Dictionary } from "@/app/dictionary/presentation/pages/dictionary";
-import { useInitDictionaryIfNeeded } from "@/app/dictionary/presentation/hooks/init";
 import { All as AllInWordbook } from "../../wordbook/presentation/pages/all";
 import Review from "../../wordbook/presentation/pages/review";
 import { ThemeProvider } from "./components/themeProvider";
 import Login from "./pages/auth/login";
 import Callback from "./pages/auth/callback";
-import { useSyncDictionary } from "../../dictionary/presentation/hooks/sync";
-import { useSyncArticle } from "../../article/presentation/hooks/sync";
 import Article from "@/app/article/presentation/pages/article";
 import { All as AllArticles } from "../../article/presentation/pages/all";
+import { useRegisterSyncService, useSyncService } from "@/app/sync/presentation/hooks";
 import "./index.css";
 import "./norse-bold.css";
-import { SyncManager } from "@/app/wordbook/presentation/components/SyncManager";
 
 const serverSideRegex = /^(\/api\/|\/init\/).*/;
 const router = (
@@ -38,10 +35,9 @@ const router = (
 );
 
 function App() {
-  useInitDictionaryIfNeeded();
-  useSyncDictionary();
-  useSyncArticle();
-  <SyncManager />;
+  useRegisterSyncService();
+  const syncService = useSyncService();
+  syncService.startAutoSync();
   return (
     <>
       {serverSideRegex.test(window.location.pathname) ? (

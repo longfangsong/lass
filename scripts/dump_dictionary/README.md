@@ -12,3 +12,12 @@ pnpm start /path/to/your.db.sqlite
 ```
 
 Output will be in `dump/Word/`, `dump/WordIndex/`, `dump/Lexeme/` under the current directory.
+
+## Hint
+
+If you want to download and import remote database to local, use the following command:
+
+```sh
+npx wrangler d1 export DB --no-schema --remote --output=./lass.sql
+npx wrangler d1 execute --file ./lass.sql
+```

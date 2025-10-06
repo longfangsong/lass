@@ -29,11 +29,10 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { useOnline } from "../hooks/useOnline";
 import { useAtomValue } from "jotai";
-import { progress } from "../atoms/sync";
 import { ModeToggle } from "./modeToggle";
-import { useSyncArticle } from "@/app/article/presentation/hooks/sync";
-import { useSyncDictionary } from "@/app/dictionary/presentation/hooks/sync";
-import { useSyncWordbook } from "@/app/wordbook/presentation/hooks/sync";
+import { syncState } from "@/app/sync/presentation/atoms";
+import { useSyncService } from "@/app/sync/presentation/hooks";
+import { isDownloading, isSyncing, isIdle, isUnknown } from "@/app/sync/domain/types";
 
 function SignInButton() {
   return (
@@ -56,10 +55,20 @@ export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const online = useOnline();
   const { user, loading } = useAuth();
-  const syncProgress = useAtomValue(progress);
-  const syncDictionary = useSyncDictionary();
-  const syncWordbook = useSyncWordbook();
-  const syncArticle = useSyncArticle();
+  const currentSyncState = useAtomValue(syncState);
+  const syncService = useSyncService();
+
+  const triggerSync = async () => {
+    // Trigger sync for all tables
+    await Promise.all([
+      syncService.syncNow("Article"),
+      syncService.syncNow("Word"),
+      syncService.syncNow("WordIndex"), 
+      syncService.syncNow("Lexeme"),
+      syncService.syncNow("WordBookEntry")
+    ]);
+  };
+  
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -134,28 +143,20 @@ export default function NavBar() {
           {online && user && <SignOutButton />}
           {online && user === null && !loading && <SignInButton />}
 
-          {online && user && syncProgress === "NeedCheck" && (
+          {online && user && isUnknown(currentSyncState) && (
             <CalendarSync
-              onClick={() => {
-                syncDictionary();
-                syncWordbook();
-                syncArticle();
-              }}
+              onClick={triggerSync}
             />
           )}
-          {online && user && syncProgress === "InProgress" && (
-            <RefreshCcw className="animate-spin" />
-          )}
-          {online && user && syncProgress === "Initing" && (
+          {online && user && isDownloading(currentSyncState) && (
             <CloudDownload className="animate-bounce" />
           )}
-          {online && user && syncProgress === "Done" && (
+          {online && user && isSyncing(currentSyncState) && (
+            <RefreshCcw className="animate-spin" />
+          )}
+          {online && user && isIdle(currentSyncState) && (
             <CircleCheckBig
-              onClick={() => {
-                syncDictionary();
-                syncWordbook();
-                syncArticle();
-              }}
+              onClick={triggerSync}
             />
           )}
           {!online && <CloudOff className="mr-1" />}

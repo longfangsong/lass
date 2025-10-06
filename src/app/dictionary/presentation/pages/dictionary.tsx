@@ -20,13 +20,15 @@ import {
 import type { WordSearchResult, Word } from "@/types";
 import WordDetail from "@/app/shared/presentation/components/word/wordDetail";
 import { useAtomValue } from "jotai";
-import { progress, tasks } from "@/app/dictionary/presentation/atoms/init";
 import { CheckCheck, FileDown } from "lucide-react";
 import SaveToWordBookButton from "@/app/shared/presentation/components/word/saveToWordBook";
 import PlayButton from "@/app/shared/presentation/components/playAudioButton";
 import { Badge } from "@/app/shared/presentation/components/ui/badge";
 import { searchWord } from "@/app/dictionary/application/search";
 import { repository } from "@/app/dictionary/infrastructure/repository";
+import { syncState } from "@/app/sync/presentation/atoms";
+import { useRegisterSyncService } from "@/app/sync/presentation/hooks";
+import { isProgress, isDownloading } from "@/app/sync/domain/types";
 
 function WordDetailDialog({
   word,
@@ -72,17 +74,23 @@ function WordDetailDialog({
 }
 
 export function Dictionary() {
+  useRegisterSyncService();
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<WordSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const initProgress = useAtomValue(progress);
-  const initTask = useAtomValue(tasks);
+  const currentSyncState = useAtomValue(syncState);
   const [selectedWord, setSelectedWord] = useState<
     (Word & { frequency_rank?: number }) | null
   >(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Determine if initialization is complete
+  const isInitComplete = currentSyncState === "idle" || 
+    (typeof currentSyncState === "object" && (!currentSyncState.initProgress || currentSyncState.initProgress === "idle"));
+  const isIniting = isDownloading(currentSyncState);
+  const initProgress = isIniting && typeof currentSyncState === "object" ? currentSyncState.initProgress : null;
   const search = async (spell: string, useAI: boolean = false) => {
     if (!spell.trim()) {
       setResults([]);
@@ -91,7 +99,7 @@ export function Dictionary() {
     setIsLoading(true);
     try {
       let searchResults: WordSearchResult[];
-      if (initProgress !== "Done" || useAI) {
+      if (!isInitComplete || useAI) {
         const response = await fetch(
           `/api/words?spell=${encodeURIComponent(spell)}&ai=${useAI}`,
         );
@@ -141,7 +149,7 @@ export function Dictionary() {
   const handleRowClick = async (wordId: string) => {
     try {
       let word;
-      if (initProgress === "Done") {
+      if (isInitComplete) {
         const localWord = await repository.get(wordId);
         word = localWord;
       } else {
@@ -231,7 +239,7 @@ export function Dictionary() {
         </div>
       )}
 
-      {initProgress === "Done" && (
+      {isInitComplete && (
         <div className="text-muted-foreground flex flex-row items-center justify-center mt-4">
           <CheckCheck />
           <div className="ml-2">
@@ -243,17 +251,19 @@ export function Dictionary() {
         </div>
       )}
 
-      {Array.isArray(initProgress) && (
+      {isIniting && initProgress && isProgress(initProgress) && (
         <div className="text-muted-foreground flex flex-row items-center justify-center mt-4">
           <FileDown />
           <div className="ml-2">
             <p>
-              Downloading{" "}
-              {initProgress?.map(([_, count]) => count).reduce((a, b) => a + b)}{" "}
-              of{" "}
-              {initTask?.tables
-                .map(([_, count]) => count)
-                .reduce((a, b) => a + b)}{" "}
+              Downloaded{" "}
+              {initProgress.done
+                .map((item) => item.done)
+                .reduce((a, b) => a + b, 0)}{" "}
+              of {" "}
+              {initProgress.done
+                .map((item) => item.all)
+                .reduce((a, b) => a + b, 0)}{" "}
               files.
             </p>
             <p className="text-xs">
