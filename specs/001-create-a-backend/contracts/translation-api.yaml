@@ -1,0 +1,264 @@
+openapi: 3.0.3
+info:
+  title: Läss Lexeme API Enhancement
+  description: RESTful API enhancement to fill missing example_meaning fields in Lexeme records using DeepL Free API
+  version: 1.0.0
+  contact:
+    name: Läss Development Team
+    url: https://github.com/longfangsong/lass
+
+servers:
+  - url: https://lass.pages.dev/api
+    description: Production API
+  - url: http://localhost:8787/api
+    description: Local development
+
+paths:
+  /lexemes/{lexeme_id}:
+    patch:
+      summary: Update a lexeme, optionally filling missing example_meaning
+      description: |
+        Updates a lexeme record. When fill_example_meaning=1 is provided and the lexeme
+        has an 'example' but missing 'example_meaning', translates the Swedish example 
+        to English using DeepL Free API and updates the lexeme.
+      operationId: updateLexeme
+      tags:
+        - Lexemes
+        - Translation
+      parameters:
+        - name: lexeme_id
+          in: path
+          required: true
+          description: UUID of the lexeme to update
+          schema:
+            type: string
+            format: uuid
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        - name: fill_example_meaning
+          in: query
+          required: false
+          description: If set to 1, automatically translate missing example_meaning
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 0
+          example: 1
+        - name: force_retranslate
+          in: query
+          required: false
+          description: If set to 1, force re-translation even if example_meaning exists
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 0
+        - name: target_lang
+          in: query
+          required: false
+          description: Target language for translation
+          schema:
+            type: string
+            enum: ["EN"]
+            default: "EN"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                definition:
+                  type: string
+                  description: Updated definition text
+                example:
+                  type: string
+                  description: Updated example text
+                example_meaning:
+                  type: string
+                  description: Updated example meaning
+                source:
+                  type: string
+                  enum: ["lexin-swe", "folkets-lexikon", "AI"]
+                  description: Source system
+              example:
+                definition: "Updated definition"
+      responses:
+        '200':
+          description: Lexeme updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LexemeResponse'
+              examples:
+                translation_added:
+                  summary: Translation was added to lexeme
+                  value:
+                    id: "660e8400-e29b-41d4-a716-446655440001"
+                    word_id: "550e8400-e29b-41d4-a716-446655440000"
+                    definition: "att äta mat"
+                    example: "Jag äter lunch nu."
+                    example_meaning: "I am eating lunch now."
+                    source: "lexin-swe"
+                    update_time: 1696723200
+                no_translation_needed:
+                  summary: No translation was needed
+                  value:
+                    id: "660e8400-e29b-41d4-a716-446655440001"
+                    word_id: "550e8400-e29b-41d4-a716-446655440000"
+                    definition: "att äta mat"
+                    example: "Jag äter lunch nu."
+                    example_meaning: "I am eating lunch now."
+                    source: "lexin-swe"
+                    update_time: 1696723200
+        '404':
+          description: Lexeme not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Lexeme not found"
+                code: "NOT_FOUND"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Translation quota exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Monthly translation quota exceeded"
+                code: "QUOTA_EXCEEDED"
+
+  /translate/usage:
+
+  /translate/usage:
+    get:
+      summary: Get current translation usage statistics
+      description: Returns current monthly usage statistics for DeepL API quota management
+      operationId: getTranslationUsage
+      tags:
+        - Translation
+        - Usage
+      responses:
+        '200':
+          description: Usage statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageStatus'
+              example:
+                current_month: "2025-10"
+                character_count: 125000
+                translation_count: 3421
+                quota_remaining: 375000
+                quota_percentage: 25.0
+                throttled: false
+
+components:
+  schemas:
+    LexemeResponse:
+      type: object
+      required:
+        - id
+        - word_id
+        - definition
+        - source
+        - update_time
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Lexeme ID
+        word_id:
+          type: string
+          format: uuid
+          description: ID of the associated word
+        definition:
+          type: string
+          description: Word definition
+        example:
+          type: string
+          nullable: true
+          description: Swedish example sentence
+        example_meaning:
+          type: string
+          nullable: true
+          description: English translation of example
+        source:
+          type: string
+          enum: ["lexin-swe", "folkets-lexikon", "AI"]
+          description: Source system
+        update_time:
+          type: integer
+          description: Unix timestamp of last update
+
+    UsageStatus:
+      type: object
+      required:
+        - current_month
+        - character_count
+        - translation_count
+        - quota_remaining
+        - quota_percentage
+        - throttled
+      properties:
+        current_month:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{2}$'
+          description: Current month in YYYY-MM format
+        character_count:
+          type: integer
+          minimum: 0
+          description: Characters used this month
+        translation_count:
+          type: integer
+          minimum: 0
+          description: Number of translations this month
+        quota_remaining:
+          type: integer
+          minimum: 0
+          description: Characters remaining in monthly quota
+        quota_percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentage of quota used
+        throttled:
+          type: boolean
+          description: Whether translations are currently throttled
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - "NOT_FOUND"
+            - "INVALID_INPUT"
+            - "QUOTA_EXCEEDED"
+            - "API_UNAVAILABLE"
+            - "INTERNAL_ERROR"
+        details:
+          type: object
+          description: Additional error details
+
+tags:
+  - name: Lexemes
+    description: Operations on lexeme records
+  - name: Translation
+    description: Swedish to English translation operations
+  - name: Usage
+    description: API usage tracking and quota management
+
+security: []

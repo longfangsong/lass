@@ -6,7 +6,7 @@ import { get as session } from "./auth/session";
 import { get as logout } from "./auth/logout";
 import { get as oneWaySync } from "./sync";
 import { post as twoWaySync } from "./sync";
-import { getByWordId } from "./lexemes";
+import { getByWordId, updateLexeme } from "./lexemes";
 const router = new Router();
 
 router
@@ -15,7 +15,8 @@ router
   .get("/api/auth/login/:provider", login)
   .get("/api/auth/callback/:provider", authCallback)
   .get("/api/words/:id", getWordById)
-  .get("/api/lexemes/:word_id", getByWordId)
+  .get("/api/lexemes", getByWordId)
+  .patch("/api/lexemes/:lexeme_id", updateLexeme)
   .get("/api/words", search)
   .get("/api/sync/:table", oneWaySync)
   .post("/api/sync/:table", twoWaySync)

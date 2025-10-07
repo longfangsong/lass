@@ -15,6 +15,7 @@ interface Env extends Cloudflare.Env {
   AUTH_GOOGLE_SECRET: string;
   AUTH_SECRET: string;
   APP_URL: string;
+  DEEPL_API_KEY: string;
 }
 
 // Begin runtime types
