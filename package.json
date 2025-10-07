@@ -35,6 +35,7 @@
     "clsx": "^2.1.1",
     "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
+    "deepl-node": "^1.19.1",
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^1.1.7",
     "jose": "^6.0.12",

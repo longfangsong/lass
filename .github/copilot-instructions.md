@@ -15,6 +15,7 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Database Setup (Local Development)
 - Apply migrations: `npx wrangler d1 migrations apply DB --local` -- creates local database
+- Set up DeepL API key: Create `.dev.vars` file with `DEEPL_API_KEY=your-key-here`
 
 ### Development and Preview
 - Development server: `pnpm run dev` -- starts on http://localhost:5173. NEVER CANCEL. Cloudflare connectivity warnings are expected locally.
@@ -139,6 +140,23 @@ wrangler.toml
 - OAuth authentication (GitHub, Google)
 - Responsive PWA design
 - Dark/light theme support
+- **NEW**: DeepL Free API integration for Swedish→English translation in active review
+
+### Recent Changes (Last 3 Features)
+1. **DeepL Translation Integration** (Oct 2025): Automatic Swedish→English translation for active review exercises using DeepL Free API. Includes translation caching, usage quota tracking, and graceful degradation. Located in `src/api/translate/` and extends wordbook domain.
+
+2. Previous features...
+
+### Translation Feature Context
+- **Purpose**: Translate Swedish example sentences to English during active review when only Swedish examples are available
+- **API**: DeepL Free API (500k chars/month limit) with hash-based caching
+- **Storage**: TranslationCache and UsageTracking tables in D1, synced to IndexedDB
+- **Integration**: Extends `createSentenceProblem.ts` and `SentenceConstructionCard.tsx`
+- **Graceful degradation**: Falls back to Swedish-only display if API fails
+- **Key files**: 
+  - `src/api/translate/` - Translation API endpoints
+  - `src/app/wordbook/domain/` - Translation models and services
+  - `migrations/0002_add_translation_cache.sql` - Database schema
 
 ## Troubleshooting
 

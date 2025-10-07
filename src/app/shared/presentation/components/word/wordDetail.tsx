@@ -40,10 +40,11 @@ export default function WordDetail({
     try {
       if (currentWord) {
         const query = new URLSearchParams({
+          word_id: currentWord.id,
           spell: currentWord.lemma,
         });
         const response = await fetch(
-          `/api/lexemes/${currentWord.id}?${query.toString()}`,
+          `/api/lexemes?${query.toString()}`,
         );
         const data: Array<Lexeme> = await response.json();
         if (data) {

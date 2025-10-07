@@ -1,9 +1,11 @@
 name = "lassvenska"
 main = "src/api/index.ts"
 compatibility_date = "2025-07-12"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 CF_PAGES_URL = "https://lassvenska.longfangsong.workers.dev"
+# DEEPL_API_KEY is set via .dev.vars (local) or Cloudflare Dashboard (production)
 
 [assets]
 not_found_handling = "single-page-application"
