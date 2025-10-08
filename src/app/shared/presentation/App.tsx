@@ -5,11 +5,13 @@ import { Dictionary } from "@/app/dictionary/presentation/pages/dictionary";
 import { All as AllInWordbook } from "../../wordbook/presentation/pages/all";
 import Review from "../../wordbook/presentation/pages/review";
 import { ThemeProvider } from "./components/themeProvider";
+import { Toaster } from "./components/ui/sonner";
 import Login from "./pages/auth/login";
 import Callback from "./pages/auth/callback";
 import Article from "@/app/article/presentation/pages/article";
 import { All as AllArticles } from "../../article/presentation/pages/all";
 import { useRegisterSyncService, useSyncService } from "@/app/sync/presentation/hooks";
+import SettingsPage from "@/app/settings/presentation/pages/settingsPage";
 import "./index.css";
 import "./norse-bold.css";
 
@@ -27,6 +29,7 @@ const router = (
           <Route path="/wordbook/review" element={<Review />} />
           <Route path="/article/:id" element={<Article />} />
           <Route path="/articles" element={<AllArticles />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/" element={<Index />} />
         </Routes>
       </main>
@@ -45,6 +48,7 @@ function App() {
       ) : (
         router
       )}
+      <Toaster />
     </>
   );
 }

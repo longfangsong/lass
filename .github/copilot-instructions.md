@@ -58,10 +58,11 @@ Always reference these instructions first and fallback to search or bash command
 ├── src/
 │   ├── api/                    # Cloudflare Workers API routes
 │   ├── app/
-│   │   ├── domain/            # Business logic and models
-│   │   ├── application/       # Application services
-│   │   ├── infrastructure/    # Database and external services
-│   │   └── presentation/      # React components and pages
+│   │   └── .../                   # A speicific bounded context
+│   │       ├── domain/            # Business logic and models
+│   │       ├── application/       # Application services
+│   │       ├── infrastructure/    # Database and external services
+│   │       └── presentation/      # React components and pages
 │   └── types.ts               # TypeScript type definitions
 ├── migrations/                # D1 database migrations
 ├── data/dictionary.sql        # Dictionary data (large file ~15MB)

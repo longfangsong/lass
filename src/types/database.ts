@@ -60,8 +60,21 @@ export enum AutoNewReviewPolicy {
   FirstCome = 3,
 }
 
+export enum NotificationPermissionStatus {
+  Default = "default",
+  Granted = "granted",
+  Denied = "denied",
+  Unsupported = "unsupported"
+}
+
+// Import the existing Theme type
+type Theme = "dark" | "light" | "system";
+
 export interface UserSettings {
   auto_new_review: AutoNewReviewPolicy;
   daily_new_review_count: number;
   update_time: number;
+  theme: Theme;
+  notifications_enabled: boolean;
+  notification_permission_status: NotificationPermissionStatus;
 }

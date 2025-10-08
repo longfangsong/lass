@@ -37,6 +37,7 @@ import {
   Table,
 } from "@/app/shared/presentation/components/ui/table";
 import { cn } from "@/app/shared/presentation/lib/utils";
+import { useSettings } from "@/app/settings/presentation/hooks/useSettings";
 
 import {
   startActiveReviewProgress,
@@ -69,6 +70,10 @@ export function All() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const { settings } = useSettings();
+  
+  // Extract the daily new review count to avoid repetition
+  const dailyNewReviewCount = settings?.daily_new_review_count ?? 20;
   const columns: ColumnDef<
     WordBookEntryWithDetails & { frequency_rank?: number }
   >[] = [
@@ -317,7 +322,7 @@ export function All() {
         }
         className="my-2 sticky top-1 z-10"
       >
-        {(remainToReview?.length || 0) <= 200 ? (
+        {(remainToReview?.length || 0) <= dailyNewReviewCount * 10 ? (
           <CheckCircle2Icon />
         ) : (
           <AlertCircleIcon />
@@ -325,7 +330,7 @@ export function All() {
         <AlertTitle>
           {remainToReview?.length} remaining to review today
         </AlertTitle>
-        {(remainToReview?.length || 0) > 200 && (
+        {(remainToReview?.length || 0) > dailyNewReviewCount * 10 && (
           <AlertDescription>
             Be careful! Don't bite off more than you can chew!
           </AlertDescription>
@@ -333,15 +338,15 @@ export function All() {
       </Alert>
       <Alert
         variant={
-          (startToday?.length || 0) <= 20
+          (startToday?.length || 0) <= dailyNewReviewCount
             ? "default"
-            : (startToday?.length || 0) <= 50
+            : (startToday?.length || 0) <= dailyNewReviewCount * 2.5
               ? "warning"
               : "destructive"
         }
         className="my-2 sticky top-14 z-10"
       >
-        {(startToday?.length || 0) <= 20 ? (
+        {(startToday?.length || 0) <= dailyNewReviewCount ? (
           <CheckCircle2Icon />
         ) : (
           <AlertCircleIcon />
@@ -349,7 +354,7 @@ export function All() {
         <AlertTitle>
           {startToday?.length} started or will start today
         </AlertTitle>
-        {(startToday?.length || 0) > 20 && (
+        {(startToday?.length || 0) > dailyNewReviewCount && (
           <AlertDescription>
             Be careful! Don't bite off more than you can chew!
           </AlertDescription>

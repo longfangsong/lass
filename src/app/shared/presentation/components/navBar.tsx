@@ -63,12 +63,12 @@ export default function NavBar() {
     await Promise.all([
       syncService.syncNow("Article"),
       syncService.syncNow("Word"),
-      syncService.syncNow("WordIndex"), 
+      syncService.syncNow("WordIndex"),
       syncService.syncNow("Lexeme"),
       syncService.syncNow("WordBookEntry")
     ]);
   };
-  
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -134,6 +134,16 @@ export default function NavBar() {
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  asChild
+                  className={navigationMenuTriggerStyle()}
+                >
+                  <Link to="/settings">Settings</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -142,7 +152,6 @@ export default function NavBar() {
         <div className="flex-1 flex justify-end items-center gap-2">
           {online && user && <SignOutButton />}
           {online && user === null && !loading && <SignInButton />}
-
           {online && user && isUnknown(currentSyncState) && (
             <CalendarSync
               onClick={triggerSync}
@@ -224,6 +233,14 @@ export default function NavBar() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
+              <Separator />
+              <Link
+                to="/settings"
+                className="text-foreground hover:text-foreground/80 px-3 py-2 hover:bg-accent transition-colors flex items-center"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Settings
+              </Link>
             </div>
           </nav>
         </div>

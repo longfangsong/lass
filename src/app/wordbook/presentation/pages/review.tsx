@@ -14,27 +14,33 @@ import {
   passiveReviewsStartedOrWillStartToday,
   remainingNeedPassiveReviewToday,
 } from "../../application/reviewStats";
+import { useSettings } from "@/app/settings/presentation/hooks/useSettings";
 
-// Helper function to auto-replenish passive reviews up to K=20
-async function autoReplenishPassiveReviews(): Promise<
-  Array<WordBookEntryWithDetails>
-> {
-  const MAX_REVIEW_PER_DAY = 20;
+// Helper function to auto-replenish passive reviews up to user's configured limit
+async function autoReplenishPassiveReviews(
+  autoNewReviewPolicy: AutoNewReviewPolicy,
+  maxReviewPerDay: number
+): Promise<Array<WordBookEntryWithDetails>> {
+  // If user has disabled auto new reviews, don't replenish
+  if (autoNewReviewPolicy === AutoNewReviewPolicy.No) {
+    return [];
+  }
+  
   const allEntries = await repository.all;
   const currentStartedToday = passiveReviewsStartedOrWillStartToday(allEntries);
   const waitingForReview = remainingNeedPassiveReviewToday(allEntries);
   if (
     currentStartedToday.length + waitingForReview.length <
-    MAX_REVIEW_PER_DAY
+    maxReviewPerDay
   ) {
     const needToStart =
-      MAX_REVIEW_PER_DAY - currentStartedToday.length - waitingForReview.length;
+      maxReviewPerDay - currentStartedToday.length - waitingForReview.length;
     const notStartedEntries = await repository.reviewNotStarted();
 
     if (notStartedEntries.length > 0) {
-      // Use mostFrequent policy to pick new entries to start
+      // Use user's configured policy to pick new entries to start
       const picker = getPicker(wordTable.bulkGet.bind(wordTable))(
-        AutoNewReviewPolicy.MostFrequent,
+        autoNewReviewPolicy,
       );
       const toStart = await picker(notStartedEntries, needToStart);
 
@@ -56,6 +62,7 @@ async function autoReplenishPassiveReviews(): Promise<
 
 export default function Review() {
   const syncWordbook = useSyncWordbook();
+  const { settings } = useSettings();
   const [toReviewPassive, setToReviewPassive] = useState<
     Array<WordBookEntryWithDetails>
   >([]);
@@ -89,7 +96,10 @@ export default function Review() {
         setReviewMode("active");
       } else {
         // No reviews available - try to auto-replenish before going to "done"
-        const newPassiveReviews = await autoReplenishPassiveReviews();
+        const newPassiveReviews = await autoReplenishPassiveReviews(
+          settings?.auto_new_review ?? AutoNewReviewPolicy.No,
+          settings?.daily_new_review_count ?? 20
+        );
         if (newPassiveReviews.length > 0) {
           setToReviewPassive(newPassiveReviews);
           setReviewMode("passive");
@@ -98,7 +108,7 @@ export default function Review() {
         }
       }
     })();
-  }, []);
+  }, [settings?.auto_new_review, settings?.daily_new_review_count]);
 
   // Sync wordbook when component unmounts
   useEffect(() => {
@@ -116,7 +126,10 @@ export default function Review() {
           setReviewMode("active");
         } else {
           // Before going to "done", try to replenish passive reviews
-          const newPassiveReviews = await autoReplenishPassiveReviews();
+          const newPassiveReviews = await autoReplenishPassiveReviews(
+            settings?.auto_new_review ?? AutoNewReviewPolicy.No,
+            settings?.daily_new_review_count ?? 20
+          );
           if (newPassiveReviews.length > 0) {
             setToReviewPassive(newPassiveReviews);
             setReviewMode("passive");
@@ -131,7 +144,10 @@ export default function Review() {
       } else {
         setToReviewActive([]);
         // Before going to "done", try to replenish passive reviews
-        const newPassiveReviews = await autoReplenishPassiveReviews();
+        const newPassiveReviews = await autoReplenishPassiveReviews(
+          settings?.auto_new_review ?? AutoNewReviewPolicy.No,
+          settings?.daily_new_review_count ?? 20
+        );
         if (newPassiveReviews.length > 0) {
           setToReviewPassive(newPassiveReviews);
           setCurrentIndex(0);
@@ -141,7 +157,7 @@ export default function Review() {
         }
       }
     }
-  }, [currentIndex, reviewMode, toReviewActive, toReviewPassive]);
+  }, [currentIndex, reviewMode, toReviewActive, toReviewPassive, settings?.auto_new_review, settings?.daily_new_review_count]);
 
   if (reviewMode === "loading") {
     return <div>Loading reviews...</div>; // Or a spinner component

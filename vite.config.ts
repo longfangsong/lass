@@ -90,8 +90,9 @@ export default defineConfig({
             "@dnd-kit/core",
             "@dnd-kit/sortable",
             "@dnd-kit/utilities",
+            "react-router"
           ],
-          dataDisplay: ["recharts", "@tanstack/react-table"],
+          dataDisplay: ["recharts", "@tanstack/react-table"]
         },
       },
     },
