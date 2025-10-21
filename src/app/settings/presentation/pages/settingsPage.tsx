@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { SettingsForm } from '../components/settingsForm';
+import { PrivacyPanel } from '../components/PrivacyPanel';
 
 export default function SettingsPage() {
   return (
@@ -21,6 +22,13 @@ export default function SettingsPage() {
                 toast.success('Settings saved successfully!');
               }}
             />
+          </div>
+        </div>
+
+        {/* Privacy & Data Panel */}
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="p-6">
+            <PrivacyPanel />
           </div>
         </div>
       </div>

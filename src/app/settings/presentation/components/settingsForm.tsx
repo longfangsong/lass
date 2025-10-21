@@ -2,7 +2,7 @@ import { useTheme } from '@/app/shared/presentation/components/themeProvider';
 import { toast } from 'sonner';
 import type { Settings, Theme } from '../../domain/model';
 import { AutoNewReviewPolicy } from '@/types/database';
-import { useSettings, useNotificationPermission } from '../hooks/useSettings';
+import { useSettings } from '../hooks/useSettings';
 import { throttle } from '@/utils';
 
 interface SettingsFormProps {
@@ -11,9 +11,8 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ onSave, className }: SettingsFormProps) {
-  const { settings, loading, updateDailyReviewCount, updateNotificationsEnabled, updateAutoNewReview } = useSettings();
+  const { settings, loading, updateDailyReviewCount, updateAutoNewReview } = useSettings();
   const { theme, setTheme } = useTheme();
-  const { permission, requesting, requestPermission, isSupported } = useNotificationPermission();
 
   // Create throttled handlers directly
   const handleThemeChange = throttle((newTheme: Theme) => {
@@ -37,26 +36,6 @@ export function SettingsForm({ onSave, className }: SettingsFormProps) {
       toast.error(`Invalid daily review count: ${count}. Must be between 1 and 100.`);
     }
   }, 500);
-
-  const handleNotificationsToggle = throttle(async (enabled: boolean) => {
-    try {
-      if (enabled && permission !== 'granted' && isSupported) {
-        // Request permission before enabling notifications
-        const granted = await requestPermission();
-        if (!granted) {
-          // User denied permission, show helpful message
-          toast.error('Notification permission denied. Please enable notifications in your browser settings.');
-          return;
-        }
-      }
-      
-      updateNotificationsEnabled(enabled);
-      onSave?.({ ...settings!, notifications_enabled: enabled });
-    } catch {
-      toast.error('Failed to update notification settings');
-      // On error, don't change the toggle state
-    }
-  }, 300);
 
   const handleAutoNewReviewChange = throttle((policy: AutoNewReviewPolicy) => {
     try {
@@ -170,60 +149,6 @@ export function SettingsForm({ onSave, className }: SettingsFormProps) {
               </div>
             </label>
           ))}
-        </div>
-      </div>
-
-      {/* Notifications */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          Review Notifications
-        </label>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => handleNotificationsToggle(!settings.notifications_enabled)}
-            disabled={requesting || (!isSupported && !settings.notifications_enabled)}
-            className={`
-              relative inline-flex h-6 w-11 items-center rounded-full border-2 border-transparent 
-              transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
-              focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed 
-              disabled:opacity-50
-              ${settings.notifications_enabled 
-                ? 'bg-primary' 
-                : 'bg-input'
-              }
-            `}
-          >
-            <span className="sr-only">
-              {settings.notifications_enabled ? 'Disable' : 'Enable'} notifications
-            </span>
-            <span
-              className={`
-                ${settings.notifications_enabled ? 'translate-x-6' : 'translate-x-1'}
-                inline-block h-4 w-4 transform rounded-full bg-background transition
-              `}
-            />
-          </button>
-          
-          <div className="flex flex-col">
-            <span className="text-sm">
-              {settings.notifications_enabled ? 'Enabled' : 'Disabled'}
-            </span>
-            {!isSupported && (
-              <span className="text-xs text-muted-foreground">
-                Notifications not supported in this browser
-              </span>
-            )}
-            {isSupported && permission === 'denied' && (
-              <span className="text-xs text-destructive">
-                Notification permission denied. Enable in browser settings.
-              </span>
-            )}
-            {requesting && (
-              <span className="text-xs text-muted-foreground">
-                Requesting permission...
-              </span>
-            )}
-          </div>
         </div>
       </div>
     </div>

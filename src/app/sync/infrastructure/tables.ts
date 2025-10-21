@@ -1,5 +1,5 @@
 import { db } from "@/app/shared/infrastructure/indexeddb";
-import type { InitableTable, MetaTable, SyncableTable } from "../domain/types";
+import type { InitableTable, MetaTable, SyncableTable, TwoWaySyncableTable } from "../domain/types";
 import type { Article, Lexeme, WordBookEntry, WordIndex } from "@/types";
 import { millisecondsInDay } from "date-fns/constants";
 import type { Word } from "@/app/types";
@@ -66,11 +66,19 @@ export const lexemeTable: InitableTable<Lexeme> = {
   afterInit: async function (): Promise<void> { },
 };
 
-export const wordBookEntryTable: SyncableTable<WordBookEntry> = {
+export const wordBookEntryTable: TwoWaySyncableTable<WordBookEntry> = {
   name: "WordBookEntry",
   autoSyncInterval: minutesToMilliseconds(2),
   batchSize: 50,
   bulkPut: async function (data: WordBookEntry[]): Promise<void> {
     await db.table("WordBookEntry").bulkPut(data);
   },
+  updatedBetween: function (sync_at: number, from: number, to: number, limit: number): Promise<WordBookEntry[]> {
+    return db.table("WordBookEntry")
+      .where("update_time")
+      .between(from, to)
+      .filter((it) => it.sync_at !== sync_at && !it.deleted)
+      .limit(limit)
+      .toArray();
+  }
 };
