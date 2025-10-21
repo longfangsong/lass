@@ -85,6 +85,7 @@ export function Dictionary() {
   >(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const latestSearchQueryRef = useRef<string>("");
 
   // Determine if initialization is complete
   const isInitComplete = currentSyncState === "idle" || 
@@ -96,6 +97,11 @@ export function Dictionary() {
       setResults([]);
       return [];
     }
+    
+    // Track this search query
+    const currentSearchQuery = spell;
+    latestSearchQueryRef.current = currentSearchQuery;
+    
     setIsLoading(true);
     try {
       let searchResults: WordSearchResult[];
@@ -110,14 +116,24 @@ export function Dictionary() {
       } else {
         searchResults = await searchWord(spell);
       }
-      setResults(searchResults);
+      
+      // Only update results if this is still the latest search
+      if (latestSearchQueryRef.current === currentSearchQuery) {
+        setResults(searchResults);
+      }
       return searchResults;
     } catch (error) {
       console.error("Search failed:", error);
-      setResults([]);
+      // Only clear results if this is still the latest search
+      if (latestSearchQueryRef.current === currentSearchQuery) {
+        setResults([]);
+      }
       return [];
     } finally {
-      setIsLoading(false);
+      // Only set loading to false if this is still the latest search
+      if (latestSearchQueryRef.current === currentSearchQuery) {
+        setIsLoading(false);
+      }
     }
   };
 
