@@ -6,9 +6,12 @@ import {
   type ApiClient,
   type InitState,
   type MetaTable,
-  type SyncableTable,
+  type BatchSyncableTable,
   type SyncState,
-  type TwoWaySyncableTable,
+  type TwoWayBatchSyncableTable,
+  type SyncableTable,
+  isBatchSyncableTable,
+  isSingleItemSyncableTable,
 } from "../types";
 import { InitService } from "./init";
 import { clone } from "remeda";
@@ -21,7 +24,7 @@ export class SyncService extends EventTarget {
 
   constructor(
     private meta: MetaTable,
-    private tables: SyncableTable<unknown>[],
+    private tables: SyncableTable[],
     private apiClient: ApiClient,
   ) {
     super();
@@ -76,8 +79,8 @@ export class SyncService extends EventTarget {
 
   private addSyncingTable(tableName: string) {
     // Check if table is currently being initialized
-    if (typeof this.currentState === "object" && this.currentState.initProgress && 
-        isTableInitializing(tableName, this.currentState.initProgress)) {
+    if (typeof this.currentState === "object" && this.currentState.initProgress &&
+      isTableInitializing(tableName, this.currentState.initProgress)) {
       console.log(`Table ${tableName} is currently being initialized. Cannot sync.`);
       return false;
     }
@@ -89,9 +92,9 @@ export class SyncService extends EventTarget {
         console.log(`Table ${tableName} is already syncing. Skipping this sync.`);
         return false;
       }
-      const newState = { 
+      const newState = {
         syncing: [...this.currentState.syncing, tableName],
-        initProgress: this.currentState.initProgress 
+        initProgress: this.currentState.initProgress
       };
       // If initProgress is "idle", we can omit it to keep state clean
       if (newState.initProgress === "idle") {
@@ -106,21 +109,21 @@ export class SyncService extends EventTarget {
   private removeSyncingTable(tableName: string) {
     if (typeof this.currentState === "object") {
       const updatedSyncing = this.currentState.syncing.filter((name: string) => name !== tableName);
-      
+
       // If no tables are syncing and init is idle (or undefined), simplify to "idle"
       if (updatedSyncing.length === 0 && (!this.currentState.initProgress || this.currentState.initProgress === "idle")) {
         this.setState("idle");
       } else if (updatedSyncing.length === 0) {
         // Only init is active, no syncing
-        this.setState({ 
+        this.setState({
           syncing: [],
-          initProgress: this.currentState.initProgress 
+          initProgress: this.currentState.initProgress
         });
       } else {
         // Still have syncing tables
-        const newState = { 
+        const newState = {
           syncing: updatedSyncing,
-          initProgress: this.currentState.initProgress 
+          initProgress: this.currentState.initProgress
         };
         // If initProgress is "idle", we can omit it to keep state clean
         if (newState.initProgress === "idle") {
@@ -132,9 +135,9 @@ export class SyncService extends EventTarget {
     }
   }
 
-  private async syncOneDirectionNow(table: SyncableTable<unknown>) {
+  private async syncOneDirectionNow(table: BatchSyncableTable<unknown>) {
     // Table-specific blocking is handled in addSyncingTable
-    
+
     if (!this.addSyncingTable(table.name)) {
       return;
     }
@@ -161,59 +164,64 @@ export class SyncService extends EventTarget {
   }
 
   private async syncTwoWayNow(
-    table: TwoWaySyncableTable<{ sync_at: number | null }>,
+    table: TwoWayBatchSyncableTable<{ sync_at: number | null }>,
   ) {
     // Table-specific blocking is handled in addSyncingTable
-    
     if (!this.addSyncingTable(table.name)) {
+      console.log(`Sync for table ${table.name} skipped due to ongoing operation.`);
       return;
     }
 
     const version = await this.meta.getVersion(table.name);
     const now = Date.now();
+    try {
+      let uploadDone = false;
+      let downloadDone = false;
+      let downloadOffset = 0;
+      while (!uploadDone || !downloadDone) {
+        let localEntries: Array<{ sync_at: number | null }> = [];
+        if (!uploadDone) {
+          localEntries = await table.updatedBetween(
+            now,
+            version || 0,
+            now,
+            table.batchSize,
+          );
+          uploadDone = localEntries.length < table.batchSize;
+        }
 
-    let uploadDone = false;
-    let downloadDone = false;
-    let downloadOffset = 0;
-    while (!uploadDone || !downloadDone) {
-      let localEntries: Array<{ sync_at: number | null }> = [];
-      if (!uploadDone) {
-        localEntries = await table.updatedBetween(
-          now,
+        localEntries.forEach((it) => (it.sync_at = now));
+        const updateLocal = table.bulkPut(localEntries);
+        const exchangeWithRemote = this.apiClient.twoWaySync(
+          table.name,
           version || 0,
           now,
+          downloadOffset,
           table.batchSize,
+          localEntries,
         );
-        uploadDone = localEntries.length < table.batchSize;
+
+        const [data, _] = await Promise.all([
+          exchangeWithRemote,
+          updateLocal,
+        ]);
+
+        const dataWithSyncAt: Array<unknown & { sync_at: number | null }> =
+          data.map((it) => {
+            assert(it !== null && typeof it === "object");
+            return {
+              ...it,
+              sync_at: now,
+            };
+          });
+        await table.bulkPut(dataWithSyncAt);
+        downloadOffset += data.length;
+        downloadDone = data.length < table.batchSize;
       }
-
-      localEntries.forEach((it) => (it.sync_at = now));
-      const updateLocal = table.bulkPut(localEntries);
-      const exchangeWithRemote = this.apiClient.twoWaySync(
-        table.name,
-        version || 0,
-        now,
-        downloadOffset,
-        table.batchSize,
-        localEntries,
-      );
-
-      const [data, _] = await Promise.all([
-        exchangeWithRemote,
-        updateLocal,
-      ]);
-
-      const dataWithSyncAt: Array<unknown & { sync_at: number | null }> =
-        data.map((it) => {
-          assert(it !== null && typeof it === "object");
-          return {
-            ...it,
-            sync_at: now,
-          };
-        });
-      await table.bulkPut(dataWithSyncAt);
-      downloadOffset += data.length;
-      downloadDone = data.length < table.batchSize;
+    } catch (error) {
+      console.error(`Two-way sync failed for table ${table.name}:`, error);
+      this.removeSyncingTable(table.name);
+      return;
     }
 
     await this.meta.setVersion(table.name, now);
@@ -226,6 +234,7 @@ export class SyncService extends EventTarget {
       throw new Error(`Table ${tableName} not found`);
     }
     if (isInitableTable(table) && await this.initService.needInit()) {
+      console.log(`Starting init for table: ${table.name}`);
       this.initService.startInit();
       await new Promise<void>((resolve) => {
         this.initService.addEventListener("progress", ((
@@ -243,8 +252,10 @@ export class SyncService extends EventTarget {
     }
     if (isTwoWaySyncableTable(table)) {
       await this.syncTwoWayNow(table);
-    } else {
+    } else if (isBatchSyncableTable(table))  {
       await this.syncOneDirectionNow(table);
+    } else if (isSingleItemSyncableTable(table)) {
+      await this.syncOneItemNow(table);
     }
 
     // Restart auto sync interval for this specific table (but not during initial setup)

@@ -27,7 +27,6 @@ import { Badge } from "@/app/shared/presentation/components/ui/badge";
 import { searchWord } from "@/app/dictionary/application/search";
 import { repository } from "@/app/dictionary/infrastructure/repository";
 import { syncState } from "@/app/sync/presentation/atoms";
-import { useRegisterSyncService } from "@/app/sync/presentation/hooks";
 import { isProgress, isDownloading } from "@/app/sync/domain/types";
 
 function WordDetailDialog({
@@ -74,8 +73,6 @@ function WordDetailDialog({
 }
 
 export function Dictionary() {
-  useRegisterSyncService();
-
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<WordSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);

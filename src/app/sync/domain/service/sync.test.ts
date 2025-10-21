@@ -4,8 +4,8 @@ import type {
   ApiClient,
   InitableTable,
   MetaTable,
-  SyncableTable,
-  TwoWaySyncableTable,
+  BatchSyncableTable,
+  TwoWayBatchSyncableTable,
 } from "../types";
 
 // Mock implementations
@@ -25,7 +25,7 @@ class MockMetaTable implements MetaTable {
   }
 }
 
-class MockSyncableTable implements SyncableTable<{ id: string; data: string }> {
+class MockSyncableTable implements BatchSyncableTable<{ id: string; data: string }> {
   name: string;
   autoSyncInterval: number = 10000;
   batchSize: number = 100;
@@ -49,7 +49,7 @@ class MockSyncableTable implements SyncableTable<{ id: string; data: string }> {
 }
 
 class MockTwoWaySyncableTable
-  implements TwoWaySyncableTable<{ id: string; data: string; sync_at: number | null }>
+  implements TwoWayBatchSyncableTable<{ id: string; data: string; sync_at: number | null }>
 {
   name: string;
   autoSyncInterval: number = 15000;

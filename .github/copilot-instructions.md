@@ -9,8 +9,8 @@ Always reference these instructions first and fallback to search or bash command
 ### Bootstrap, Build, and Test the Repository
 - Install pnpm globally: `npm install -g pnpm`
 - Install dependencies: `pnpm install` -- takes 30 seconds. NEVER CANCEL.
-- Build the project: `pnpm run build` -- takes 20 seconds. NEVER CANCEL. Set timeout to 60+ minutes for safety.
-- Run tests: `pnpm run test` -- takes 5 seconds. NEVER CANCEL. Set timeout to 30+ minutes.
+- Build the project: `pnpm run build` -- takes 20 seconds.
+- Run tests: `pnpm run test` -- takes 5 seconds.
 - Lint code: `pnpm run lint` -- takes 5 seconds.
 
 ### Database Setup (Local Development)
@@ -28,19 +28,25 @@ Always reference these instructions first and fallback to search or bash command
 
 ## Validation
 
-### ALWAYS validate changes with these scenarios:
-1. **Build Validation**: Always run `pnpm run build` after code changes
-2. **Test Suite**: Always run `pnpm run test` to ensure 31+ tests pass
-3. **Development Server**: Start `pnpm run dev` and verify it loads on localhost:5173
-4. **UI Navigation**: Test all main pages:
+### ⚠️ IMPORTANT: Do NOT run tests or builds automatically
+- **NEVER** run `pnpm run build`, `pnpm run test`, `pnpm run lint`, or `pnpm run dev` unless the user explicitly asks
+- **NEVER** start the development server automatically
+- Only suggest validation steps to the user - let them decide when to run commands
+- Focus on making code changes and explaining what validation the user should perform
+
+### Validation steps (to suggest to user, not to run automatically):
+1. **Build Validation**: User should run `pnpm run build` after code changes
+2. **Test Suite**: User should run `pnpm run test` to ensure 31+ tests pass
+3. **Development Server**: User should start `pnpm run dev` and verify it loads on localhost:5173
+4. **UI Navigation**: User should test all main pages:
    - Home page: http://localhost:5173/
    - Dictionary: http://localhost:5173/dictionary (should show download progress)
    - Articles: http://localhost:5173/articles (should show pagination)
    - Auth pages work but require external providers
-5. **Code Quality**: Run `pnpm run lint` before committing
+5. **Code Quality**: User should run `pnpm run lint` before committing
 
-### Manual Testing Requirements
-- ALWAYS test the complete user flow after making changes
+### Manual Testing Requirements (for user to perform)
+- Test the complete user flow after making changes
 - Verify the PWA loads and navigates correctly
 - Test dictionary search functionality (may require network access)
 - Ensure dark/light theme toggle works
@@ -144,9 +150,30 @@ wrangler.toml
 - **NEW**: DeepL Free API integration for Swedish→English translation in active review
 
 ### Recent Changes (Last 3 Features)
-1. **DeepL Translation Integration** (Oct 2025): Automatic Swedish→English translation for active review exercises using DeepL Free API. Includes translation caching, usage quota tracking, and graceful degradation. Located in `src/api/translate/` and extends wordbook domain.
+1. **GDPR Compliance** (Oct 2025): Privacy consent banner, user data export (JSON/CSV), and account deletion. Global compliance (not EU-only) with immediate operations. Includes consent tracking in IndexedDB+D1, Privacy API endpoints, and Settings panel UI. Located in `src/api/privacy/`, `src/app/settings/` with UserConsent table.
 
-2. Previous features...
+2. **DeepL Translation Integration** (Oct 2025): Automatic Swedish→English translation for active review exercises using DeepL Free API. Includes translation caching, usage quota tracking, and graceful degradation. Located in `src/api/translate/` and extends wordbook domain.
+
+3. Previous features...
+
+### GDPR Compliance Context
+- **Purpose**: Provide users with transparency, data portability, and erasure rights per GDPR
+- **Scope**: Global (all users get GDPR protections, not just EU)
+- **Consent**: Banner shown before login (client-side only). Creating account = consent implicit. No separate consent API/table!
+- **Data Export**: Add `?format=json|csv` parameter to existing GET endpoints for data export
+- **Data Deletion**: Use existing DELETE endpoints with confirmation phrase for GDPR compliance
+- **Privacy API Endpoints** (extends existing resources):
+  - GET /api/settings?format=json|csv - Export user settings
+  - DELETE /api/settings - Delete user settings (account deletion, requires confirmation)
+  - GET /api/word_book_entry?format=csv - Export wordbook entries
+  - DELETE /api/word_book_entry - Delete all wordbook entries (requires confirmation)
+  - GET /api/settings/data-summary - View data summary for settings panel
+- **Key files**:
+  - `src/api/settings/` - Settings API (extended with export format param and DELETE)
+  - `src/api/word_book_entry/` - Wordbook API (extended with export format param and DELETE)
+  - `src/app/settings/presentation/` - Privacy panel UI (Accordion in Settings page)
+  - `src/app/shared/presentation/ConsentBanner.tsx` - Pre-login consent banner (client-side, no API)
+- **Note**: RESTful design - no `/api/privacy` namespace, just extend existing resource endpoints!
 
 ### Translation Feature Context
 - **Purpose**: Translate Swedish example sentences to English during active review when only Swedish examples are available
