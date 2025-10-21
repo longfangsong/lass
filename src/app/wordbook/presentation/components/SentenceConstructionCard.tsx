@@ -6,6 +6,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/app/shared/presentation/components/ui/card";
+import { Skeleton } from "@/app/shared/presentation/components/ui/skeleton";
 import type { WordBookEntryWithDetails } from "@/types";
 import { useEffect, useState, useRef } from "react";
 import { reviewActive, ReviewStatus } from "../../domain/model";
@@ -191,6 +192,7 @@ export default function SentenceConstructionCard({
     meaning: string;
     scrambledWords: string[];
   } | null>(null);
+  const [loading, setLoading] = useState(true);
   const [userAnswer, setUserAnswer] = useState<SelectedWord[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -207,13 +209,17 @@ export default function SentenceConstructionCard({
 
   useEffect(() => {
     // Reset state for the new entry and create a new problem
-    const newProblem = createSentenceProblem(entry);
-    if (!newProblem) {
-      // Cannot create a problem for this word, so skip it.
-      onDone();
-    } else {
-      setProblem(newProblem);
-    }
+    setLoading(true);
+    (async () => {
+      const newProblem = await createSentenceProblem(entry);
+      if (!newProblem) {
+        // Cannot create a problem for this word, so skip it.
+        onDone();
+      } else {
+        setProblem(newProblem);
+        setLoading(false);
+      }
+    })();
     setUserAnswer([]);
     setSubmitted(false);
     setIsCorrect(false);
@@ -349,7 +355,6 @@ export default function SentenceConstructionCard({
   }
 
   // Get the word being dragged for the overlay
-  // Get the word being dragged for the overlay
   const activeWord = activeId
     ? activeId.startsWith("selected-")
       ? userAnswer.find((w) => w.id === activeId)?.word || ""
@@ -357,6 +362,35 @@ export default function SentenceConstructionCard({
         ? problem?.scrambledWords[parseInt(activeId.replace("bank-", ""))] || ""
         : ""
     : "";
+
+  if (loading || !problem) {
+    return (
+      <Card className="max-w-172 mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center text-muted-foreground">
+            Construct the sentence for:
+          </CardTitle>
+          <CardContent className="text-center text-lg py-4">
+            <Skeleton className="h-6 w-3/4 mx-auto" />
+          </CardContent>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="border rounded-md bg-muted min-h-24 p-4">
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-28" />
+            <Skeleton className="h-10 w-36" />
+          </div>
+        </CardContent>
+        <CardFooter className="pt-8 flex w-full flex-wrap justify-around">
+          <Skeleton className="h-10 w-32" />
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
     <Card className="max-w-172 mx-auto">
