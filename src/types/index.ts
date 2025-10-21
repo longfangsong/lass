@@ -7,7 +7,7 @@ import type {
   WithPhonetic,
   Article,
 } from "./database";
-import { AutoNewReviewPolicy, NotReviewed } from "./database";
+import { AutoNewReviewPolicy, NotReviewed, NotificationPermissionStatus } from "./database";
 export type {
   DBWord,
   Lexeme,
@@ -18,7 +18,7 @@ export type {
   Article,
 };
 
-export { AutoNewReviewPolicy, NotReviewed };
+export { AutoNewReviewPolicy, NotReviewed, NotificationPermissionStatus };
 
 export interface WordSearchResult {
   id: string;

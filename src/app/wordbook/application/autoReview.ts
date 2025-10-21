@@ -8,12 +8,7 @@ import { AutoNewReviewPolicy, type WordBookEntry } from "@/types";
 
 export function getPicker(
   bulkGetWord: (ids: Array<string>) => Promise<Array<Word | undefined>>,
-): (
-  policy: AutoNewReviewPolicy,
-) => (
-  entries: Array<WordBookEntry>,
-  count: number,
-) => Promise<Array<WordBookEntry>> {
+): (policy: AutoNewReviewPolicy) => (entries: Array<WordBookEntry>, count: number) => Promise<Array<WordBookEntry>> {
   return (policy: AutoNewReviewPolicy) => {
     switch (policy) {
       case AutoNewReviewPolicy.Random:
