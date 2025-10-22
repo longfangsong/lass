@@ -1,5 +1,5 @@
 import { db } from "@/app/shared/infrastructure/indexeddb";
-import type { InitableTable, MetaTable, SyncableTable, TwoWaySyncableTable } from "../domain/types";
+import type { InitableTable, MetaTable, BatchSyncableTable, TwoWayBatchSyncableTable } from "../domain/types";
 import type { Article, Lexeme, WordBookEntry, WordIndex } from "@/types";
 import { millisecondsInDay } from "date-fns/constants";
 import type { Word } from "@/app/types";
@@ -14,7 +14,7 @@ export const metaTable: MetaTable = {
   },
 };
 
-export const articleTable: SyncableTable<Article> = {
+export const articleTable: BatchSyncableTable<Article> = {
   name: "Article",
   autoSyncInterval: hoursToMilliseconds(3),
   batchSize: 10,
@@ -66,7 +66,7 @@ export const lexemeTable: InitableTable<Lexeme> = {
   afterInit: async function (): Promise<void> { },
 };
 
-export const wordBookEntryTable: TwoWaySyncableTable<WordBookEntry> = {
+export const wordBookEntryTable: TwoWayBatchSyncableTable<WordBookEntry> = {
   name: "WordBookEntry",
   autoSyncInterval: minutesToMilliseconds(2),
   batchSize: 50,

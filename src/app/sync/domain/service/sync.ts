@@ -6,9 +6,12 @@ import {
   type ApiClient,
   type InitState,
   type MetaTable,
-  type SyncableTable,
+  type BatchSyncableTable,
   type SyncState,
-  type TwoWaySyncableTable,
+  type TwoWayBatchSyncableTable,
+  type SyncableTable,
+  isBatchSyncableTable,
+  isSingleItemSyncableTable,
 } from "../types";
 import { InitService } from "./init";
 import { clone } from "remeda";
@@ -21,7 +24,7 @@ export class SyncService extends EventTarget {
 
   constructor(
     private meta: MetaTable,
-    private tables: SyncableTable<unknown>[],
+    private tables: SyncableTable[],
     private apiClient: ApiClient,
   ) {
     super();
@@ -132,7 +135,7 @@ export class SyncService extends EventTarget {
     }
   }
 
-  private async syncOneDirectionNow(table: SyncableTable<unknown>) {
+  private async syncOneDirectionNow(table: BatchSyncableTable<unknown>) {
     // Table-specific blocking is handled in addSyncingTable
 
     if (!this.addSyncingTable(table.name)) {
@@ -161,7 +164,7 @@ export class SyncService extends EventTarget {
   }
 
   private async syncTwoWayNow(
-    table: TwoWaySyncableTable<{ sync_at: number | null }>,
+    table: TwoWayBatchSyncableTable<{ sync_at: number | null }>,
   ) {
     // Table-specific blocking is handled in addSyncingTable
     if (!this.addSyncingTable(table.name)) {
@@ -249,8 +252,10 @@ export class SyncService extends EventTarget {
     }
     if (isTwoWaySyncableTable(table)) {
       await this.syncTwoWayNow(table);
-    } else {
+    } else if (isBatchSyncableTable(table))  {
       await this.syncOneDirectionNow(table);
+    } else if (isSingleItemSyncableTable(table)) {
+      await this.syncOneItemNow(table);
     }
 
     // Restart auto sync interval for this specific table (but not during initial setup)
