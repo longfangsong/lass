@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChartByCount } from "../components/chartByCount";
 import { ChartByDate } from "../components/chartByDate";
-import SentenceConstructionCard from "../components/SentenceConstructionCard";
+import SentenceConstructionCard from "../components/sentenceConstructionCard";
 import WordCard from "../components/wordCard";
 
 import { useNewReviewWordsSession } from "../hooks";
