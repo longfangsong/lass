@@ -12,6 +12,7 @@ import {
   type SyncableTable,
   isBatchSyncableTable,
   isSingleItemSyncableTable,
+  type SingleItemSyncableTable,
 } from "../types";
 import { InitService } from "./init";
 import { clone } from "remeda";
@@ -226,6 +227,32 @@ export class SyncService extends EventTarget {
 
     await this.meta.setVersion(table.name, now);
     this.removeSyncingTable(table.name);
+  }
+
+  private async syncOneItemNow<T>(table: SingleItemSyncableTable<T>) {
+    // Table-specific blocking is handled in addSyncingTable
+    if (!this.addSyncingTable(table.name)) {
+      console.log(`Sync for table ${table.name} skipped due to ongoing operation.`);
+      return;
+    }
+
+    try {
+      // For single-item syncable tables, we don't perform automatic batch sync
+      // These tables are meant to be synced on-demand with specific IDs
+      // This method serves as a placeholder for future implementation
+      // or for tables that don't require automatic syncing
+      console.log(`Single-item sync called for table ${table.name}. No automatic sync performed.`);
+      
+      // In a real implementation, you would need to:
+      // 1. Determine which items need to be synced (e.g., from a queue)
+      // 2. Call apiClient.singleItemSync(table.name, id) for each item
+      // 3. Call table.put(data) to store the result
+      
+    } catch (error) {
+      console.error(`Single-item sync failed for table ${table.name}:`, error);
+    } finally {
+      this.removeSyncingTable(table.name);
+    }
   }
 
   public async syncNow(tableName: string) {

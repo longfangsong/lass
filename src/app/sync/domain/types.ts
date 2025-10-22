@@ -116,4 +116,9 @@ export interface ApiClient {
     limit: number,
     localEntries: Array<T>
   ): Promise<Array<unknown>>;
+
+  singleItemSync(
+    tableName: string,
+    id: string
+  ): Promise<unknown | null>;
 }

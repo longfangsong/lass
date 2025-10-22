@@ -53,4 +53,15 @@ export class HttpApiClient implements ApiClient {
     
     return response.json();
   }
+
+  async singleItemSync(
+    tableName: string,
+    id: string
+  ): Promise<unknown | null> {
+    const response = await fetch(`/api/sync/${tableName}/${id}`);
+    if (response.status === 404) {
+      return null;
+    }
+    return response.json();
+  }
 }

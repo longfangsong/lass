@@ -6,6 +6,7 @@ import type {
   MetaTable,
   BatchSyncableTable,
   TwoWayBatchSyncableTable,
+  SingleItemSyncableTable,
 } from "../types";
 
 // Mock implementations
@@ -115,6 +116,32 @@ class MockInitableTable extends MockSyncableTable implements InitableTable<{ id:
   }
 }
 
+class MockSingleItemSyncableTable implements SingleItemSyncableTable<{ id: string; data: string }> {
+  name: string;
+  autoSyncInterval: number = 20000;
+  private data = new Map<string, { id: string; data: string }>();
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  async get(id: string): Promise<{ id: string; data: string } | undefined> {
+    return this.data.get(id);
+  }
+
+  async put(data: { id: string; data: string }): Promise<void> {
+    this.data.set(data.id, data);
+  }
+
+  getData() {
+    return Array.from(this.data.values());
+  }
+
+  clear() {
+    this.data.clear();
+  }
+}
+
 class MockApiClient implements ApiClient {
   private metaJson = { version: 1000, tables: [["table1", 2], ["table2", 3]] as Array<[string, number]> };
   private initFiles = new Map<string, Array<Array<unknown>>>();
@@ -153,6 +180,14 @@ class MockApiClient implements ApiClient {
     const start = offset;
     const end = Math.min(offset + limit, this.twoWaySyncResponse.length);
     return this.twoWaySyncResponse.slice(start, end);
+  }
+
+  async singleItemSync(
+    _tableName: string,
+    _id: string,
+  ): Promise<unknown | null> {
+    // For testing, return null by default
+    return null;
   }
 
   setOneWaySyncResponse(data: Array<unknown>) {
@@ -395,6 +430,56 @@ describe("SyncService", () => {
       // Verify - should create new interval even though none existed before
       expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), oneWayTable.autoSyncInterval);
       expect(clearIntervalSpy).not.toHaveBeenCalled(); // No previous interval to clear
+    });
+  });
+
+  describe("Single-item sync", () => {
+    let singleItemTable: MockSingleItemSyncableTable;
+    let consoleSpy: any;
+
+    beforeEach(() => {
+      singleItemTable = new MockSingleItemSyncableTable("singleItemTable");
+      syncService = new SyncService(metaTable, [singleItemTable], apiClient);
+      consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    });
+
+    it("should handle single-item sync table without errors", async () => {
+      // Execute
+      await syncService.syncNow("singleItemTable");
+
+      // Verify - should log that single-item sync was called
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Single-item sync called for table singleItemTable")
+      );
+
+      // Should transition back to idle state
+      expect(syncService.state).toBe("idle");
+    });
+
+    it("should emit state change events during single-item sync", async () => {
+      const stateChanges: any[] = [];
+
+      syncService.addEventListener("progress", (event: any) => {
+        stateChanges.push(event.detail);
+      });
+
+      // Execute
+      await syncService.syncNow("singleItemTable");
+
+      // Verify
+      expect(stateChanges.length).toBeGreaterThan(0);
+      
+      // Should have at least a syncing and idle state
+      const syncingStates = stateChanges.filter(state => 
+        typeof state === "object" && state.syncing && state.syncing.includes("singleItemTable")
+      );
+      const idleStates = stateChanges.filter(state => state === "idle");
+      
+      expect(syncingStates.length).toBeGreaterThan(0);
+      expect(idleStates.length).toBeGreaterThan(0);
+      
+      // Final state should be idle
+      expect(syncService.state).toBe("idle");
     });
   });
 

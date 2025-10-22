@@ -79,6 +79,10 @@ class SimpleMockApiClient implements ApiClient {
     return [];
   }
 
+  async singleItemSync(): Promise<unknown | null> {
+    return null;
+  }
+
   setMetaJson(meta: { version: number; tables: Array<[string, number]> }) {
     this.metaJson = meta;
   }
