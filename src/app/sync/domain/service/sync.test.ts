@@ -120,6 +120,7 @@ class MockApiClient implements ApiClient {
   private initFiles = new Map<string, Array<Array<unknown>>>();
   private oneWaySyncResponse: Array<unknown> = [];
   private twoWaySyncResponse: Array<unknown> = [];
+  private singleItemSyncResponse: any = undefined;
 
   async fetchMetaJson() {
     return this.metaJson;
@@ -155,12 +156,23 @@ class MockApiClient implements ApiClient {
     return this.twoWaySyncResponse.slice(start, end);
   }
 
+  async singleItemSync<T extends { update_time: number }>(
+    _tableName: string,
+    _localData: T | undefined
+  ): Promise<T | undefined> {
+    return this.singleItemSyncResponse as T | undefined;
+  }
+
   setOneWaySyncResponse(data: Array<unknown>) {
     this.oneWaySyncResponse = data;
   }
 
   setTwoWaySyncResponse(data: Array<unknown>) {
     this.twoWaySyncResponse = data;
+  }
+
+  setSingleItemSyncResponse(data: any) {
+    this.singleItemSyncResponse = data;
   }
 }
 

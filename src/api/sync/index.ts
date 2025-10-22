@@ -2,7 +2,7 @@ import type { WordBookEntry } from "@/types";
 import type { RouterContext } from "../router";
 import * as cookie from "cookie";
 import * as jose from "jose";
-import type { Article, Lexeme, Word, WordIndex } from "@/types/database";
+import type { Article, Lexeme, Word, WordIndex, UserSettings } from "@/types/database";
 
 export async function saveWordBookEntries(
   db: D1Database,
@@ -153,6 +153,42 @@ export async function getArticles(
   return articles.results;
 }
 
+export async function getUserSettings(
+  db: D1Database,
+  email: string,
+): Promise<Pick<UserSettings, 'auto_new_review' | 'daily_new_review_count' | 'update_time'> | null> {
+  const result = await db
+    .prepare(`SELECT auto_new_review, daily_new_review_count, update_time FROM UserSettings WHERE user_email = ?`)
+    .bind(email)
+    .first<Pick<UserSettings, 'auto_new_review' | 'daily_new_review_count' | 'update_time'>>();
+  
+  return result;
+}
+
+export async function saveUserSettings(
+  db: D1Database,
+  email: string,
+  settings: Partial<UserSettings>,
+): Promise<void> {
+  // Only save the fields that are stored in D1
+  await db
+    .prepare(`
+      INSERT INTO UserSettings (user_email, auto_new_review, daily_new_review_count, update_time)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(user_email) DO UPDATE SET
+        auto_new_review = CASE WHEN UserSettings.update_time >= excluded.update_time THEN UserSettings.auto_new_review ELSE excluded.auto_new_review END,
+        daily_new_review_count = CASE WHEN UserSettings.update_time >= excluded.update_time THEN UserSettings.daily_new_review_count ELSE excluded.daily_new_review_count END,
+        update_time = CASE WHEN UserSettings.update_time >= excluded.update_time THEN UserSettings.update_time ELSE excluded.update_time END
+    `)
+    .bind(
+      email,
+      settings.auto_new_review || 2,
+      settings.daily_new_review_count || 10,
+      settings.update_time || Date.now(),
+    )
+    .run();
+}
+
 export async function post({ params, env, request, query }: RouterContext) {
   const { table } = params;
   const limit = Number(query.get("limit"));
@@ -167,8 +203,9 @@ export async function post({ params, env, request, query }: RouterContext) {
   const secret = new TextEncoder().encode(env.AUTH_SECRET);
   const { payload } = await jose.jwtVerify(token, secret);
   const { email } = payload;
-  const postedContent: Array<WordBookEntry> = await request.json();
+
   if (table === "WordBookEntry") {
+    const postedContent: Array<WordBookEntry> = await request.json();
     await saveWordBookEntries(env.DB, email as string, postedContent);
     const to = Number(query.get("to"));
     const updatedEntries = await getWordBookEntries(
@@ -180,6 +217,14 @@ export async function post({ params, env, request, query }: RouterContext) {
       to,
     );
     return Response.json(updatedEntries);
+  } else if (table === "UserSettings") {
+    const postedSettings: Partial<UserSettings> = await request.json();
+    // Save the posted settings (will use LWW based on update_time)
+    console.log(postedSettings);
+    await saveUserSettings(env.DB, email as string, postedSettings);
+    // Get the current settings from DB (after conflict resolution)
+    const currentSettings = await getUserSettings(env.DB, email as string);
+    return Response.json(currentSettings);
   } else {
     return new Response(`Unsupported table ${table}`, { status: 422 });
   }

@@ -1,9 +1,10 @@
 import { db } from "@/app/shared/infrastructure/indexeddb";
-import type { InitableTable, MetaTable, BatchSyncableTable, TwoWayBatchSyncableTable } from "../domain/types";
-import type { Article, Lexeme, WordBookEntry, WordIndex } from "@/types";
+import type { InitableTable, MetaTable, BatchSyncableTable, TwoWayBatchSyncableTable, SingleItemSyncableTable } from "../domain/types";
+import type { Article, Lexeme, WordBookEntry, WordIndex, UserSettings } from "@/types";
 import { millisecondsInDay } from "date-fns/constants";
 import type { Word } from "@/app/types";
 import { hoursToMilliseconds, minutesToMilliseconds } from "date-fns";
+import { settingsStorage } from "@/app/settings/infrastructure/repository";
 
 export const metaTable: MetaTable = {
   getVersion: async function (table: string): Promise<number | undefined> {
@@ -82,3 +83,30 @@ export const wordBookEntryTable: TwoWayBatchSyncableTable<WordBookEntry> = {
       .toArray();
   }
 };
+
+export const settingsTable: SingleItemSyncableTable<UserSettings> = {
+  name: "UserSettings",
+  autoSyncInterval: hoursToMilliseconds(1),
+  get: async function (): Promise<UserSettings | undefined> {
+    return settingsStorage.getUserSettings();
+  },
+  put: async function (data: UserSettings): Promise<void> {
+    // The server only returns auto_new_review, daily_new_review_count, and update_time
+    // We need to merge with local client-side settings (theme, notifications_enabled)
+    const current = settingsStorage.getUserSettings();
+    
+    // Merge server-synced fields with client-only fields
+    const merged: UserSettings = {
+      auto_new_review: data.auto_new_review,
+      daily_new_review_count: data.daily_new_review_count,
+      update_time: data.update_time,
+      // Keep client-side fields from current local state
+      theme: current?.theme || data.theme || 'system',
+      notifications_enabled: current?.notifications_enabled ?? data.notifications_enabled ?? false,
+      notification_permission_status: current?.notification_permission_status || data.notification_permission_status,
+    };
+    
+    settingsStorage.setUserSettings(merged);
+  },
+};
+

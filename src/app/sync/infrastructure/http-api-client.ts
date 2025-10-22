@@ -53,4 +53,26 @@ export class HttpApiClient implements ApiClient {
     
     return response.json();
   }
+
+  async singleItemSync<T extends { update_time: number }>(
+    tableName: string,
+    localData: T | undefined
+  ): Promise<T | undefined> {
+    const response = await fetch(`/api/sync/${tableName}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(localData || {}),
+    });
+    
+    if (response.status === 404 || response.status === 204) {
+      return undefined;
+    }
+    
+    const data = await response.json();
+    // Server might return partial data (e.g., UserSettings only returns synced fields)
+    // The table's put() method should handle merging with local data
+    return data as T;
+  }
 }

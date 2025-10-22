@@ -65,7 +65,8 @@ export default function NavBar() {
       syncService.syncNow("Word"),
       syncService.syncNow("WordIndex"),
       syncService.syncNow("Lexeme"),
-      syncService.syncNow("WordBookEntry")
+      syncService.syncNow("WordBookEntry"),
+      syncService.syncNow("UserSettings"),
     ]);
   };
 

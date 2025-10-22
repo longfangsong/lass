@@ -10,6 +10,7 @@ import {
   type SyncState,
   type TwoWayBatchSyncableTable,
   type SyncableTable,
+  type SingleItemSyncableTable,
   isBatchSyncableTable,
   isSingleItemSyncableTable,
 } from "../types";
@@ -228,6 +229,50 @@ export class SyncService extends EventTarget {
     this.removeSyncingTable(table.name);
   }
 
+  private async syncOneItemNow<T extends { update_time: number }>(
+    table: SingleItemSyncableTable<T>,
+  ) {
+    // Table-specific blocking is handled in addSyncingTable
+    if (!this.addSyncingTable(table.name)) {
+      console.log(`Sync for table ${table.name} skipped due to ongoing operation.`);
+      return;
+    }
+
+    try {
+      const localData = await table.get();
+      const remoteData = await this.apiClient.singleItemSync(table.name, localData);
+
+      // Determine which data to use based on update_time
+      let dataToUse: T | undefined;
+      
+      if (!localData && !remoteData) {
+        // Neither exists, nothing to sync
+        dataToUse = undefined;
+      } else if (!localData && remoteData) {
+        // Only remote exists, use remote
+        dataToUse = remoteData;
+      } else if (localData && !remoteData) {
+        // Only local exists, use local (already have it)
+        dataToUse = localData;
+      } else if (localData && remoteData) {
+        // Both exist, use the one with larger update_time
+        dataToUse = localData.update_time >= remoteData.update_time ? localData : remoteData;
+      }
+
+      // Update local data if needed
+      if (dataToUse) {
+        await table.put(dataToUse);
+      }
+
+      const now = Date.now();
+      await this.meta.setVersion(table.name, now);
+    } catch (error) {
+      console.error(`Single-item sync failed for table ${table.name}:`, error);
+    } finally {
+      this.removeSyncingTable(table.name);
+    }
+  }
+
   public async syncNow(tableName: string) {
     const table = this.tables.find((it) => it.name === tableName);
     if (!table) {
@@ -255,7 +300,7 @@ export class SyncService extends EventTarget {
     } else if (isBatchSyncableTable(table))  {
       await this.syncOneDirectionNow(table);
     } else if (isSingleItemSyncableTable(table)) {
-      await this.syncOneItemNow(table);
+      await this.syncOneItemNow(table as SingleItemSyncableTable<{ update_time: number }>);
     }
 
     // Restart auto sync interval for this specific table (but not during initial setup)

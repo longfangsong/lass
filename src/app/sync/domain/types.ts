@@ -11,7 +11,7 @@ export interface SyncableTable {
 }
 
 export interface SingleItemSyncableTable<T> extends SyncableTable {
-  get(id: string): Promise<T | undefined>;
+  get(): Promise<T | undefined>;
   put(data: T): Promise<void>;
 }
 
@@ -116,4 +116,9 @@ export interface ApiClient {
     limit: number,
     localEntries: Array<T>
   ): Promise<Array<unknown>>;
+
+  singleItemSync<T extends { update_time: number }>(
+    tableName: string,
+    localData: T | undefined
+  ): Promise<T | undefined>;
 }

@@ -3,13 +3,13 @@ import { SyncService } from "../../domain/service/sync";
 import { syncState } from "../atoms";
 import { useEffect } from "react";
 import type { SyncState } from "../../domain/types";
-import { articleTable, lexemeTable, metaTable, wordBookEntryTable, wordIndexTable, wordTable } from "../../infrastructure/tables";
+import { articleTable, lexemeTable, metaTable, settingsTable, wordBookEntryTable, wordIndexTable, wordTable } from "../../infrastructure/tables";
 import { HttpApiClient } from "../../infrastructure/http-api-client";
 import { logger } from "@/utils";
 
 const syncService = new SyncService(
   metaTable,
-  [articleTable, wordTable, wordIndexTable, lexemeTable, wordBookEntryTable],
+  [articleTable, wordTable, wordIndexTable, lexemeTable, wordBookEntryTable, settingsTable],
   new HttpApiClient()
 );
 
