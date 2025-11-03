@@ -163,4 +163,12 @@ describe("toWordsAndPunctuations", () => {
       ["It's", "a", "beautiful", "day", ",", "isn't", "it", "?"],
     ]);
   });
+
+  test('treats "5,5" as a single word', () => {
+    const input = "A 5,5 million";
+    const result = toWordsAndPunctuations(input);
+    expect(result).toEqual([
+      ["A", "5,5", "million"]
+    ]);
+  });
 });

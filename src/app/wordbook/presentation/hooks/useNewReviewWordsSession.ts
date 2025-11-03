@@ -27,7 +27,6 @@ export function useNewReviewWordsSession() {
         return () => { syncService.syncNow("WordBookEntry"); };
     }, [syncService]);
 
-    // Create a stable session instance that only changes when settings change
     const session = useMemo(() => {
         if (!settings) {
             return null;

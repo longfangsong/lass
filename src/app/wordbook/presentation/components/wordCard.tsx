@@ -22,11 +22,13 @@ export default function WordCard({
 }) {
   const [thinkTimePassed, setThinkTimePassed] = useState(false);
   const [revealAll, setRevealAll] = useState(false);
+  const [waitForManualNext, setWaitForManualNext] = useState<boolean>(false);
 
   useEffect(() => {
     // Reset state for the new entry
     setThinkTimePassed(false);
     setRevealAll(false);
+    setWaitForManualNext(false);
 
     if (entry.phonetic_url) {
       new Audio(entry.phonetic_url).play();
@@ -46,13 +48,25 @@ export default function WordCard({
     setRevealAll(true);
     const newEntry = review(entry, status);
     await repository.insert(newEntry);
-    setTimeout(
-      () => {
-        setRevealAll(false);
-        onDone();
-      },
-      entry.passive_review_count === 0 ? 0 : 2000,
-    );
+
+    // For Unsure or Forgotten, don't auto-proceed - let user manually confirm
+    if (status === ReviewStatus.Unsure || status === ReviewStatus.Forgotten) {
+      setWaitForManualNext(true);
+    } else {
+      setTimeout(
+        () => {
+          setRevealAll(false);
+          onDone();
+        },
+        entry.passive_review_count === 0 ? 0 : 2000,
+      );
+    }
+  };
+
+  const proceedToNext = () => {
+    setRevealAll(false);
+    setWaitForManualNext(false);
+    onDone();
   };
 
   const tryThinkHarderTooltip = !thinkTimePassed ? (
@@ -109,41 +123,52 @@ export default function WordCard({
           ))}
         </CardContent>
         <CardFooter className="pt-8 flex w-full flex-wrap justify-around">
-          <Button
-            className="bg-green-600 hover:bg-green-700 text-white"
-            disabled={revealAll}
-            onClick={() => done(ReviewStatus.StillRemember)}
-          >
-            Klar
-          </Button>
-          {entry.passive_review_count > 0 && (
+          {waitForManualNext ? (
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={proceedToNext}
+            >
+              Nästa
+            </Button>
+          ) : (
             <>
-              <OptionalTooltip
-                tooltip={thinkTimePassed ? undefined : tryThinkHarderTooltip}
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={revealAll}
+                onClick={() => done(ReviewStatus.StillRemember)}
               >
-                <div>
-                  <Button
-                    disabled={revealAll || !thinkTimePassed}
-                    className="bg-yellow-400 hover:bg-yellow-300 text-black"
-                    onClick={() => done(ReviewStatus.Unsure)}
+                Klar
+              </Button>
+              {entry.passive_review_count > 0 && (
+                <>
+                  <OptionalTooltip
+                    tooltip={thinkTimePassed ? undefined : tryThinkHarderTooltip}
                   >
-                    Kanske
-                  </Button>
-                </div>
-              </OptionalTooltip>
-              <OptionalTooltip
-                tooltip={thinkTimePassed ? undefined : tryThinkHarderTooltip}
-              >
-                <div>
-                  <Button
-                    disabled={revealAll || !thinkTimePassed}
-                    variant="destructive"
-                    onClick={() => done(ReviewStatus.Forgotten)}
+                    <div>
+                      <Button
+                        disabled={revealAll || !thinkTimePassed}
+                        className="bg-yellow-400 hover:bg-yellow-300 text-black"
+                        onClick={() => done(ReviewStatus.Unsure)}
+                      >
+                        Kanske
+                      </Button>
+                    </div>
+                  </OptionalTooltip>
+                  <OptionalTooltip
+                    tooltip={thinkTimePassed ? undefined : tryThinkHarderTooltip}
                   >
-                    Nej
-                  </Button>
-                </div>
-              </OptionalTooltip>
+                    <div>
+                      <Button
+                        disabled={revealAll || !thinkTimePassed}
+                        variant="destructive"
+                        onClick={() => done(ReviewStatus.Forgotten)}
+                      >
+                        Nej
+                      </Button>
+                    </div>
+                  </OptionalTooltip>
+                </>
+              )}
             </>
           )}
         </CardFooter>

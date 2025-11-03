@@ -120,7 +120,7 @@ function Sentence({ content }: { content: Array<string> }) {
       {content.map((w, i) => {
         if (w === "." || w === "?" || w === "!" || w === '"') {
           return <span key={i}>{w}</span>;
-        } else if (w === "," || w === "–" || w.match(/^\d/)) {
+        } else if (w === "," || w === "–" || w.match(/^\d+/) || w.match(/^\d+,\d+/)) {
           return (
             <React.Fragment key={i}>
               <span>{w}</span>&nbsp;

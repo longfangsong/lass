@@ -5,6 +5,8 @@ import { Badge } from "@app/shared/presentation/components/ui/badge";
 import { cn } from "@app/shared/presentation/lib/utils";
 import { Button } from "../ui/button";
 import { repository } from "@/app/dictionary/infrastructure/repository";
+import { Item } from "../ui/item";
+import { Spinner } from "../ui/spinner";
 
 function lexemePriority(lexeme: Lexeme) {
   const priority = {
@@ -36,6 +38,8 @@ export default function WordDetail({
   className?: string;
 }) {
   const [currentWord, setCurrentWord] = useState(word);
+  const [getFromAIInProgress, setGetFromAIInProgress] = useState(false);
+
   const getMeaningWithAI = useCallback(async () => {
     try {
       if (currentWord) {
@@ -59,6 +63,11 @@ export default function WordDetail({
       console.error("Error fetching meaning from AI:", error);
     }
   }, [currentWord]);
+
+  const handleButtonClick = async () => {
+    setGetFromAIInProgress(true);
+    await getMeaningWithAI();
+  };
 
   return (
     <>
@@ -91,8 +100,8 @@ export default function WordDetail({
                 <b className="text-red-500">ett</b>-ord
               </p>
             ) : currentWord?.indexes
-                .find((it) => it.form === "best.f.sing.")
-                ?.spell.endsWith("n") ? (
+              .find((it) => it.form === "best.f.sing.")
+              ?.spell.endsWith("n") ? (
               <p>
                 &quot;{currentWord?.lemma}&quot; är ett{" "}
                 <b className="text-green-500">en</b>-ord
@@ -111,7 +120,7 @@ export default function WordDetail({
           </>
         ) : currentWord?.part_of_speech === "pron." &&
           currentWord?.indexes.find((it) => it.form === "nform") !==
-            undefined ? (
+          undefined ? (
           adjectivePronCountTable(currentWord)
         ) : (
           <></>
@@ -150,9 +159,17 @@ export default function WordDetail({
           currentWord.lexemes.every(
             (lexeme) => lexeme.source === "lexin-swe",
           )) && (
-          <Button onClick={getMeaningWithAI} variant="outline" size="sm">
-            Get meaning with AI
-          </Button>
+          <Item>
+
+            <Button
+              className="mx-auto"
+              onClick={handleButtonClick}
+              variant="outline"
+              size="sm"
+              disabled={getFromAIInProgress}>
+              {getFromAIInProgress ? <Spinner /> : "Get meaning with AI"}
+            </Button>
+          </Item>
         )}
     </>
   );
