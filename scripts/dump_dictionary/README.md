@@ -5,7 +5,7 @@ Export Word, WordIndex, Lexeme tables from a .sqlite database (usually your loca
 ## Usage
 
 ```sh
-cd scripts/dump_words_to_json
+cd scripts/dump_dictionary
 pnpm install # or npm install
 pnpm build   # or npm run build
 pnpm start /path/to/your.db.sqlite
@@ -19,5 +19,7 @@ If you want to download and import remote database to local, use the following c
 
 ```sh
 npx wrangler d1 export DB --no-schema --remote --output=./lass.sql
-npx wrangler d1 execute --file ./lass.sql
+npx wrangler d1 execute --file ./lass.sql DB
 ```
+
+And delete the insert statements for `d1_migrations` table.

@@ -68,15 +68,19 @@ async function main() {
     filename: dbPath,
     driver: sqlite3.Database,
   });
-  const meta: Record<string, number> = {};
+  const tables: [string, number][] = [];
   for (const table of TABLES) {
     const outDir = path.join(outRoot, table);
     console.log(`Dumping table ${table} to ${outDir}`);
     const fileCount = await dumpTable(db, table, outDir);
-    meta[table] = fileCount;
+    tables.push([table, fileCount]);
   }
   await db.close();
-  // Write meta.json
+  // Write meta.json with version and tables array
+  const meta = {
+    version: Date.now(),
+    tables,
+  };
   await fs.writeFile(
     path.join(outRoot, "meta.json"),
     JSON.stringify(meta),
