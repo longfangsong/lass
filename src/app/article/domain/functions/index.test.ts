@@ -171,4 +171,11 @@ describe("toWordsAndPunctuations", () => {
       ["A", "5,5", "million"]
     ]);
   });
+  test('treats "EU-minister" as a single word', () => {
+    const input = "EU-minister Jessica Rosencrantz säger att Sverige kommer vara starkt representerat.";
+    const result = toWordsAndPunctuations(input);
+    expect(result).toEqual([
+      ["EU-minister", "Jessica", "Rosencrantz", "säger", "att", "Sverige", "kommer", "vara", "starkt", "representerat", "."]
+    ]);
+  });
 });

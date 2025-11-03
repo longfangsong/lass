@@ -5,7 +5,6 @@ import { Badge } from "@app/shared/presentation/components/ui/badge";
 import { cn } from "@app/shared/presentation/lib/utils";
 import { Button } from "../ui/button";
 import { repository } from "@/app/dictionary/infrastructure/repository";
-import { Item } from "../ui/item";
 import { Spinner } from "../ui/spinner";
 
 function lexemePriority(lexeme: Lexeme) {
@@ -159,8 +158,7 @@ export default function WordDetail({
           currentWord.lexemes.every(
             (lexeme) => lexeme.source === "lexin-swe",
           )) && (
-          <Item>
-
+          <div className="flex justify-center">
             <Button
               className="mx-auto"
               onClick={handleButtonClick}
@@ -169,7 +167,7 @@ export default function WordDetail({
               disabled={getFromAIInProgress}>
               {getFromAIInProgress ? <Spinner /> : "Get meaning with AI"}
             </Button>
-          </Item>
+          </div>
         )}
     </>
   );

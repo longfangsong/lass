@@ -1,6 +1,6 @@
 export function toWordsAndPunctuations(article: string): Array<Array<string>> {
   const wordsOrPunctuations = article
-    .split(/(\s+)|(\.\.\.)|(\d+,\d+)|(\?!)|(\.)|([-",;?!])/)
+    .split(/(\s+)|(\.\.\.)|(\d+,\d+)|(\w+-\w+)|(\?!)|(\.)|([-",;?!])/)
     .filter((x) => x !== undefined)
     .map((x) => x.trim())
     .filter((x) => x.length > 0);
