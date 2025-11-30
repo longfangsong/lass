@@ -334,7 +334,7 @@ function adjectivePronCountTable(word: Word) {
 }
 
 function adjectiveKomparativSuperlativTable(word: Word) {
-  const relevantForms = ["komparativ", "superlativ"];
+  const relevantForms = ["komparativ", "superlativ", "superlativ_b"];
   const anyRelevantForms = relevantForms.some((form) =>
     word?.indexes.find((it) => it.form === form),
   );
@@ -347,7 +347,8 @@ function adjectiveKomparativSuperlativTable(word: Word) {
         <thead>
           <tr>
             <th className="py-1 px-2 border border-sky-500">komparativ</th>
-            <th className="py-1 px-2 border border-sky-500">superlativ</th>
+            <th className="py-1 px-2 border border-sky-500">Obestämd superlativ</th>
+            <th className="py-1 px-2 border border-sky-500">Bestämd superlativ</th>
           </tr>
         </thead>
         <tbody>
@@ -356,7 +357,10 @@ function adjectiveKomparativSuperlativTable(word: Word) {
               {word?.indexes.find((it) => it.form === "komparativ")?.spell}
             </td>
             <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "superlativ")?.spell}
+              <span className="text-xs">är</span>&nbsp;{word?.indexes.find((it) => it.form === "superlativ")?.spell}
+            </td>
+            <td className="py-1 px-2 border border-sky-500">
+              <span className="text-xs">den/det/de</span>&nbsp;{word?.indexes.find((it) => it.form === "superlativ_b")?.spell}
             </td>
           </tr>
         </tbody>

@@ -10,7 +10,7 @@ export class DB extends Dexie {
   >;
   constructor() {
     super("lass");
-    super.version(1).stores({
+    super.version(2).stores({
       meta: "table_name",
       Article: "id, update_time",
       Word: "id, lemma, update_time",

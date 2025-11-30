@@ -1,0 +1,27 @@
+{
+  "name": "polyfill_komparativ_superlativ",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "run": "npx tsc && node main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.5",
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "cheerio": "^1.1.2"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^1.0.0",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  }
+}
