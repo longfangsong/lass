@@ -24,6 +24,7 @@ export const repository = {
     const existing = await wordBookEntryTable
       .where("word_id")
       .equals(entry.word_id)
+      .filter((it) => !it.deleted)
       .first();
     if (existing && existing.id !== entry.id) {
       throw new Error("WordBookEntry already exists");
@@ -46,15 +47,15 @@ export const repository = {
   },
 
   async upsert(entry: WordBookEntry) {
-    // fixme: handle deleted field
     const existing = await wordBookEntryTable
       .where("word_id")
       .equals(entry.word_id)
+      .filter((it) => !it.deleted)
       .first();
     if (existing && existing.update_time < entry.update_time) {
-      let deleteTask;
+      let deleteTask = Promise.resolve();
       if (existing.id !== entry.id) {
-        deleteTask = await wordBookEntryTable.delete(existing.id);
+        deleteTask = wordBookEntryTable.delete(existing.id);
       }
       await Promise.all([deleteTask, wordBookEntryTable.put(entry)]);
     } else if (!existing) {
@@ -63,7 +64,7 @@ export const repository = {
   },
 
   async getByWordId(wordId: string): Promise<WordBookEntry | undefined> {
-    return await wordBookEntryTable.where("word_id").equals(wordId).first();
+    return await wordBookEntryTable.where("word_id").equals(wordId).filter((it) => !it.deleted).first();
   },
 
   get all(): Promise<Array<WordBookEntryWithDetails>> {
@@ -78,7 +79,7 @@ export const repository = {
           const [word, indexes, lexemes] = await Promise.all([
             wordTable.get(entry.word_id),
             wordIndexTable.where("word_id").equals(entry.word_id).toArray(),
-            lexemeTable.where("word_id").equals(entry.word_id).toArray(),
+            lexemeTable.where("word_id").equals(entry.word_id).filter((it) => !it.deleted).toArray(),
           ]);
           const { id: _, ...wordWithoutId } = word!;
           return {

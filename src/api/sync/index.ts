@@ -134,6 +134,7 @@ export async function getLexemes(
     example_meaning: lexeme.example_meaning,
     source: lexeme.source,
     update_time: lexeme.update_time,
+    deleted: lexeme.deleted,
   }));
 }
 

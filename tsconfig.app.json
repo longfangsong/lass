@@ -23,7 +23,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@app/*": ["./src/app/*"]
-    }
+    },
   },
-  "include": ["./src/app"]
+  "include": ["./src/app"],
 }

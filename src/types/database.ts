@@ -29,6 +29,7 @@ export interface Lexeme {
   example_meaning: string | null;
   source: string;
   update_time: number;
+  deleted: boolean;
 }
 
 export interface WordIndex {

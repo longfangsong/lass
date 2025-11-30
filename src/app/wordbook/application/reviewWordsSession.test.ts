@@ -33,6 +33,7 @@ function createWord(id: string, frequency: number | null = null): Word {
         example_meaning: null,
         source: "test",
         update_time: Date.now(),
+        deleted: false
       },
     ],
   };

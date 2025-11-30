@@ -19,6 +19,7 @@ import {
   ArrowUpDown,
   CheckCircle2Icon,
   ChevronDown,
+  Trash2,
 } from "lucide-react";
 import PlayButton from "@/app/shared/presentation/components/playAudioButton";
 import {
@@ -52,6 +53,21 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/app/shared/presentation/components/ui/dropdown-menu";
+
+async function deleteEntry(entry: WordBookEntryWithDetails) {
+  const deletedEntry = {
+    id: entry.id,
+    word_id: entry.word_id,
+    passive_review_count: entry.passive_review_count,
+    next_passive_review_time: entry.next_passive_review_time,
+    active_review_count: entry.active_review_count,
+    next_active_review_time: entry.next_active_review_time,
+    deleted: true,
+    update_time: Date.now(),
+    sync_at: entry.sync_at,
+  };
+  await repository.update(deletedEntry);
+}
 
 const reviewCountColor = [
   "bg-red-500",
@@ -282,6 +298,20 @@ export function All() {
     {
       header: "Phonetic",
       cell: ({ row }) => <PlayButton voice={row.original} />,
+    },
+    {
+      id: "delete",
+      header: "Delete",
+      cell: ({ row }) => (
+        <Button
+          variant="destructive"
+          size="icon"
+          onClick={() => deleteEntry(row.original)}
+          title="Delete entry"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      ),
     },
   ];
   const data = useLiveQuery(() => repository.all);

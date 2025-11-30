@@ -45,7 +45,7 @@ export const repository = {
     const [word, indexes, lexemes] = await Promise.all([
       wordTable.get(id),
       wordIndexTable.where("word_id").equals(id).toArray(),
-      lexemeTable.where("word_id").equals(id).toArray(),
+      lexemeTable.where("word_id").equals(id).filter(it => !it.deleted).toArray(),
     ]);
     if (!word) return undefined;
     return {
@@ -116,7 +116,7 @@ export const repository = {
       resultWords.map(async (word) => {
         const [indexes, lexemes] = await Promise.all([
           wordIndexTable.where("word_id").equals(word.id).toArray(),
-          lexemeTable.where("word_id").equals(word.id).toArray(),
+          lexemeTable.where("word_id").equals(word.id).filter(it => !it.deleted).toArray(),
         ]);
         return { ...word, indexes, lexemes };
       }),

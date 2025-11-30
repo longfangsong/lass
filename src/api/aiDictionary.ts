@@ -147,6 +147,7 @@ export async function createWordWithAI(
         example_meaning: aiResponse.example_sentence_meaning || null,
         source: "gemini",
         update_time: new Date().getTime(),
+        deleted: false,
       },
     ],
     frequency: null,
@@ -182,5 +183,6 @@ export async function getLexemeWithAI(
     example_meaning: aiResponse.example_sentence_meaning || null,
     source: "gemini",
     update_time: new Date().getTime(),
+    deleted: false,
   };
 }
