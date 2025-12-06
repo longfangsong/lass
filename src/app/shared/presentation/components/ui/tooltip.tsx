@@ -17,12 +17,38 @@ function TooltipProvider({
 }
 
 function Tooltip({
+  children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+  const [open, setOpen] = React.useState(false);
+
+	const handleTouch = (event: React.TouchEvent | React.MouseEvent) => {
+		event.persist();
+		setOpen(true);
+	};
+
   return (
     <TooltipProvider>
-      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
-    </TooltipProvider>
+			<TooltipPrimitive.Root
+				data-slot="tooltip"
+				open={open}
+				onOpenChange={setOpen}
+				{...props}
+			>
+				{React.Children.map(children, (child) => {
+					if (React.isValidElement(child)) {
+						return React.cloneElement(
+							child as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
+							{
+								onTouchStart: handleTouch,
+								onMouseDown: handleTouch,
+							},
+						);
+					}
+					return child;
+				})}
+			</TooltipPrimitive.Root>
+		</TooltipProvider>
   );
 }
 
