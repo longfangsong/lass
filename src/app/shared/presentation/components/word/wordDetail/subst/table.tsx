@@ -2,7 +2,7 @@ import type { Word } from "@/types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../ui/tooltip";
 
 const group1Tooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 1</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 1</span></TooltipTrigger>
     <TooltipContent>
         <p>This group contains en-words which ends with "-a".</p>
         <p>Böjningar: "-a" "-an" "-or" "-orna"</p>
@@ -10,7 +10,7 @@ const group1Tooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group2Tooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 2</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 2</span></TooltipTrigger>
     <TooltipContent>
         <p>This group contains en-words which ends with consonant.</p>
         <p>Böjningar: "-" "-en" "-ar" "-arna"</p>
@@ -18,7 +18,7 @@ const group2Tooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group2SyncopeTooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 2*</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 2*</span></TooltipTrigger>
     <TooltipContent>
         <p>This is a sub group of Grupp 2, which the word ends with -el or -er.</p>
         <p>The "e" here or in added "-en" should be dropped.</p>
@@ -27,7 +27,7 @@ const group2SyncopeTooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group2ApocopeTooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 2*</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 2*</span></TooltipTrigger>
     <TooltipContent>
         <p>This is a sub group of Grupp 2, which the en-word ends with -e.</p>
         <p>No need to add extra "e" in this case.</p>
@@ -36,7 +36,7 @@ const group2ApocopeTooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group3Tooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 3</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 3</span></TooltipTrigger>
     <TooltipContent>
         <p>This group contains mainly loan words.</p>
         <p>Böjningar: "-" "-en" "-er" "-erna"</p>
@@ -44,7 +44,7 @@ const group3Tooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group3ApocopeTooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 3*</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 3*</span></TooltipTrigger>
     <TooltipContent>
         <p>This is a sub group of Grupp 3, which the en-word ends with -e or -o.</p>
         <p>No need to add extra "e" in this case.</p>
@@ -53,7 +53,7 @@ const group3ApocopeTooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group3UmlautTooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 3*</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 3*</span></TooltipTrigger>
     <TooltipContent>
         <p>This is a sub group of Grupp 3, which the word undergoes umlaut (a to ä, o to ö) in plural forms.</p>
         <p>Böjningar: "-" "-en" "(with umlaut) -er" "(with umlaut) -erna"</p>
@@ -61,7 +61,7 @@ const group3UmlautTooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group4Tooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 4</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 4</span></TooltipTrigger>
     <TooltipContent>
         <p>This group contains mainly ett-words ending with a vowel.</p>
         <p>Böjningar: "-" "-t" "-n" "-na"</p>
@@ -69,7 +69,7 @@ const group4Tooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group5Variant1Tooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 5</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 5</span></TooltipTrigger>
     <TooltipContent>
         <p>This group contains mainly ett-words ending with consonant.</p>
         <p>Böjningar: "-" "-et" "-" "-en"</p>
@@ -77,7 +77,7 @@ const group5Variant1Tooltip = <p>Det här är ett <Tooltip>
 </Tooltip> substantiv.</p>;
 
 const group5Variant2Tooltip = <p>Det här är ett <Tooltip>
-    <TooltipTrigger asChild><span className="underline decoration-dashed">Grupp 5*</span></TooltipTrigger>
+    <TooltipTrigger asChild><span className="underline decoration-dashed select-none">Grupp 5*</span></TooltipTrigger>
     <TooltipContent>
         <p>This is a sub group of Grupp 5, which the en-word ends with -are.</p>
         <p>Böjningar: "-" "-n" "-" "(remove e) -na"</p>
@@ -130,7 +130,7 @@ export function Table({ word }: { word: Word }) {
 
 
     const umlauted = obestSing?.spell.replace(/[ao](?!.*[ao])/, (match) => match === "a" ? "ä" : "ö");
-    const isGroup3Umlaut = umlauted && bestSing && obestPl && bestPl
+    const isGroup3Umlaut = umlauted && bestSing && obestPl && bestPl && (umlauted !== obestSing?.spell)
         ? bestSing.spell === obestSing?.spell + "en" &&
         obestPl.spell === umlauted + "er" &&
         bestPl.spell === umlauted + "erna"
@@ -182,7 +182,6 @@ export function Table({ word }: { word: Word }) {
             {isGroup4 && group4Tooltip}
             {isGroup5Variant1 && group5Variant1Tooltip}
             {isGroup5Variant2 && group5Variant2Tooltip}
-            {/* {isGroup5Variant3 && <p>Det här är ett Grupp 5* substantiv.</p>} */}
             <table className="py-1 px-2 border border-sky-500">
                 <thead>
                     <tr>
