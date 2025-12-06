@@ -2,7 +2,7 @@ import { toWordsAndPunctuations } from "@/app/article/domain/functions";
 import PlayButton from "@/app/shared/presentation/components/playAudioButton";
 import { Button } from "@/app/shared/presentation/components/ui/button";
 import SaveToWordBookButton from "@/app/shared/presentation/components/word/saveToWordBook";
-import WordDetail from "@/app/shared/presentation/components/word/wordDetail";
+import WordDetail from "@/app/shared/presentation/components/word/wordDetail/wordDetail";
 import { cn } from "@/app/shared/presentation/lib/utils";
 import type { WordSearchResult } from "@/types";
 import { LoaderCircle } from "lucide-react";

@@ -3,9 +3,12 @@ import React, { useCallback, useState } from "react";
 import { Separator } from "@app/shared/presentation/components/ui/separator";
 import { Badge } from "@app/shared/presentation/components/ui/badge";
 import { cn } from "@app/shared/presentation/lib/utils";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { repository } from "@/app/dictionary/infrastructure/repository";
-import { Spinner } from "../ui/spinner";
+import { Spinner } from "../../ui/spinner";
+import { KomparativSuperlativTable } from "./adj/KomparativSuperlativ";
+import { PronCountTable } from "./adj/PronCountTable";
+import { Table as SubstTable } from "./subst/table";
 
 function lexemePriority(lexeme: Lexeme) {
   const priority = {
@@ -90,37 +93,18 @@ export default function WordDetail({
         </div>
         <p>{currentWord?.part_of_speech}</p>
         {currentWord?.part_of_speech === "subst." ? (
-          <>
-            {currentWord?.indexes
-              .find((it) => it.form === "best.f.sing.")
-              ?.spell.endsWith("t") ? (
-              <p>
-                &quot;{currentWord.lemma}&quot; är ett{" "}
-                <b className="text-red-500">ett</b>-ord
-              </p>
-            ) : currentWord?.indexes
-              .find((it) => it.form === "best.f.sing.")
-              ?.spell.endsWith("n") ? (
-              <p>
-                &quot;{currentWord?.lemma}&quot; är ett{" "}
-                <b className="text-green-500">en</b>-ord
-              </p>
-            ) : (
-              <></>
-            )}
-            {substantiveTable(currentWord)}
-          </>
+            <SubstTable word={currentWord} />
         ) : currentWord?.part_of_speech === "verb" ? (
           verbTable(currentWord)
         ) : currentWord?.part_of_speech === "adj." ? (
           <>
-            {adjectivePronCountTable(currentWord)}
-            {adjectiveKomparativSuperlativTable(currentWord)}
+            <PronCountTable word={currentWord} />
+            <KomparativSuperlativTable word={currentWord} />
           </>
         ) : currentWord?.part_of_speech === "pron." &&
           currentWord?.indexes.find((it) => it.form === "nform") !==
           undefined ? (
-          adjectivePronCountTable(currentWord)
+          <PronCountTable word={currentWord} />
         ) : (
           <></>
         )}
@@ -170,49 +154,6 @@ export default function WordDetail({
           </div>
         )}
     </>
-  );
-}
-
-function substantiveTable(word: Word) {
-  const relevantForms = ["best.f.sing.", "obest.f.sing."];
-  const anyRelevantForms = relevantForms.some((form) =>
-    word?.indexes.find((it) => it.form === form),
-  );
-  if (!anyRelevantForms) {
-    return <></>;
-  }
-  return (
-    <div className="max-w-full overflow-scroll">
-      <table className="py-1 px-2 border border-sky-500">
-        <thead>
-          <tr>
-            <th />
-            <th className="py-1 px-2 border border-sky-500">Obestämd</th>
-            <th className="py-1 px-2 border border-sky-500">Bestämd</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="py-1 px-2 border border-sky-500">Singular</td>
-            <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "obest.f.sing.")?.spell}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "best.f.sing.")?.spell}
-            </td>
-          </tr>
-          <tr>
-            <td className="py-1 px-2 border border-sky-500">Plural</td>
-            <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "obest.f.pl.")?.spell}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "best.f.pl.")?.spell}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
   );
 }
 
@@ -297,74 +238,5 @@ function verbTable(word: Word) {
   );
 }
 
-function adjectivePronCountTable(word: Word) {
-  const relevantForms = ["nform", "tform", "aform"];
-  const anyRelevantForms = relevantForms.some((form) =>
-    word?.indexes.find((it) => it.form === form),
-  );
-  if (!anyRelevantForms) {
-    return <></>;
-  }
-  return (
-    <div className="max-w-full overflow-scroll">
-      <table className="py-1 px-2 border border-sky-500 max-w-72 overflow-scroll">
-        <thead>
-          <tr>
-            <th className="py-1 px-2 border border-sky-500">n-form</th>
-            <th className="py-1 px-2 border border-sky-500">t-form</th>
-            <th className="py-1 px-2 border border-sky-500">a-form</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "nform")?.spell}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "tform")?.spell}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "aform")?.spell}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
 
-function adjectiveKomparativSuperlativTable(word: Word) {
-  const relevantForms = ["komparativ", "superlativ", "superlativ_b"];
-  const anyRelevantForms = relevantForms.some((form) =>
-    word?.indexes.find((it) => it.form === form),
-  );
-  if (!anyRelevantForms) {
-    return <></>;
-  }
-  return (
-    <div className="max-w-full overflow-scroll">
-      <table className="py-1 px-2 border border-sky-500 max-w-72 overflow-scroll">
-        <thead>
-          <tr>
-            <th className="py-1 px-2 border border-sky-500">komparativ</th>
-            <th className="py-1 px-2 border border-sky-500">Obestämd superlativ</th>
-            <th className="py-1 px-2 border border-sky-500">Bestämd superlativ</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="py-1 px-2 border border-sky-500">
-              {word?.indexes.find((it) => it.form === "komparativ")?.spell}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              <span className="text-xs">är</span>&nbsp;{word?.indexes.find((it) => it.form === "superlativ")?.spell}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              <span className="text-xs">den/det/de</span>&nbsp;{word?.indexes.find((it) => it.form === "superlativ_b")?.spell}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
+

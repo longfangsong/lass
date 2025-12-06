@@ -125,7 +125,6 @@ export async function getLexemes(
     .prepare(`SELECT * FROM Lexeme WHERE update_time > ? LIMIT ? OFFSET ?`)
     .bind(from, limit, offset)
     .all<Lexeme>();
-
   return lexemes.results.map((lexeme) => ({
     id: lexeme.id,
     word_id: lexeme.word_id,
@@ -221,7 +220,6 @@ export async function post({ params, env, request, query }: RouterContext) {
   } else if (table === "UserSettings") {
     const postedSettings: Partial<UserSettings> = await request.json();
     // Save the posted settings (will use LWW based on update_time)
-    console.log(postedSettings);
     await saveUserSettings(env.DB, email as string, postedSettings);
     // Get the current settings from DB (after conflict resolution)
     const currentSettings = await getUserSettings(env.DB, email as string);

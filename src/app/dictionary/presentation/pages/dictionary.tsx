@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/app/shared/presentation/components/ui/dialog";
 import type { WordSearchResult, Word } from "@/types";
-import WordDetail from "@/app/shared/presentation/components/word/wordDetail";
+import WordDetail from "@/app/shared/presentation/components/word/wordDetail/wordDetail";
 import { useAtomValue } from "jotai";
 import { CheckCheck, FileDown } from "lucide-react";
 import SaveToWordBookButton from "@/app/shared/presentation/components/word/saveToWordBook";
