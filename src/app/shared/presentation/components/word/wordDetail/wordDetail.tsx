@@ -9,7 +9,7 @@ import { Spinner } from "../../ui/spinner";
 import { KomparativSuperlativTable } from "./adj/KomparativSuperlativ";
 import { PronCountTable } from "./adj/PronCountTable";
 import { Table as SubstTable } from "./subst/table";
-
+import { Table as VerbTable } from "./verb/table";
 function lexemePriority(lexeme: Lexeme) {
   const priority = {
     "folkets-lexikon": 0,
@@ -93,9 +93,9 @@ export default function WordDetail({
         </div>
         <p>{currentWord?.part_of_speech}</p>
         {currentWord?.part_of_speech === "subst." ? (
-            <SubstTable word={currentWord} />
+          <SubstTable word={currentWord} />
         ) : currentWord?.part_of_speech === "verb" ? (
-          verbTable(currentWord)
+          <VerbTable word={currentWord} />
         ) : currentWord?.part_of_speech === "adj." ? (
           <>
             <PronCountTable word={currentWord} />
@@ -157,86 +157,7 @@ export default function WordDetail({
   );
 }
 
-function verbTable(word: Word) {
-  const imperativ = word?.indexes.find((it) => it.form === "imperativ")?.spell;
-  const infinitiv = word?.indexes.find((it) => it.form === "infinitiv")?.spell;
-  const supinum = word?.indexes.find((it) => it.form === "supinum")?.spell;
-  const imperfekt = word?.indexes.find((it) => it.form === "imperfekt")?.spell;
-  const perf_part = word?.indexes.find((it) => it.form === "perf.part.")?.spell;
-  const presens = word?.indexes.find((it) => it.form === "presens")?.spell;
-  const anyRelevantForms = [
-    imperativ,
-    infinitiv,
-    supinum,
-    imperfekt,
-    perf_part,
-    presens,
-  ].some((it) => it);
-  if (!anyRelevantForms) {
-    return <></>;
-  }
-  return (
-    <div className="max-w-full overflow-scroll">
-      <table className="py-1 px-2 border border-sky-500 max-w-72 overflow-scroll">
-        <thead>
-          <tr>
-            <th className="py-1 px-2 border border-sky-500">Imperativ</th>
-            <th className="py-1 px-2 border border-sky-500">Infinitiv</th>
-            <th className="py-1 px-2 border border-sky-500">Supinum</th>
-            <th className="py-1 px-2 border border-sky-500">Imperfekt</th>
-            <th className="py-1 px-2 border border-sky-500">
-              Perfekt particip
-            </th>
-            <th className="py-1 px-2 border border-sky-500">Presens</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="py-1 px-2 border border-sky-500">
-              {imperativ ? <>{imperativ}!</> : <></>}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {infinitiv ? (
-                <>
-                  <span className="text-xs">att </span>
-                  {infinitiv}
-                </>
-              ) : (
-                <></>
-              )}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {supinum ? (
-                <>
-                  <span className="text-xs">har </span>
-                  {supinum}
-                </>
-              ) : (
-                <></>
-              )}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {imperfekt ? imperfekt : ""}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {perf_part ? (
-                <>
-                  <span className="text-xs">är </span>
-                  {perf_part}
-                </>
-              ) : (
-                <></>
-              )}
-            </td>
-            <td className="py-1 px-2 border border-sky-500">
-              {presens ? presens : ""}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
+
 
 
 
