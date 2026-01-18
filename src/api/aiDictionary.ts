@@ -25,7 +25,7 @@ async function getWordDefinitionFromAI(
 ): Promise<AIResponse | undefined> {
   const accountId = "ba6c3ee6481f83e9ced0460cb55a4ade";
   const gatewayName = "swedish-teacher";
-  const model = "gemini-2.0-flash";
+  const model = "gemini-2.5-flash-lite";
 
   const ai = new GoogleGenAI({ apiKey: apiToken });
   const systemInstruction = `You are an expert Swedish-English dictionary API. Your task is to process a given Swedish word and return its details in a strict JSON format.
