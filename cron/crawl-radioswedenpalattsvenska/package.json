@@ -10,7 +10,7 @@
 	},
 	"devDependencies": {
 		"typescript": "^5.5.2",
-		"wrangler": "^4.29.1"
+		"wrangler": "^4.59.1"
 	},
 	"dependencies": {
 		"cheerio": "^1.1.2"
